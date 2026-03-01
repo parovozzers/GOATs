@@ -69,7 +69,7 @@ function DocumentRow({ doc }: { doc: Document }) {
       </time>
 
       <span className="hidden md:block text-sm text-gray-400 flex-shrink-0 w-16 text-right">
-        {formatFileSize(Number(doc.size))}
+        {formatFileSize(doc.size)}
       </span>
 
       <a
@@ -87,7 +87,7 @@ function DocumentRow({ doc }: { doc: Document }) {
 function groupByCategory(docs: Document[]): Map<string, Document[]> {
   const map = new Map<string, Document[]>();
   for (const doc of docs) {
-    const key = doc.category ?? 'Общее';
+    const key = doc.category || 'Общее';
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(doc);
   }
@@ -103,7 +103,7 @@ export function DocumentsPage() {
     document.title = 'Документы — Конкурс СочиГУ';
   }, []);
 
-  useEffect(() => {
+  function loadDocuments() {
     setLoading(true);
     setError(false);
     documentsApi
@@ -111,6 +111,10 @@ export function DocumentsPage() {
       .then(setDocuments)
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadDocuments();
   }, []);
 
   const grouped = groupByCategory(documents);
@@ -125,15 +129,7 @@ export function DocumentsPage() {
           <div className="text-center py-20">
             <p className="text-red-500 mb-4">Не удалось загрузить документы. Попробуйте позже.</p>
             <button
-              onClick={() => {
-                setError(false);
-                setLoading(true);
-                documentsApi
-                  .getAll()
-                  .then(setDocuments)
-                  .catch(() => setError(true))
-                  .finally(() => setLoading(false));
-              }}
+              onClick={loadDocuments}
               className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
             >
               Повторить

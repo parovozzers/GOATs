@@ -72,6 +72,7 @@ export function WinnersPage() {
   const [nominations, setNominations] = useState<Nomination[]>([]);
   const [years, setYears] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [filterYear, setFilterYear] = useState('');
   const [filterNomination, setFilterNomination] = useState('');
 
@@ -82,7 +83,7 @@ export function WinnersPage() {
         setNominations(noms);
         setYears(yrs.map((y) => y.year));
       })
-      .catch(() => {});
+      .catch((err) => console.error('Failed to load filters:', err));
   }, []);
 
   useEffect(() => {
@@ -93,8 +94,8 @@ export function WinnersPage() {
 
     winnersApi
       .getAll(params)
-      .then(setWinners)
-      .catch(() => setWinners([]))
+      .then((data) => { setWinners(data); setError(false); })
+      .catch((err) => { console.error('Failed to load winners:', err); setError(true); })
       .finally(() => setLoading(false));
   }, [filterYear, filterNomination]);
 
@@ -129,13 +130,15 @@ export function WinnersPage() {
         </div>
 
         {/* Контент */}
-        {loading ? (
+        {error ? (
+          <p className="text-red-500 text-center py-20">Не удалось загрузить победителей. Попробуйте позже.</p>
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <WinnerCardSkeleton key={i} />
             ))}
           </div>
-        ) : winners.length === 0 ? (
+        ) : !error && winners.length === 0 ? (
           <p className="text-gray-500 text-center py-20">Победители пока не объявлены.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
