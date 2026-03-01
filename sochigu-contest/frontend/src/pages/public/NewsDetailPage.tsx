@@ -2,14 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { newsApi } from '@/api/news';
 import { News } from '@/types';
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
+import { formatDate } from '@/utils/formatDate';
 
 export function NewsDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -23,7 +16,10 @@ export function NewsDetailPage() {
     setNotFound(false);
     newsApi
       .getBySlug(slug)
-      .then(setNews)
+      .then((item) => {
+        setNews(item);
+        document.title = `${item.title} — Конкурс СочиГУ`;
+      })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [slug]);
@@ -64,16 +60,14 @@ export function NewsDetailPage() {
   return (
     <main className="min-h-screen bg-white">
       <div className="container mx-auto px-4 max-w-3xl py-10">
-        {/* Breadcrumb */}
         <nav className="text-sm text-gray-400 mb-6 flex items-center gap-1 flex-wrap">
           <Link to="/" className="hover:text-primary-700 transition-colors">Главная</Link>
           <span>/</span>
           <Link to="/news" className="hover:text-primary-700 transition-colors">Новости</Link>
           <span>/</span>
-          <span className="text-gray-600 line-clamp-1">{news.title}</span>
+          <span className="text-gray-600">{news.title}</span>
         </nav>
 
-        {/* Cover */}
         {news.coverImage && (
           <img
             src={news.coverImage}
@@ -82,21 +76,17 @@ export function NewsDetailPage() {
           />
         )}
 
-        {/* Title */}
         <h1 className="text-3xl font-bold text-primary-900 mb-3 leading-tight">
           {news.title}
         </h1>
 
-        {/* Date */}
         <time className="text-sm text-gray-400 block mb-8">{formatDate(date)}</time>
 
-        {/* Content */}
         <div
-          className="text-gray-800 leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-5 [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_li]:mb-1 [&_a]:text-primary-700 [&_a]:underline [&_img]:rounded-lg [&_img]:my-4 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-gray-600"
+          className="text-gray-800 leading-relaxed [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-5 [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_li]:mb-1 [&_a]:text-primary-700 [&_a]:underline [&_img]:rounded-lg [&_img]:my-4 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-gray-600"
           dangerouslySetInnerHTML={{ __html: news.content }}
         />
 
-        {/* Back link */}
         <div className="mt-12 pt-6 border-t border-gray-100">
           <Link
             to="/news"

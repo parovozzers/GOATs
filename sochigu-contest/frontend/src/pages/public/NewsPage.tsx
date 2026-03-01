@@ -2,16 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { newsApi } from '@/api/news';
 import { News } from '@/types';
+import { formatDate } from '@/utils/formatDate';
 
 const LIMIT = 10;
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
 
 function NewsCardSkeleton() {
   return (
@@ -72,26 +65,43 @@ export function NewsPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const totalPages = Math.ceil(total / LIMIT);
 
   useEffect(() => {
     setLoading(true);
+    setError(false);
     newsApi
       .getPublished(page, LIMIT)
       .then(([items, count]) => {
         setNews(items);
         setTotal(count);
       })
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [page]);
+
+  useEffect(() => {
+    document.title = 'Новости — Конкурс СочиГУ';
+  }, []);
 
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 max-w-6xl py-10">
         <h1 className="text-3xl font-bold text-primary-900 mb-8">Новости конкурса</h1>
 
-        {loading ? (
+        {error ? (
+          <div className="text-center py-20">
+            <p className="text-red-500 mb-4">Не удалось загрузить новости. Попробуйте позже.</p>
+            <button
+              onClick={() => setPage(1)}
+              className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              Повторить
+            </button>
+          </div>
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <NewsCardSkeleton key={i} />
