@@ -9,8 +9,8 @@ dist/
 .env.local
 .env.*.local
 
-# Кэш Vite
-.vite/
+# Загруженные пользователями файлы
+uploads/
 
 # Логи
 *.log

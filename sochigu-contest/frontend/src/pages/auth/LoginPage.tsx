@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { authApi } from '@/api/auth';
+import { useAuthStore } from '@/store/auth.store';
 
 type LoginForm = {
   email: string;
@@ -10,6 +12,7 @@ type LoginForm = {
 export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const { register, handleSubmit } = useForm<LoginForm>();
 
@@ -17,10 +20,11 @@ export function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      console.log(data);
-      // заглушка — данные пока не отправляются
+      await authApi.login(data);
+      const role = useAuthStore.getState().user?.role;
+      navigate(role === 'admin' || role === 'moderator' ? '/admin' : '/cabinet', { replace: true });
     } catch {
-      setError('Произошла ошибка. Попробуйте позже.');
+      setError('Неверный email или пароль.');
     } finally {
       setLoading(false);
     }

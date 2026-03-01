@@ -2,11 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 4.9%;
+
+    --primary: 224 76% 33%;
+    --primary-foreground: 0 0% 100%;
+    --primary-mid: 221 72% 49%;
+    --primary-light: 214 95% 93%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 224 76% 33%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 160 72% 47%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 224 76% 33%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 224 76% 33%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 224 76% 33%;
+    --sidebar-accent: 221 72% 40%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 221 72% 40%;
+    --sidebar-ring: 0 0% 100%;
+  }
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
   }
-  body {
-    @apply text-gray-900 bg-white font-sans;
+  * {
+    @apply border-border;
   }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: "Inter", system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .hero-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-mid)) 100%);
+  }
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(160 72% 47%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+@media print {
+  .sidebar-print-hide { display: none !important; }
+  .print-full { width: 100% !important; margin: 0 !important; }
 }

@@ -21,4 +21,7 @@ export const applicationsApi = {
   },
   downloadFile: (fileId: string) =>
     apiClient.get(`/files/${fileId}/download`, { responseType: 'blob' }).then(r => r.data),
+  downloadFileUrl: (fileId: string) => `/api/files/${fileId}/download`,
+  exportExcel: () =>
+    apiClient.get('/applications/export/excel', { responseType: 'blob' }).then(r => r.data),
 };

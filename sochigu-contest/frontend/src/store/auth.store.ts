@@ -6,6 +6,13 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
+  middleName?: string;
+  phone?: string;
+  university?: string;
+  faculty?: string;
+  department?: string;
+  course?: number;
+  city?: string;
   role: string;
 }
 

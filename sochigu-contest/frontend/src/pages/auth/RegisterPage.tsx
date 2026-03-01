@@ -1,5 +1,7 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { authApi } from '@/api/auth';
 
 type RegisterForm = {
   lastName: string;
@@ -16,14 +18,28 @@ type RegisterForm = {
 };
 
 export function RegisterPage() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterForm>();
 
-  const onSubmit = (data: RegisterForm) => {
-    console.log(data);
+  const onSubmit = async (data: RegisterForm) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const { consent, course, ...rest } = data;
+      await authApi.register({ ...rest, course: course ? Number(course) : undefined });
+      navigate('/cabinet', { replace: true });
+    } catch {
+      setError('Ошибка регистрации. Возможно, такой email уже занят.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,6 +49,12 @@ export function RegisterPage() {
           <h1 className="text-2xl font-bold text-primary-900 mb-6 text-center">
             Регистрация участника
           </h1>
+
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -214,9 +236,10 @@ export function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-colors"
+              disabled={loading}
+              className="w-full py-3 rounded-lg bg-accent-600 hover:bg-accent-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold transition-colors"
             >
-              Зарегистрироваться
+              {loading ? 'Регистрируем...' : 'Зарегистрироваться'}
             </button>
           </form>
 
