@@ -1,4 +1,5 @@
-// Seed script: node seed.js
+// Seed script: node seed.cjs
+// Заполняет: news, nominations, documents, winners
 const { Client } = require('pg');
 
 const client = new Client({
@@ -8,6 +9,8 @@ const client = new Client({
   password: 'sochigu_pass',
   database: 'sochigu_contest',
 });
+
+// ─── Данные ───────────────────────────────────────────────
 
 const news = [
   {
@@ -155,24 +158,91 @@ const news = [
   },
 ];
 
+const nominations = [
+  { name: 'Цифровые технологии и IT', shortName: 'IT', description: 'Проекты в области программного обеспечения, мобильных приложений, искусственного интеллекта и цифровизации.', sortOrder: 1 },
+  { name: 'Экология и устойчивое развитие', shortName: 'Экология', description: 'Проекты в области охраны окружающей среды, рационального природопользования и «зелёных» технологий.', sortOrder: 2 },
+  { name: 'Социальные инициативы', shortName: 'Социум', description: 'Проекты, направленные на решение социальных проблем и улучшение качества жизни.', sortOrder: 3 },
+  { name: 'Бизнес и предпринимательство', shortName: 'Бизнес', description: 'Стартапы и бизнес-модели с потенциалом коммерциализации.', sortOrder: 4 },
+  { name: 'Наука и образование', shortName: 'Наука', description: 'Научно-исследовательские и образовательные проекты.', sortOrder: 5 },
+];
+
+const documents = [
+  { title: 'Положение о конкурсе студенческих проектов 2026', fileName: 'polozhenie-konkurs-2026.pdf', storagePath: '/uploads/docs/polozhenie-2026.pdf', mimeType: 'application/pdf', size: 524288, category: 'Нормативные документы', sortOrder: 1 },
+  { title: 'Регламент проведения очного этапа', fileName: 'reglament-ochny-etap.pdf', storagePath: '/uploads/docs/reglament.pdf', mimeType: 'application/pdf', size: 307200, category: 'Нормативные документы', sortOrder: 2 },
+  { title: 'Критерии оценки проектов', fileName: 'kriterii-ocenki.pdf', storagePath: '/uploads/docs/kriterii.pdf', mimeType: 'application/pdf', size: 204800, category: 'Нормативные документы', sortOrder: 3 },
+  { title: 'Шаблон заявки участника (Word)', fileName: 'shablon-zayavki.docx', storagePath: '/uploads/docs/shablon-zayavki.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 102400, category: 'Шаблоны', sortOrder: 4 },
+  { title: 'Шаблон презентации проекта (PowerPoint)', fileName: 'shablon-prezentacii.pptx', storagePath: '/uploads/docs/shablon-prezentacii.pptx', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', size: 2621440, category: 'Шаблоны', sortOrder: 5 },
+  { title: 'Архив шаблонов документов', fileName: 'templates-2026.zip', storagePath: '/uploads/docs/templates-2026.zip', mimeType: 'application/zip', size: 3145728, category: 'Шаблоны', sortOrder: 6 },
+];
+
+// ─── Seed ─────────────────────────────────────────────────
+
 async function seed() {
   await client.connect();
-  console.log('Connected to PostgreSQL');
+  console.log('Connected to PostgreSQL\n');
 
-  // Clear existing news
+  // Порядок важен: сначала удаляем зависимые таблицы
+  await client.query('DELETE FROM winners');
+  await client.query('DELETE FROM nominations');
+  await client.query('DELETE FROM documents');
   await client.query('DELETE FROM news');
-  console.log('Cleared existing news');
+  console.log('Cleared: winners, nominations, documents, news\n');
 
+  // 1. News
   for (const item of news) {
     await client.query(
       `INSERT INTO news (id, title, slug, content, excerpt, "coverImage", "isPublished", "publishedAt", "createdAt", "updatedAt")
        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, true, $6, NOW(), NOW())`,
       [item.title, item.slug, item.content, item.excerpt, item.coverImage, item.publishedAt],
     );
-    console.log(`  ✓ ${item.title}`);
+    console.log(`  ✓ News: ${item.title}`);
   }
 
-  console.log(`\nDone: inserted ${news.length} news items`);
+  // 2. Nominations (нужны до winners)
+  const nominationIds = [];
+  for (const nom of nominations) {
+    const res = await client.query(
+      `INSERT INTO nominations (id, name, "shortName", description, "isActive", "sortOrder", "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, true, $4, NOW(), NOW()) RETURNING id`,
+      [nom.name, nom.shortName, nom.description, nom.sortOrder],
+    );
+    nominationIds.push(res.rows[0].id);
+    console.log(`  ✓ Nomination: ${nom.name}`);
+  }
+
+  // 3. Documents
+  for (const doc of documents) {
+    await client.query(
+      `INSERT INTO documents (id, title, "fileName", "storagePath", "mimeType", size, category, "isPublished", "sortOrder", "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, true, $7, NOW(), NOW())`,
+      [doc.title, doc.fileName, doc.storagePath, doc.mimeType, doc.size, doc.category, doc.sortOrder],
+    );
+    console.log(`  ✓ Document: ${doc.title}`);
+  }
+
+  // 4. Winners (nominationIds: 0=IT, 1=Экология, 2=Социум, 3=Бизнес, 4=Наука)
+  const winners = [
+    { projectTitle: 'Нейро-Сочи: умная навигация туристических потоков', teamName: 'Команда «НейроЮг»', description: 'Система ML-анализа и перераспределения туристических потоков в Сочи', year: 2025, place: 1, nominationId: nominationIds[0], photoUrl: 'https://picsum.photos/seed/w1/600/400', university: 'СочиГУ' },
+    { projectTitle: 'SmartCampus: мобильное приложение для студентов', teamName: 'Иван Петров', description: null, year: 2025, place: 2, nominationId: nominationIds[0], photoUrl: null, university: 'КубГУ' },
+    { projectTitle: 'EcoMonitor: мониторинг качества воды Чёрного моря', teamName: 'Команда «ЭкоЮг»', description: 'Сеть IoT-датчиков и веб-платформа анализа данных', year: 2025, place: 1, nominationId: nominationIds[1], photoUrl: 'https://picsum.photos/seed/w3/600/400', university: 'СочиГУ' },
+    { projectTitle: 'GreenRoute: сервис экологичных маршрутов', teamName: 'Команда «ГринТрэвел»', description: null, year: 2025, place: 2, nominationId: nominationIds[1], photoUrl: null, university: 'АГПУ' },
+    { projectTitle: 'Помощник пожилых: платформа социальной помощи', teamName: 'Анна Смирнова, Дарья Козлова', description: 'Цифровая платформа для волонтёрской помощи пожилым людям', year: 2025, place: 1, nominationId: nominationIds[2], photoUrl: 'https://picsum.photos/seed/w5/600/400', university: 'СочиГУ' },
+    { projectTitle: 'AI-ассистент для абитуриентов СочиГУ', teamName: 'Команда «ТechStart»', description: 'Чат-бот на основе LLM для ответов на вопросы абитуриентов', year: 2024, place: 1, nominationId: nominationIds[0], photoUrl: 'https://picsum.photos/seed/w6/600/400', university: 'СочиГУ' },
+    { projectTitle: 'Биоразлагаемая упаковка из морских водорослей', teamName: 'Команда «АльгоПак»', description: null, year: 2024, place: 1, nominationId: nominationIds[1], photoUrl: 'https://picsum.photos/seed/w7/600/400', university: 'КубГТУ' },
+    { projectTitle: 'EdTech-платформа для репетиторов Краснодарского края', teamName: 'Максим Орлов', description: null, year: 2024, place: 1, nominationId: nominationIds[4], photoUrl: null, university: 'КубГУ' },
+    { projectTitle: 'LocalFood: маркетплейс фермерских продуктов', teamName: 'Команда «ФермаМаркет»', description: 'Платформа прямых продаж от местных производителей', year: 2024, place: 1, nominationId: nominationIds[3], photoUrl: 'https://picsum.photos/seed/w9/600/400', university: 'СочиГУ' },
+  ];
+
+  for (const w of winners) {
+    await client.query(
+      `INSERT INTO winners (id, "projectTitle", "teamName", description, year, place, "nominationId", "photoUrl", university, "createdAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+      [w.projectTitle, w.teamName, w.description, w.year, w.place, w.nominationId, w.photoUrl, w.university],
+    );
+    console.log(`  ✓ Winner [${w.year} #${w.place}]: ${w.projectTitle}`);
+  }
+
+  console.log(`\n✅ Done: ${news.length} news, ${nominations.length} nominations, ${documents.length} documents, ${winners.length} winners`);
   await client.end();
 }
 
