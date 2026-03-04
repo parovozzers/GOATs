@@ -1,12 +1,21 @@
 import { apiClient } from './client';
 import { Application } from '@/types';
 
+export interface CreateApplicationDto {
+  nominationId: string;
+  projectTitle: string;
+  projectDescription: string;
+  keywords?: string[];
+  teamMembers?: { name: string; role: string; email?: string }[];
+  supervisor?: { name: string; title: string; email?: string };
+}
+
 export const applicationsApi = {
-  create: (data: any) => apiClient.post<Application>('/applications', data).then(r => r.data),
+  create: (data: CreateApplicationDto) => apiClient.post<Application>('/applications', data).then(r => r.data),
   getMy: () => apiClient.get<Application[]>('/applications/my').then(r => r.data),
-  getAll: (params?: any) => apiClient.get('/applications', { params }).then(r => r.data),
+  getAll: (params?: Record<string, string | number | undefined>) => apiClient.get('/applications', { params }).then(r => r.data),
   getById: (id: string) => apiClient.get<Application>(`/applications/${id}`).then(r => r.data),
-  update: (id: string, data: any) => apiClient.patch<Application>(`/applications/${id}`, data).then(r => r.data),
+  update: (id: string, data: Partial<CreateApplicationDto>) => apiClient.patch<Application>(`/applications/${id}`, data).then(r => r.data),
   submit: (id: string) => apiClient.post<Application>(`/applications/${id}/submit`).then(r => r.data),
   updateStatus: (id: string, data: { status: string; comment?: string }) =>
     apiClient.patch<Application>(`/applications/${id}/status`, data).then(r => r.data),
@@ -21,4 +30,7 @@ export const applicationsApi = {
   },
   downloadFile: (fileId: string) =>
     apiClient.get(`/files/${fileId}/download`, { responseType: 'blob' }).then(r => r.data),
+  downloadFileUrl: (fileId: string) => `/api/files/${fileId}/download`,
+  exportExcel: () =>
+    apiClient.get('/applications/export/excel', { responseType: 'blob' }).then(r => r.data),
 };

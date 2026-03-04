@@ -1,5 +1,7 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { authApi } from '@/api/auth';
 
 type RegisterForm = {
   lastName: string;
@@ -8,6 +10,7 @@ type RegisterForm = {
   email: string;
   phone?: string;
   password: string;
+  confirmPassword: string;
   university: string;
   faculty: string;
   course: string;
@@ -16,14 +19,29 @@ type RegisterForm = {
 };
 
 export function RegisterPage() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<RegisterForm>();
 
-  const onSubmit = (data: RegisterForm) => {
-    console.log(data);
+  const onSubmit = async (data: RegisterForm) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const { consent, course, confirmPassword: _, ...rest } = data;
+      await authApi.register({ ...rest, course: course ? Number(course) : undefined });
+      navigate('/cabinet', { replace: true });
+    } catch {
+      setError('Ошибка регистрации. Возможно, такой email уже занят.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,6 +51,12 @@ export function RegisterPage() {
           <h1 className="text-2xl font-bold text-primary-900 mb-6 text-center">
             Регистрация участника
           </h1>
+
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -117,23 +141,43 @@ export function RegisterPage() {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Пароль <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="password"
-                type="password"
-                {...register('password', {
-                  required: 'Обязательное поле',
-                  minLength: { value: 8, message: 'Минимум 8 символов' },
-                })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                placeholder="••••••••"
-              />
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Пароль <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  {...register('password', {
+                    required: 'Обязательное поле',
+                    minLength: { value: 8, message: 'Минимум 8 символов' },
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  placeholder="••••••••"
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  Повторите пароль <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  {...register('confirmPassword', {
+                    required: 'Обязательное поле',
+                    validate: v => v === getValues('password') || 'Пароли не совпадают',
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  placeholder="••••••••"
+                />
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -214,9 +258,10 @@ export function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-colors"
+              disabled={loading}
+              className="w-full py-3 rounded-lg bg-accent-600 hover:bg-accent-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold transition-colors"
             >
-              Зарегистрироваться
+              {loading ? 'Регистрируем...' : 'Зарегистрироваться'}
             </button>
           </form>
 

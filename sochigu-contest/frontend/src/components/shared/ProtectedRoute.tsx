@@ -6,10 +6,11 @@ interface Props {
 }
 
 export function ProtectedRoute({ roles }: Props) {
-  const { isAuthenticated, hasRole } = useAuthStore();
+  const isAuthenticated = useAuthStore(state => !!state.accessToken && !!state.user);
+  const userRole = useAuthStore(state => state.user?.role);
 
-  if (!isAuthenticated()) return <Navigate to="/login" replace />;
-  if (roles && !hasRole(roles)) return <Navigate to="/" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (roles && (!userRole || !roles.includes(userRole))) return <Navigate to="/" replace />;
 
   return <Outlet />;
 }

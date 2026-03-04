@@ -1,10 +1,287 @@
-export function ApplicationPage() {
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useMyApplications } from '@/hooks/useApplications';
+import { applicationsApi } from '@/api/applications';
+import { Application, ApplicationLog } from '@/types';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Spinner } from '@/components/shared/Spinner';
+import { Modal } from '@/components/shared/Modal';
+import { Alert } from '@/components/ui/Alert';
+import { formatDate, formatSize } from '@/utils/format';
+
+function StatusTimeline({ logs }: { logs: ApplicationLog[] }) {
+  if (!logs.length) return null;
   return (
-    <main className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 max-w-4xl py-8">
-        <h1 className="text-3xl font-bold text-primary-900">Мои заявки</h1>
-        <p className="text-gray-600 mt-4">Раздел в разработке.</p>
+    <div>
+      <h3 className="mb-3 font-semibold text-foreground">История статусов</h3>
+      <ol className="relative space-y-4 border-l border-border pl-5">
+        {logs.map(log => (
+          <li key={log.id} className="relative">
+            <div className="absolute -left-[1.35rem] top-1 h-3 w-3 rounded-full border-2 border-white bg-primary" />
+            <p className="text-sm font-medium text-foreground">
+              {log.fromStatus ? `${log.fromStatus} → ` : ''}{log.toStatus}
+            </p>
+            {log.comment && <p className="mt-0.5 text-xs text-muted-foreground">{log.comment}</p>}
+            <p className="mt-0.5 text-xs text-muted-foreground">{formatDate(log.createdAt)}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+export function ApplicationPage() {
+  const { applications, loading: appsLoading } = useMyApplications();
+  const [apps, setApps] = useState<Application[]>([]);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ action: 'submit' | 'withdraw' } | null>(null);
+
+  useEffect(() => {
+    setApps(applications);
+  }, [applications]);
+
+  const app = apps[selectedIdx] ?? null;
+
+  const handleSubmit = async () => {
+    if (!app) return;
+    setConfirmModal(null);
+    setError(null);
+    setSubmitting(true);
+    try {
+      const updated = await applicationsApi.submit(app.id);
+      setApps(prev => prev.map((a, i) => i === selectedIdx ? updated : a));
+    } catch {
+      setError('Не удалось подать заявку. Попробуйте ещё раз.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!app) return;
+    setConfirmModal(null);
+    setError(null);
+    setSubmitting(true);
+    try {
+      await applicationsApi.withdraw(app.id);
+      setApps(prev => prev.filter((_, i) => i !== selectedIdx));
+      setSelectedIdx(prev => Math.max(0, prev - 1));
+    } catch {
+      setError('Не удалось отозвать заявку. Попробуйте ещё раз.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (appsLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Spinner size="lg" />
       </div>
-    </main>
+    );
+  }
+
+  if (!apps.length) {
+    return (
+      <div className="py-20 text-center">
+        <p className="mb-4 text-muted-foreground">У вас нет заявки.</p>
+        <Link
+          to="/cabinet/application/new"
+          className="inline-flex rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground transition-all hover:bg-accent-hover"
+        >
+          Создать заявку
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Переключатель заявок (если > 1) */}
+      {apps.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {apps.map((a, i) => (
+            <button
+              key={a.id}
+              onClick={() => { setSelectedIdx(i); setError(null); }}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                i === selectedIdx
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border border-border text-foreground hover:bg-muted'
+              }`}
+            >
+              {a.projectTitle}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Шапка */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-foreground">{app.projectTitle}</h1>
+        <StatusBadge status={app.status} />
+      </div>
+
+      {/* Ошибка */}
+      {error && <Alert variant="error">{error}</Alert>}
+
+      {/* Комментарий администратора */}
+      {app.adminComment && (
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+          <strong>Комментарий администратора:</strong> {app.adminComment}
+        </div>
+      )}
+
+      {/* Кнопки действий (только черновик) */}
+      {app.status === 'draft' && (
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to={`/cabinet/application/${app.id}/edit`}
+            className="rounded-lg border-2 border-primary px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary-light"
+          >
+            Редактировать
+          </Link>
+          <button
+            onClick={() => setConfirmModal({ action: 'submit' })}
+            disabled={submitting}
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-all hover:bg-accent-hover disabled:opacity-60"
+          >
+            Подать заявку
+          </button>
+          <button
+            onClick={() => setConfirmModal({ action: 'withdraw' })}
+            disabled={submitting}
+            className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-colors hover:opacity-90 disabled:opacity-60"
+          >
+            Отозвать
+          </button>
+        </div>
+      )}
+
+      {/* Основные данные */}
+      <div className="space-y-4 rounded-xl bg-card border border-border p-6 shadow-sm">
+        <div>
+          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Номинация</p>
+          <p className="font-medium text-foreground">{app.nomination?.name ?? '—'}</p>
+        </div>
+        <div>
+          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Описание проекта</p>
+          <p className="whitespace-pre-wrap text-foreground">{app.projectDescription}</p>
+        </div>
+        {app.keywords?.length ? (
+          <div>
+            <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Ключевые слова</p>
+            <div className="flex flex-wrap gap-2">
+              {app.keywords.map((kw, i) => (
+                <span key={i} className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
+                  {kw}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Команда */}
+      {app.teamMembers?.length ? (
+        <div className="rounded-xl bg-card border border-border p-6 shadow-sm">
+          <h3 className="mb-3 font-semibold text-foreground">Состав команды</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-muted-foreground">
+                  <th className="pb-2 font-medium">Имя</th>
+                  <th className="pb-2 font-medium">Роль</th>
+                  <th className="pb-2 font-medium">Email</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {app.teamMembers.map((m, i) => (
+                  <tr key={i}>
+                    <td className="py-2 font-medium text-foreground">{m.name}</td>
+                    <td className="py-2 text-muted-foreground">{m.role}</td>
+                    <td className="py-2 text-muted-foreground">{m.email ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Научный руководитель */}
+      {app.supervisor && (
+        <div className="rounded-xl bg-card border border-border p-6 shadow-sm">
+          <h3 className="mb-3 font-semibold text-foreground">Научный руководитель</h3>
+          <p className="font-medium text-foreground">{app.supervisor.name}</p>
+          <p className="text-sm text-muted-foreground">{app.supervisor.title}</p>
+          {app.supervisor.email && (
+            <p className="text-sm text-muted-foreground">{app.supervisor.email}</p>
+          )}
+        </div>
+      )}
+
+      {/* Файлы */}
+      {app.files?.length ? (
+        <div className="rounded-xl bg-card border border-border p-6 shadow-sm">
+          <h3 className="mb-3 font-semibold text-foreground">Файлы</h3>
+          <div className="space-y-2">
+            {app.files.map(f => (
+              <div key={f.id} className="flex items-center justify-between gap-3 text-sm">
+                <span className="truncate text-foreground">{f.originalName}</span>
+                <span className="flex-shrink-0 text-muted-foreground">{formatSize(f.size)}</span>
+                <a
+                  href={applicationsApi.downloadFileUrl(f.id)}
+                  download
+                  className="flex-shrink-0 font-medium text-primary hover:underline"
+                >
+                  Скачать
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* История статусов */}
+      {app.logs?.length ? (
+        <div className="rounded-xl bg-card border border-border p-6 shadow-sm">
+          <StatusTimeline logs={app.logs} />
+        </div>
+      ) : null}
+
+      {/* Модальное окно подтверждения */}
+      <Modal
+        isOpen={!!confirmModal}
+        onClose={() => setConfirmModal(null)}
+        title={confirmModal?.action === 'submit' ? 'Подать заявку?' : 'Отозвать заявку?'}
+      >
+        <p className="text-sm text-gray-600 mb-6">
+          {confirmModal?.action === 'submit'
+            ? 'После подачи редактирование заявки будет недоступно.'
+            : 'Вы уверены, что хотите отозвать заявку?'}
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setConfirmModal(null)}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Отмена
+          </button>
+          <button
+            onClick={confirmModal?.action === 'submit' ? handleSubmit : handleWithdraw}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${
+              confirmModal?.action === 'withdraw'
+                ? 'bg-destructive hover:opacity-90'
+                : 'bg-accent hover:bg-accent-hover'
+            }`}
+          >
+            Подтвердить
+          </button>
+        </div>
+      </Modal>
+    </div>
   );
 }
