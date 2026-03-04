@@ -14,13 +14,13 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const { register, handleSubmit } = useForm<LoginForm>();
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>();
 
   const onSubmit = async (data: LoginForm) => {
-    setError(null);
     setLoading(true);
     try {
       await authApi.login(data);
+      setError(null);
       const role = useAuthStore.getState().user?.role;
       navigate(role === 'admin' || role === 'moderator' ? '/admin' : '/cabinet', { replace: true });
     } catch {
@@ -47,10 +47,19 @@ export function LoginPage() {
               <input
                 id="email"
                 type="email"
-                {...register('email', { required: true })}
+                {...register('email', {
+                  required: 'Введите email',
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Некорректный email',
+                  },
+                })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 placeholder="email@example.com"
               />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+              )}
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">

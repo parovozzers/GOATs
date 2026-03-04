@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
-import { applicationsApi } from '@/api/applications';
+import { applicationsApi, CreateApplicationDto } from '@/api/applications';
 import { nominationsApi } from '@/api/nominations';
 import { Nomination, AppFile, TeamMember } from '@/types';
 import { Spinner } from '@/components/shared/Spinner';
+import { Alert } from '@/components/ui/Alert';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -16,19 +17,19 @@ const STEP_TITLES = [
   'Шаг 4 из 4: Подтверждение',
 ];
 
-// Поля шага 2 — управляются через react-hook-form
 interface Step2Fields {
   projectTitle: string;
   projectDescription: string;
   keywords: string;
 }
 
+const inputClass = 'w-full rounded-lg border border-input bg-background px-4 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring';
+
 export function ApplicationFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
 
-  // react-hook-form для шага 2
   const {
     register,
     trigger,
@@ -52,6 +53,7 @@ export function ApplicationFormPage() {
   const [saving, setSaving] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     nominationsApi.getAll().then(setNominations);
@@ -72,12 +74,11 @@ export function ApplicationFormPage() {
         setUploadedFiles(app.files ?? []);
       }).finally(() => setLoading(false));
     }
-  }, []);
+  }, [id]);
 
-  // Переход к следующему шагу с валидацией
   const handleNext = async () => {
     if (step === 1) {
-      if (!nominationId) return; // кнопка уже задизейблена
+      if (!nominationId) return;
       setStep(2);
     } else if (step === 2) {
       const valid = await trigger(['projectTitle', 'projectDescription']);
@@ -88,7 +89,7 @@ export function ApplicationFormPage() {
     }
   };
 
-  const buildPayload = () => {
+  const buildPayload = (): CreateApplicationDto => {
     const { projectTitle, projectDescription, keywords } = getStep2();
     return {
       nominationId,
@@ -108,31 +109,47 @@ export function ApplicationFormPage() {
   };
 
   const handleSaveDraft = async () => {
+    setError(null);
     setSaving(true);
-    try { await saveApp(); navigate('/cabinet/application'); } finally { setSaving(false); }
+    try {
+      await saveApp();
+      navigate('/cabinet/application');
+    } catch {
+      setError('Не удалось сохранить черновик. Попробуйте ещё раз.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSubmitApp = async () => {
+    setError(null);
     setSaving(true);
     try {
       const newId = await saveApp();
       await applicationsApi.submit(newId);
       navigate('/cabinet/application');
-    } finally { setSaving(false); }
+    } catch {
+      setError('Не удалось подать заявку. Попробуйте ещё раз.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleFileUpload = async (file: File, category: string) => {
-    const targetId = appId ?? await saveApp();
-    const uploaded = await applicationsApi.uploadFile(targetId, file, category);
-    setUploadedFiles(prev => [...prev, uploaded]);
+    setError(null);
+    try {
+      const targetId = appId ?? await saveApp();
+      const uploaded = await applicationsApi.uploadFile(targetId, file, category);
+      setUploadedFiles(prev => [...prev, uploaded]);
+    } catch {
+      setError('Не удалось загрузить файл. Попробуйте ещё раз.');
+    }
   };
 
   const addMember = () => setTeamMembers(t => [...t, { name: '', role: '', email: '' }]);
   const removeMember = (i: number) => setTeamMembers(t => t.filter((_, idx) => idx !== i));
   const updateMember = (i: number, field: keyof TeamMember, value: string) =>
     setTeamMembers(t => t.map((m, idx) => idx === i ? { ...m, [field]: value } : m));
-
-  const ic = 'w-full rounded-lg border border-input bg-background px-4 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring';
 
   if (loading) {
     return (
@@ -170,6 +187,13 @@ export function ApplicationFormPage() {
           );
         })}
       </div>
+
+      {/* Ошибка */}
+      {error && (
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
 
       {/* Контент шагов */}
       <div className="min-h-80 rounded-xl border border-border bg-card p-6 shadow-sm">
@@ -218,7 +242,7 @@ export function ApplicationFormPage() {
                   required: 'Введите название проекта',
                   maxLength: { value: 200, message: 'Максимум 200 символов' },
                 })}
-                className={ic}
+                className={inputClass}
                 placeholder="Краткое название проекта"
               />
               {step2Errors.projectTitle && (
@@ -238,7 +262,7 @@ export function ApplicationFormPage() {
                   minLength: { value: 100, message: 'Минимум 100 символов' },
                   maxLength: { value: 2000, message: 'Максимум 2000 символов' },
                 })}
-                className={ic}
+                className={inputClass}
                 placeholder="Подробное описание проекта (минимум 100 символов)"
               />
               {step2Errors.projectDescription && (
@@ -251,7 +275,7 @@ export function ApplicationFormPage() {
               <input
                 type="text"
                 {...register('keywords')}
-                className={ic}
+                className={inputClass}
                 placeholder="Введите через запятую: инновации, IT, экология"
               />
             </div>
@@ -268,12 +292,12 @@ export function ApplicationFormPage() {
                 {teamMembers.map((m, i) => (
                   <div key={i} className="grid grid-cols-3 gap-2">
                     <input type="text" placeholder="Имя" value={m.name}
-                      onChange={e => updateMember(i, 'name', e.target.value)} className={ic} />
+                      onChange={e => updateMember(i, 'name', e.target.value)} className={inputClass} />
                     <input type="text" placeholder="Роль в проекте" value={m.role}
-                      onChange={e => updateMember(i, 'role', e.target.value)} className={ic} />
+                      onChange={e => updateMember(i, 'role', e.target.value)} className={inputClass} />
                     <div className="flex gap-1">
                       <input type="email" placeholder="Email (необязательно)" value={m.email ?? ''}
-                        onChange={e => updateMember(i, 'email', e.target.value)} className={ic} />
+                        onChange={e => updateMember(i, 'email', e.target.value)} className={inputClass} />
                       {teamMembers.length > 1 && (
                         <button type="button" onClick={() => removeMember(i)}
                           className="px-2 text-lg text-destructive hover:opacity-70">×</button>
@@ -288,11 +312,11 @@ export function ApplicationFormPage() {
               <p className="mb-2 text-sm font-medium text-foreground">Научный руководитель</p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <input type="text" placeholder="ФИО" value={supervisor.name}
-                  onChange={e => setSupervisor(s => ({ ...s, name: e.target.value }))} className={ic} />
+                  onChange={e => setSupervisor(s => ({ ...s, name: e.target.value }))} className={inputClass} />
                 <input type="text" placeholder="Должность/звание" value={supervisor.title}
-                  onChange={e => setSupervisor(s => ({ ...s, title: e.target.value }))} className={ic} />
+                  onChange={e => setSupervisor(s => ({ ...s, title: e.target.value }))} className={inputClass} />
                 <input type="email" placeholder="Email (необязательно)" value={supervisor.email}
-                  onChange={e => setSupervisor(s => ({ ...s, email: e.target.value }))} className={ic} />
+                  onChange={e => setSupervisor(s => ({ ...s, email: e.target.value }))} className={inputClass} />
               </div>
             </div>
           </div>

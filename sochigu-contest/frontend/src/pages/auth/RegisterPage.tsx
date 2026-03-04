@@ -10,6 +10,7 @@ type RegisterForm = {
   email: string;
   phone?: string;
   password: string;
+  confirmPassword: string;
   university: string;
   faculty: string;
   course: string;
@@ -25,6 +26,7 @@ export function RegisterPage() {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<RegisterForm>();
 
@@ -32,7 +34,7 @@ export function RegisterPage() {
     setError(null);
     setLoading(true);
     try {
-      const { consent, course, ...rest } = data;
+      const { consent, course, confirmPassword: _, ...rest } = data;
       await authApi.register({ ...rest, course: course ? Number(course) : undefined });
       navigate('/cabinet', { replace: true });
     } catch {
@@ -139,23 +141,43 @@ export function RegisterPage() {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Пароль <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="password"
-                type="password"
-                {...register('password', {
-                  required: 'Обязательное поле',
-                  minLength: { value: 8, message: 'Минимум 8 символов' },
-                })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                placeholder="••••••••"
-              />
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Пароль <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  {...register('password', {
+                    required: 'Обязательное поле',
+                    minLength: { value: 8, message: 'Минимум 8 символов' },
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  placeholder="••••••••"
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  Повторите пароль <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  {...register('confirmPassword', {
+                    required: 'Обязательное поле',
+                    validate: v => v === getValues('password') || 'Пароли не совпадают',
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  placeholder="••••••••"
+                />
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

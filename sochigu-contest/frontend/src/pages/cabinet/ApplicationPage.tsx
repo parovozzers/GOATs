@@ -5,18 +5,9 @@ import { applicationsApi } from '@/api/applications';
 import { Application, ApplicationLog } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Spinner } from '@/components/shared/Spinner';
-
-function formatDate(str: string) {
-  return new Date(str).toLocaleDateString('ru-RU', {
-    day: 'numeric', month: 'long', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-}
-
-function formatSize(bytes: number) {
-  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
-  return `${Math.round(bytes / 1024)} КБ`;
-}
+import { Modal } from '@/components/shared/Modal';
+import { Alert } from '@/components/ui/Alert';
+import { formatDate, formatSize } from '@/utils/format';
 
 function StatusTimeline({ logs }: { logs: ApplicationLog[] }) {
   if (!logs.length) return null;
@@ -41,31 +32,44 @@ function StatusTimeline({ logs }: { logs: ApplicationLog[] }) {
 
 export function ApplicationPage() {
   const { applications, loading: appsLoading } = useMyApplications();
-  const [app, setApp] = useState<Application | null>(null);
+  const [apps, setApps] = useState<Application[]>([]);
+  const [selectedIdx, setSelectedIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ action: 'submit' | 'withdraw' } | null>(null);
 
-  // Синхронизируем локальное состояние с хуком
   useEffect(() => {
-    setApp(applications[0] ?? null);
+    setApps(applications);
   }, [applications]);
 
+  const app = apps[selectedIdx] ?? null;
+
   const handleSubmit = async () => {
-    if (!app || !confirm('Подать заявку? После подачи редактирование будет недоступно.')) return;
+    if (!app) return;
+    setConfirmModal(null);
+    setError(null);
     setSubmitting(true);
     try {
       const updated = await applicationsApi.submit(app.id);
-      setApp(updated);
+      setApps(prev => prev.map((a, i) => i === selectedIdx ? updated : a));
+    } catch {
+      setError('Не удалось подать заявку. Попробуйте ещё раз.');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleWithdraw = async () => {
-    if (!app || !confirm('Отозвать заявку?')) return;
+    if (!app) return;
+    setConfirmModal(null);
+    setError(null);
     setSubmitting(true);
     try {
       await applicationsApi.withdraw(app.id);
-      setApp(null);
+      setApps(prev => prev.filter((_, i) => i !== selectedIdx));
+      setSelectedIdx(prev => Math.max(0, prev - 1));
+    } catch {
+      setError('Не удалось отозвать заявку. Попробуйте ещё раз.');
     } finally {
       setSubmitting(false);
     }
@@ -79,7 +83,7 @@ export function ApplicationPage() {
     );
   }
 
-  if (!app) {
+  if (!apps.length) {
     return (
       <div className="py-20 text-center">
         <p className="mb-4 text-muted-foreground">У вас нет заявки.</p>
@@ -95,11 +99,33 @@ export function ApplicationPage() {
 
   return (
     <div className="space-y-6">
+      {/* Переключатель заявок (если > 1) */}
+      {apps.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {apps.map((a, i) => (
+            <button
+              key={a.id}
+              onClick={() => { setSelectedIdx(i); setError(null); }}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                i === selectedIdx
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border border-border text-foreground hover:bg-muted'
+              }`}
+            >
+              {a.projectTitle}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Шапка */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-foreground">{app.projectTitle}</h1>
         <StatusBadge status={app.status} />
       </div>
+
+      {/* Ошибка */}
+      {error && <Alert variant="error">{error}</Alert>}
 
       {/* Комментарий администратора */}
       {app.adminComment && (
@@ -118,14 +144,14 @@ export function ApplicationPage() {
             Редактировать
           </Link>
           <button
-            onClick={handleSubmit}
+            onClick={() => setConfirmModal({ action: 'submit' })}
             disabled={submitting}
             className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-all hover:bg-accent-hover disabled:opacity-60"
           >
             Подать заявку
           </button>
           <button
-            onClick={handleWithdraw}
+            onClick={() => setConfirmModal({ action: 'withdraw' })}
             disabled={submitting}
             className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-colors hover:opacity-90 disabled:opacity-60"
           >
@@ -225,6 +251,37 @@ export function ApplicationPage() {
           <StatusTimeline logs={app.logs} />
         </div>
       ) : null}
+
+      {/* Модальное окно подтверждения */}
+      <Modal
+        isOpen={!!confirmModal}
+        onClose={() => setConfirmModal(null)}
+        title={confirmModal?.action === 'submit' ? 'Подать заявку?' : 'Отозвать заявку?'}
+      >
+        <p className="text-sm text-gray-600 mb-6">
+          {confirmModal?.action === 'submit'
+            ? 'После подачи редактирование заявки будет недоступно.'
+            : 'Вы уверены, что хотите отозвать заявку?'}
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setConfirmModal(null)}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Отмена
+          </button>
+          <button
+            onClick={confirmModal?.action === 'submit' ? handleSubmit : handleWithdraw}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${
+              confirmModal?.action === 'withdraw'
+                ? 'bg-destructive hover:opacity-90'
+                : 'bg-accent hover:bg-accent-hover'
+            }`}
+          >
+            Подтвердить
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
