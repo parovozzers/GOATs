@@ -4,21 +4,43 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailService {
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null;
 
   constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransport({
-      host: configService.get('SMTP_HOST'),
-      port: configService.get<number>('SMTP_PORT', 465),
-      secure: true,
-      auth: {
-        user: configService.get('SMTP_USER'),
-        pass: configService.get('SMTP_PASS'),
-      },
+    if (!configService.get('SMTP_HOST')) {
+      console.warn('SMTP not configured, emails will be skipped');
+      this.transporter = null;
+    } else {
+      this.transporter = nodemailer.createTransport({
+        host: configService.get('SMTP_HOST'),
+        port: configService.get<number>('SMTP_PORT', 465),
+        secure: true,
+        auth: {
+          user: configService.get('SMTP_USER'),
+          pass: configService.get('SMTP_PASS'),
+        },
+      });
+    }
+  }
+
+  async sendWelcome(user: { email: string; firstName: string }) {
+    if (!this.transporter) return;
+    await this.transporter.sendMail({
+      from: `"Конкурс СочиГУ" <${this.configService.get('SMTP_USER')}>`,
+      to: user.email,
+      subject: 'Добро пожаловать на конкурс проектов СочиГУ!',
+      html: `
+        <h2>Здравствуйте, ${user.firstName}!</h2>
+        <p>Вы успешно зарегистрировались на платформе конкурса студенческих проектов СочиГУ.</p>
+        <p>Теперь вы можете подать заявку на участие в конкурсе.</p>
+        <p><a href="${this.configService.get('FRONTEND_URL')}/cabinet">Перейти в личный кабинет</a></p>
+        <p>Организатор — Стартап-студия СочиГУ</p>
+      `,
     });
   }
 
   async sendStatusUpdate(application: any) {
+    if (!this.transporter) return;
     if (!application?.user?.email) return;
 
     const statusLabels: Record<string, string> = {
