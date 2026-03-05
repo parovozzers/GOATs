@@ -1,14 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailService {
+  private readonly logger = new Logger(MailService.name);
   private transporter: nodemailer.Transporter | null;
 
   constructor(private configService: ConfigService) {
     if (!configService.get('SMTP_HOST')) {
-      console.warn('SMTP not configured, emails will be skipped');
+      this.logger.warn('SMTP not configured, emails will be skipped');
       this.transporter = null;
     } else {
       this.transporter = nodemailer.createTransport({
