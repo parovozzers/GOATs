@@ -2,13 +2,7 @@ import { useState, useEffect } from 'react';
 import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
 import { Winner, Nomination } from '@/types';
-
-function placeMedal(place: number): string {
-  if (place === 1) return '🥇';
-  if (place === 2) return '🥈';
-  if (place === 3) return '🥉';
-  return `${place}-е`;
-}
+import { placeMedal } from '@/utils/placeMedal';
 
 function WinnerCardSkeleton() {
   return (
@@ -109,7 +103,7 @@ export function WinnersPage() {
           <select
             value={filterYear}
             onChange={(e) => setFilterYear(e.target.value)}
-            className="appearance-none pl-3 pr-8 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[center_right_0.75rem]"
+            className="select-custom pl-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Все годы</option>
             {years.map((y) => (
@@ -120,7 +114,7 @@ export function WinnersPage() {
           <select
             value={filterNomination}
             onChange={(e) => setFilterNomination(e.target.value)}
-            className="appearance-none pl-3 pr-8 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[center_right_0.75rem]"
+            className="select-custom pl-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Все номинации</option>
             {nominations.map((n) => (

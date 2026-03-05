@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { applicationsApi } from '@/api/applications';
 import { nominationsApi } from '@/api/nominations';
@@ -33,24 +33,25 @@ export function ApplicationsListPage() {
   const [nominations, setNominations] = useState<Nomination[]>([]);
   const [nominationId, setNominationId] = useState('');
   const [status, setStatus] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [university, setUniversity] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => { nominationsApi.getAll().then(setNominations); }, []);
-  useEffect(() => { const t = setTimeout(() => setDebouncedSearch(search), 500); return () => clearTimeout(t); }, [search]);
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   useEffect(() => {
     setLoading(true);
-    applicationsApi.getAll({ nominationId: nominationId||undefined, status: status||undefined, search: debouncedSearch||undefined, university: university||undefined, page, limit: LIMIT })
+    applicationsApi.getAll({ nominationId: nominationId||undefined, status: status||undefined, search: search||undefined, university: university||undefined, page, limit: LIMIT })
       .then(data => {
         const [items, count] = Array.isArray(data) && Array.isArray(data[0]) ? data : [data, data.length];
         setApps(Array.isArray(items) ? items : []);
         setTotal(typeof count === 'number' ? count : 0);
       }).finally(() => setLoading(false));
-  }, [nominationId, status, debouncedSearch, university, page]);
+  }, [nominationId, status, search, university, page]);
 
-  const reset = () => { setNominationId(''); setStatus(''); setSearch(''); setUniversity(''); setPage(1); };
+  const reset = () => { setNominationId(''); setStatus(''); setSearchInput(''); setSearch(''); setUniversity(''); setPage(1); };
 
   const handleExport = async () => {
     const blob = await applicationsApi.exportExcel();
@@ -68,15 +69,15 @@ export function ApplicationsListPage() {
         <button onClick={handleExport} className="px-4 py-2 bg-accent-600 hover:bg-accent-500 text-white text-sm font-semibold rounded-lg transition-colors">Экспорт Excel</button>
       </div>
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={nominationId} onChange={e => { setNominationId(e.target.value); setPage(1); }} className="appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[center_right_0.75rem]">
+        <select value={nominationId} onChange={e => { setNominationId(e.target.value); setPage(1); }} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
           <option value="">Все номинации</option>
           {nominations.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
         </select>
-        <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} className="appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[center_right_0.75rem]">
+        <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
           <option value="">Все статусы</option>
           {STATUSES.map(s => <option key={s} value={s}>{APPLICATION_STATUS_LABELS[s]}</option>)}
         </select>
-        <input type="text" placeholder="Поиск по названию" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-48" />
+        <input type="text" placeholder="Поиск по названию" value={searchInput} onChange={e => { const v = e.target.value; setSearchInput(v); clearTimeout(timerRef.current); timerRef.current = setTimeout(() => { setSearch(v); setPage(1); }, 500); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-48" />
         <input type="text" placeholder="ВУЗ" value={university} onChange={e => { setUniversity(e.target.value); setPage(1); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-36" />
         <button onClick={reset} className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Сбросить</button>
       </div>

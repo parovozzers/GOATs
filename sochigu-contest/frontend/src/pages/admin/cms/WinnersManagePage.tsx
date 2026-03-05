@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
 import { Winner, Nomination } from '@/types';
+import { placeMedal } from '@/utils/placeMedal';
 import { Modal } from '@/components/shared/Modal';
 import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
@@ -54,9 +55,7 @@ export function WinnersManagePage() {
   };
 
   const ic = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none';
-  const selectIc = "w-full appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[center_right_0.75rem]";
-  const medals: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
-
+  const selectIc = "w-full select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none";
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -65,7 +64,7 @@ export function WinnersManagePage() {
       </div>
 
       <div className="mb-5">
-        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[center_right_0.75rem]">
+        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
           <option value="">Все годы</option>
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -82,7 +81,7 @@ export function WinnersManagePage() {
             <tbody className="divide-y divide-gray-50">
               {items.map(item => (
                 <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3 text-xl">{medals[item.place] ?? item.place}</td>
+                  <td className="px-5 py-3 text-xl">{placeMedal(item.place)}</td>
                   <td className="px-5 py-3 font-medium text-gray-900 max-w-[180px] truncate">{item.projectTitle}</td>
                   <td className="px-5 py-3 text-gray-600">{item.teamName}</td>
                   <td className="px-5 py-3 text-gray-500">{item.nomination?.shortName ?? item.nomination?.name ?? '—'}</td>
