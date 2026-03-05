@@ -7,10 +7,11 @@ import { v4 as uuid } from 'uuid';
 import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
 import { AppFile } from './entities/file.entity';
+import { Application } from '../applications/entities/application.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AppFile]),
+    TypeOrmModule.forFeature([AppFile, Application]),
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',

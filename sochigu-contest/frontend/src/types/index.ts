@@ -22,6 +22,7 @@ export interface User {
   course?: number;
   city?: string;
   role: Role;
+  isActive: boolean;
   createdAt: string;
 }
 

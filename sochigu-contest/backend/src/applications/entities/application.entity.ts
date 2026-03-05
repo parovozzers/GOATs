@@ -23,14 +23,14 @@ export class Application {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column()
+  @Column({ name: 'user_id', nullable: true })
   userId: string;
 
   @ManyToOne(() => Nomination)
   @JoinColumn({ name: 'nomination_id' })
   nomination: Nomination;
 
-  @Column()
+  @Column({ name: 'nomination_id', nullable: true })
   nominationId: string;
 
   @Column()
@@ -67,7 +67,7 @@ export class Application {
   adminComment: string;
 
   @Column({ nullable: true })
-  submittedAt: Date;
+  submittedAt: Date | null;
 
   @OneToMany(() => ApplicationLog, (log) => log.application)
   logs: ApplicationLog[];

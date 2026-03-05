@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useMyApplications } from '@/hooks/useApplications';
 import { applicationsApi } from '@/api/applications';
-import { Application, ApplicationLog } from '@/types';
+import { Application, ApplicationLog, APPLICATION_STATUS_LABELS } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Spinner } from '@/components/shared/Spinner';
 import { Modal } from '@/components/shared/Modal';
 import { Alert } from '@/components/ui/Alert';
+import { useToast } from '@/hooks/useToast';
 import { formatDate, formatSize } from '@/utils/format';
 
 function StatusTimeline({ logs }: { logs: ApplicationLog[] }) {
@@ -19,7 +19,7 @@ function StatusTimeline({ logs }: { logs: ApplicationLog[] }) {
           <li key={log.id} className="relative">
             <div className="absolute -left-[1.35rem] top-1 h-3 w-3 rounded-full border-2 border-white bg-primary" />
             <p className="text-sm font-medium text-foreground">
-              {log.fromStatus ? `${log.fromStatus} → ` : ''}{log.toStatus}
+              {log.fromStatus ? `${APPLICATION_STATUS_LABELS[log.fromStatus]} → ` : ''}{APPLICATION_STATUS_LABELS[log.toStatus]}
             </p>
             {log.comment && <p className="mt-0.5 text-xs text-muted-foreground">{log.comment}</p>}
             <p className="mt-0.5 text-xs text-muted-foreground">{formatDate(log.createdAt)}</p>
@@ -31,16 +31,30 @@ function StatusTimeline({ logs }: { logs: ApplicationLog[] }) {
 }
 
 export function ApplicationPage() {
-  const { applications, loading: appsLoading } = useMyApplications();
   const [apps, setApps] = useState<Application[]>([]);
+  const [appsLoading, setAppsLoading] = useState(true);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmModal, setConfirmModal] = useState<{ action: 'submit' | 'withdraw' } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ action: 'submit' | 'withdraw' | 'delete' } | null>(null);
+  const { showToast } = useToast();
+
+  const fetchApps = useCallback(async () => {
+    const fresh = await applicationsApi.getMy();
+    setApps(fresh);
+  }, []);
 
   useEffect(() => {
-    setApps(applications);
-  }, [applications]);
+    fetchApps().finally(() => setAppsLoading(false));
+  }, [fetchApps]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchApps();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [fetchApps]);
 
   const app = apps[selectedIdx] ?? null;
 
@@ -50,8 +64,8 @@ export function ApplicationPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const updated = await applicationsApi.submit(app.id);
-      setApps(prev => prev.map((a, i) => i === selectedIdx ? updated : a));
+      await applicationsApi.submit(app.id);
+      await fetchApps();
     } catch {
       setError('Не удалось подать заявку. Попробуйте ещё раз.');
     } finally {
@@ -66,12 +80,41 @@ export function ApplicationPage() {
     setSubmitting(true);
     try {
       await applicationsApi.withdraw(app.id);
-      setApps(prev => prev.filter((_, i) => i !== selectedIdx));
-      setSelectedIdx(prev => Math.max(0, prev - 1));
+      await fetchApps();
     } catch {
       setError('Не удалось отозвать заявку. Попробуйте ещё раз.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!app) return;
+    setConfirmModal(null);
+    setError(null);
+    setSubmitting(true);
+    try {
+      await applicationsApi.deleteApp(app.id);
+      await fetchApps();
+      setSelectedIdx(0);
+    } catch {
+      setError('Не удалось удалить заявку. Попробуйте ещё раз.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDownload = async (fileId: string, fileName: string) => {
+    try {
+      const blob = await applicationsApi.downloadFile(fileId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      showToast('Ошибка при скачивании файла', 'error');
     }
   };
 
@@ -134,29 +177,42 @@ export function ApplicationPage() {
         </div>
       )}
 
-      {/* Кнопки действий (только черновик) */}
-      {app.status === 'draft' && (
+      {/* Кнопки действий */}
+      {(app.status === 'draft' || app.status === 'submitted') && (
         <div className="flex flex-wrap gap-3">
-          <Link
-            to={`/cabinet/application/${app.id}/edit`}
-            className="rounded-lg border-2 border-primary px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary-light"
-          >
-            Редактировать
-          </Link>
-          <button
-            onClick={() => setConfirmModal({ action: 'submit' })}
-            disabled={submitting}
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-all hover:bg-accent-hover disabled:opacity-60"
-          >
-            Подать заявку
-          </button>
-          <button
-            onClick={() => setConfirmModal({ action: 'withdraw' })}
-            disabled={submitting}
-            className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-colors hover:opacity-90 disabled:opacity-60"
-          >
-            Отозвать
-          </button>
+          {app.status === 'draft' && (
+            <>
+              <Link
+                to={`/cabinet/application/${app.id}/edit`}
+                className="rounded-lg border-2 border-primary px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary-light"
+              >
+                Редактировать
+              </Link>
+              <button
+                onClick={() => setConfirmModal({ action: 'submit' })}
+                disabled={submitting}
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-all hover:bg-accent-hover disabled:opacity-60"
+              >
+                Подать заявку
+              </button>
+              <button
+                onClick={() => setConfirmModal({ action: 'delete' })}
+                disabled={submitting}
+                className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-colors hover:opacity-90 disabled:opacity-60"
+              >
+                Удалить заявку
+              </button>
+            </>
+          )}
+          {app.status === 'submitted' && (
+            <button
+              onClick={() => setConfirmModal({ action: 'withdraw' })}
+              disabled={submitting}
+              className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-colors hover:opacity-90 disabled:opacity-60"
+            >
+              Отозвать заявку
+            </button>
+          )}
         </div>
       )}
 
@@ -168,7 +224,7 @@ export function ApplicationPage() {
         </div>
         <div>
           <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Описание проекта</p>
-          <p className="whitespace-pre-wrap text-foreground">{app.projectDescription}</p>
+          <p className="whitespace-pre-wrap break-words text-foreground">{app.projectDescription}</p>
         </div>
         {app.keywords?.length ? (
           <div>
@@ -229,16 +285,17 @@ export function ApplicationPage() {
           <h3 className="mb-3 font-semibold text-foreground">Файлы</h3>
           <div className="space-y-2">
             {app.files.map(f => (
-              <div key={f.id} className="flex items-center justify-between gap-3 text-sm">
-                <span className="truncate text-foreground">{f.originalName}</span>
-                <span className="flex-shrink-0 text-muted-foreground">{formatSize(f.size)}</span>
-                <a
-                  href={applicationsApi.downloadFileUrl(f.id)}
-                  download
+              <div key={f.id} className="flex items-center justify-between gap-3 text-sm py-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="truncate text-foreground">{f.originalName}</span>
+                  <span className="flex-shrink-0 text-muted-foreground">({formatSize(f.size)})</span>
+                </div>
+                <button
+                  onClick={() => handleDownload(f.id, f.originalName)}
                   className="flex-shrink-0 font-medium text-primary hover:underline"
                 >
                   Скачать
-                </a>
+                </button>
               </div>
             ))}
           </div>
@@ -256,12 +313,17 @@ export function ApplicationPage() {
       <Modal
         isOpen={!!confirmModal}
         onClose={() => setConfirmModal(null)}
-        title={confirmModal?.action === 'submit' ? 'Подать заявку?' : 'Отозвать заявку?'}
+        title={
+          confirmModal?.action === 'submit' ? 'Подать заявку?' :
+          confirmModal?.action === 'delete' ? 'Удалить заявку?' : 'Отозвать заявку?'
+        }
       >
         <p className="text-sm text-gray-600 mb-6">
           {confirmModal?.action === 'submit'
             ? 'После подачи редактирование заявки будет недоступно.'
-            : 'Вы уверены, что хотите отозвать заявку?'}
+            : confirmModal?.action === 'delete'
+            ? 'Заявка будет удалена безвозвратно. Вы уверены?'
+            : 'Заявка вернётся в статус "Черновик", вы сможете её отредактировать и подать снова.'}
         </p>
         <div className="flex justify-end gap-3">
           <button
@@ -271,11 +333,12 @@ export function ApplicationPage() {
             Отмена
           </button>
           <button
-            onClick={confirmModal?.action === 'submit' ? handleSubmit : handleWithdraw}
+            onClick={
+              confirmModal?.action === 'submit' ? handleSubmit :
+              confirmModal?.action === 'delete' ? handleDelete : handleWithdraw
+            }
             className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${
-              confirmModal?.action === 'withdraw'
-                ? 'bg-destructive hover:opacity-90'
-                : 'bg-accent hover:bg-accent-hover'
+              confirmModal?.action === 'submit' ? 'bg-accent hover:bg-accent-hover' : 'bg-destructive hover:opacity-90'
             }`}
           >
             Подтвердить

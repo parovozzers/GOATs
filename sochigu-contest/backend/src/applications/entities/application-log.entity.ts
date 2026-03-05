@@ -15,18 +15,18 @@ export class ApplicationLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Application, (app) => app.logs)
+  @ManyToOne(() => Application, (app) => app.logs, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'application_id' })
   application: Application;
 
-  @Column()
+  @Column({ name: 'application_id', nullable: true })
   applicationId: string;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'changed_by_id' })
   changedBy: User;
 
-  @Column({ nullable: true })
+  @Column({ name: 'changed_by_id', nullable: true })
   changedById: string;
 
   @Column({ type: 'enum', enum: ApplicationStatus, nullable: true })

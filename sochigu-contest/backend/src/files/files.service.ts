@@ -2,12 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppFile } from './entities/file.entity';
+import { Application } from '../applications/entities/application.entity';
 import { FileCategory } from '../common/enums/file-type.enum';
 import * as fs from 'fs';
 
 @Injectable()
 export class FilesService {
-  constructor(@InjectRepository(AppFile) private repo: Repository<AppFile>) {}
+  constructor(
+    @InjectRepository(AppFile) private repo: Repository<AppFile>,
+    @InjectRepository(Application) private appRepo: Repository<Application>,
+  ) {}
 
   async saveFile(
     applicationId: string,
@@ -16,7 +20,7 @@ export class FilesService {
   ) {
     const entity = this.repo.create({
       applicationId,
-      originalName: file.originalname,
+      originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
       storageName: file.filename,
       mimeType: file.mimetype,
       size: file.size,
@@ -31,7 +35,7 @@ export class FilesService {
   }
 
   async findById(id: string) {
-    const file = await this.repo.findOne({ where: { id } });
+    const file = await this.repo.findOne({ where: { id }, relations: ['application'] });
     if (!file) throw new NotFoundException();
     return file;
   }
@@ -40,5 +44,9 @@ export class FilesService {
     const file = await this.findById(id);
     if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
     return this.repo.remove(file);
+  }
+
+  findApplicationById(id: string) {
+    return this.appRepo.findOne({ where: { id } });
   }
 }

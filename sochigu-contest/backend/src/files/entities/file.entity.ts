@@ -18,7 +18,7 @@ export class AppFile {
   @JoinColumn({ name: 'application_id' })
   application: Application;
 
-  @Column()
+  @Column({ name: 'application_id', nullable: true })
   applicationId: string;
 
   @Column()

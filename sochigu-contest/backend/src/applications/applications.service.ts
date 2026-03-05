@@ -8,6 +8,7 @@ import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { ApplicationStatus } from '../common/enums/application-status.enum';
 import { MailService } from '../mail/mail.service';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class ApplicationsService {
@@ -15,6 +16,7 @@ export class ApplicationsService {
     @InjectRepository(Application) private repo: Repository<Application>,
     @InjectRepository(ApplicationLog) private logRepo: Repository<ApplicationLog>,
     private mailService: MailService,
+    private filesService: FilesService,
   ) {}
 
   async create(userId: string, dto: CreateApplicationDto) {
@@ -25,7 +27,7 @@ export class ApplicationsService {
   findByUser(userId: string) {
     return this.repo.find({
       where: { userId },
-      relations: ['nomination', 'files'],
+      relations: ['nomination', 'files', 'logs'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -71,15 +73,19 @@ export class ApplicationsService {
     const app = await this.findById(id, userId);
     if (app.status !== ApplicationStatus.DRAFT)
       throw new ForbiddenException('Редактирование недоступно после подачи заявки');
-    return this.repo.save({ ...app, ...data });
+    Object.assign(app, data);
+    return this.repo.save(app);
   }
 
   async submit(id: string, userId: string) {
     const app = await this.findById(id, userId);
+    if (app.status !== ApplicationStatus.DRAFT)
+      throw new ForbiddenException('Подать можно только черновик');
+    const prev = app.status;
     app.status = ApplicationStatus.SUBMITTED;
     app.submittedAt = new Date();
     await this.repo.save(app);
-    await this.logStatusChange(app.id, userId, ApplicationStatus.DRAFT, ApplicationStatus.SUBMITTED);
+    await this.logStatusChange(app.id, userId, prev, ApplicationStatus.SUBMITTED);
     return app;
   }
 
@@ -131,9 +137,26 @@ export class ApplicationsService {
     return workbook.xlsx.writeBuffer();
   }
 
+  async delete(id: string, userId: string) {
+    const app = await this.findById(id, userId);
+    if (app.status !== ApplicationStatus.DRAFT)
+      throw new ForbiddenException('Удалить можно только черновик');
+    for (const file of app.files ?? []) {
+      await this.filesService.remove(file.id);
+    }
+    await this.repo.remove(app);
+  }
+
   async withdraw(id: string, userId: string) {
     const app = await this.findById(id, userId);
-    await this.repo.remove(app);
+    if (app.status !== ApplicationStatus.SUBMITTED)
+      throw new ForbiddenException('Отозвать можно только поданную заявку');
+    const prev = app.status;
+    app.status = ApplicationStatus.DRAFT;
+    app.submittedAt = null;
+    await this.repo.save(app);
+    await this.logStatusChange(app.id, userId, prev, ApplicationStatus.DRAFT);
+    return app;
   }
 
   private async logStatusChange(

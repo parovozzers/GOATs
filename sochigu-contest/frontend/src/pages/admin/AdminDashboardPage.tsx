@@ -21,7 +21,7 @@ export function AdminDashboardPage() {
       applicationsApi.getAll({ limit: 5, page: 1 }),
     ]).then(([s, apps]) => {
       setSummary(s);
-      setRecentApps(Array.isArray(apps) ? apps : apps[0] ?? []);
+      setRecentApps(Array.isArray(apps[0]) ? apps[0] : apps);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -41,7 +41,7 @@ export function AdminDashboardPage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-primary-900">Дашборд</h1>
+      <h1 className="text-2xl font-bold text-primary-900">Панель управления</h1>
 
       {loading ? (
         <div className="flex justify-center py-12"><Spinner size="lg" /></div>

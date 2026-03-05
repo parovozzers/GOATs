@@ -76,7 +76,12 @@ export class ApplicationsController {
     return this.service.updateStatus(id, adminId, dto);
   }
 
-  @Delete(':id/withdraw')
+  @Delete(':id')
+  delete(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.service.delete(id, userId);
+  }
+
+  @Post(':id/withdraw')
   withdraw(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.service.withdraw(id, userId);
   }

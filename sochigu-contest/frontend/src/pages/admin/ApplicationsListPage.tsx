@@ -35,11 +35,13 @@ export function ApplicationsListPage() {
   const [status, setStatus] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [universityInput, setUniversityInput] = useState('');
   const [university, setUniversity] = useState('');
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const uniTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => { nominationsApi.getAll().then(setNominations); }, []);
-  useEffect(() => () => clearTimeout(timerRef.current), []);
+  useEffect(() => () => { clearTimeout(timerRef.current); clearTimeout(uniTimerRef.current); }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -51,13 +53,15 @@ export function ApplicationsListPage() {
       }).finally(() => setLoading(false));
   }, [nominationId, status, search, university, page]);
 
-  const reset = () => { setNominationId(''); setStatus(''); setSearchInput(''); setSearch(''); setUniversity(''); setPage(1); };
+  const reset = () => { setNominationId(''); setStatus(''); setSearchInput(''); setSearch(''); setUniversityInput(''); setUniversity(''); setPage(1); };
 
-  const handleExport = async () => {
-    const blob = await applicationsApi.exportExcel();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'applications.xlsx'; a.click();
-    URL.revokeObjectURL(url);
+  const handleExport = () => {
+    applicationsApi.exportExcel({
+      nominationId: nominationId || undefined,
+      status: status || undefined,
+      search: search || undefined,
+      university: university || undefined,
+    });
   };
 
   const totalPages = Math.ceil(total / LIMIT);
@@ -78,7 +82,7 @@ export function ApplicationsListPage() {
           {STATUSES.map(s => <option key={s} value={s}>{APPLICATION_STATUS_LABELS[s]}</option>)}
         </select>
         <input type="text" placeholder="Поиск по названию" value={searchInput} onChange={e => { const v = e.target.value; setSearchInput(v); clearTimeout(timerRef.current); timerRef.current = setTimeout(() => { setSearch(v); setPage(1); }, 500); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-48" />
-        <input type="text" placeholder="ВУЗ" value={university} onChange={e => { setUniversity(e.target.value); setPage(1); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-36" />
+        <input type="text" placeholder="ВУЗ" value={universityInput} onChange={e => { const v = e.target.value; setUniversityInput(v); clearTimeout(uniTimerRef.current); uniTimerRef.current = setTimeout(() => { setUniversity(v); setPage(1); }, 500); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-36" />
         <button onClick={reset} className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Сбросить</button>
       </div>
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
