@@ -1,6 +1,7 @@
 import {
-  Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards,
+  Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
@@ -23,6 +24,18 @@ export class ApplicationsController {
   @Get('my')
   findMy(@CurrentUser('id') userId: string) {
     return this.service.findByUser(userId);
+  }
+
+  @Get('export/excel')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
+  async exportExcel(@Query() query: any, @Res() res: Response): Promise<void> {
+    const buffer = await this.service.exportToExcel(query);
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="applications-${Date.now()}.xlsx"`,
+    });
+    res.send(buffer);
   }
 
   @Get()

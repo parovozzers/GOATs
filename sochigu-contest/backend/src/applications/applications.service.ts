@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as ExcelJS from 'exceljs';
 import { Application } from './entities/application.entity';
 import { ApplicationLog } from './entities/application-log.entity';
 import { CreateApplicationDto } from './dto/create-application.dto';
@@ -91,6 +92,43 @@ export class ApplicationsService {
     await this.logStatusChange(app.id, adminId, prev, dto.status, dto.comment);
     this.mailService.sendStatusUpdate(app).catch(() => {});
     return app;
+  }
+
+  async exportToExcel(filters: any): Promise<ArrayBuffer> {
+    const [applications] = await this.findAll({ ...filters, limit: 10000, page: 1 });
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Заявки');
+
+    sheet.columns = [
+      { header: '№', key: 'num', width: 5 },
+      { header: 'Название проекта', key: 'title', width: 40 },
+      { header: 'ФИО', key: 'fio', width: 30 },
+      { header: 'Email', key: 'email', width: 25 },
+      { header: 'Вуз', key: 'university', width: 30 },
+      { header: 'Номинация', key: 'nomination', width: 20 },
+      { header: 'Статус', key: 'status', width: 15 },
+      { header: 'Дата подачи', key: 'submittedAt', width: 20 },
+    ];
+
+    const statusLabels: Record<string, string> = {
+      draft: 'Черновик', submitted: 'На проверке', accepted: 'Принята',
+      rejected: 'Отклонена', admitted: 'Допущена', winner: 'Победитель', runner_up: 'Призёр',
+    };
+
+    applications.forEach((app, i) => {
+      sheet.addRow({
+        num: i + 1,
+        title: app.projectTitle,
+        fio: app.user ? `${app.user.lastName} ${app.user.firstName}` : '',
+        email: app.user?.email,
+        university: app.user?.university,
+        nomination: app.nomination?.name,
+        status: statusLabels[app.status],
+        submittedAt: app.submittedAt ? new Date(app.submittedAt).toLocaleDateString('ru-RU') : '',
+      });
+    });
+
+    return workbook.xlsx.writeBuffer();
   }
 
   async withdraw(id: string, userId: string) {

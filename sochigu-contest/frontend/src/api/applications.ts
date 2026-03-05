@@ -31,6 +31,13 @@ export const applicationsApi = {
   downloadFile: (fileId: string) =>
     apiClient.get(`/files/${fileId}/download`, { responseType: 'blob' }).then(r => r.data),
   downloadFileUrl: (fileId: string) => `/api/files/${fileId}/download`,
-  exportExcel: () =>
-    apiClient.get('/applications/export/excel', { responseType: 'blob' }).then(r => r.data),
+  exportExcel: (params?: Record<string, string | undefined>) =>
+    apiClient.get('/applications/export/excel', { params, responseType: 'blob' }).then(r => {
+      const url = URL.createObjectURL(r.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `applications-${Date.now()}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }),
 };
