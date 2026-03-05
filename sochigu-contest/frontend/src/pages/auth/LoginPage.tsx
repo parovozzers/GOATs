@@ -13,7 +13,6 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const hasRole = useAuthStore(s => s.hasRole);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>();
 
@@ -22,11 +21,8 @@ export function LoginPage() {
     try {
       await authApi.login(data);
       setError(null);
-      if (hasRole(['admin', 'moderator'])) {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/cabinet', { replace: true });
-      }
+      const role = useAuthStore.getState().user?.role;
+      navigate(role === 'admin' || role === 'moderator' ? '/admin' : '/cabinet', { replace: true });
     } catch {
       setError('Неверный email или пароль.');
     } finally {
