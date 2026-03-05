@@ -1,83 +1,118 @@
+import { Link } from "react-router-dom";
+import { MapPin, Mail, Globe } from "lucide-react";
+
 export function ContactsPage() {
-    return (
-      <main className="min-h-screen bg-white">
-        <div className="container mx-auto px-4 max-w-4xl py-8 md:py-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-primary-900 mb-8">
-            Контакты
-          </h1>
-  
-          <section className="rounded-xl border border-gray-200 bg-gray-50/50 p-6 mb-8">
-            <h2 className="text-lg font-bold text-primary-900 mb-4">Данные</h2>
-            <dl className="space-y-3 text-gray-600">
-              <div>
-                <dt className="font-semibold text-primary-900 text-sm">Организация</dt>
-                <dd>ФГБОУ ВО «Сочинский государственный университет»</dd>
+  return (
+    <div>
+      <section className="bg-primary-light/50 py-12">
+        <div className="container mx-auto px-4">
+          <nav className="mb-4 text-sm text-muted-foreground">
+            <Link to="/" className="hover:text-primary">Главная</Link>
+            <span className="mx-2">/</span>
+            <span className="text-foreground">Контакты</span>
+          </nav>
+          <h1 className="text-4xl font-bold text-foreground">Контакты</h1>
+        </div>
+      </section>
+
+      <section className="container mx-auto px-4 py-16">
+        <div className="grid gap-10 md:grid-cols-2">
+          <div>
+            <h2 className="mb-6 text-2xl font-bold text-foreground">Организатор</h2>
+            <div className="space-y-5">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-light">
+                  <MapPin className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">Организация</p>
+                  <p className="text-muted-foreground">
+                    ФГБОУ ВО «Сочинский государственный университет»
+                  </p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">Стартап-студия СочиГУ</p>
+                </div>
               </div>
-              <div>
-                <dt className="font-semibold text-primary-900 text-sm">Подразделение</dt>
-                <dd>Стартап-студия СочиГУ</dd>
+
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-light">
+                  <Mail className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">Email</p>
+                  <a
+                    href="mailto:info@sutr.ru"
+                    className="text-primary hover:underline"
+                  >
+                    info@sutr.ru
+                  </a>
+                </div>
               </div>
-              <div>
-                <dt className="font-semibold text-primary-900 text-sm">Сайт конкурса</dt>
-                <dd>
+
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-light">
+                  <Globe className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">Сайт конкурса</p>
                   <a
                     href="https://PROJECT-Sochigu.sutr.ru"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary-600 hover:underline"
+                    className="text-primary hover:underline"
                   >
-                    https://PROJECT-Sochigu.sutr.ru
+                    PROJECT-Sochigu.sutr.ru
                   </a>
-                </dd>
+                </div>
               </div>
-            </dl>
-          </section>
-  
-          <section>
-            <h2 className="text-xl font-bold text-primary-900 mb-4">Обратная связь</h2>
-            <form className="space-y-4 max-w-xl">
+            </div>
+          </div>
+
+          <div>
+            <h2 className="mb-6 text-2xl font-bold text-foreground">Обратная связь</h2>
+            <form className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-primary-900 mb-1">
+                <label htmlFor="name" className="mb-1 block text-sm font-medium text-foreground">
                   Имя
                 </label>
                 <input
                   id="name"
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   placeholder="Ваше имя"
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-primary-900 mb-1">
+                <label htmlFor="email" className="mb-1 block text-sm font-medium text-foreground">
                   Email
                 </label>
                 <input
                   id="email"
                   type="email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   placeholder="email@example.com"
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-primary-900 mb-1">
+                <label htmlFor="message" className="mb-1 block text-sm font-medium text-foreground">
                   Сообщение
                 </label>
                 <textarea
                   id="message"
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-y"
                   placeholder="Текст сообщения"
+                  className="w-full resize-y rounded-lg border border-input bg-background px-4 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
               <button
                 type="button"
-                className="px-6 py-3 rounded-lg bg-accent-600 hover:bg-accent-500 text-white font-semibold transition-colors"
+                className="rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground transition-all hover:bg-accent-hover"
               >
                 Отправить
               </button>
             </form>
-          </section>
+          </div>
         </div>
-      </main>
-    );
-  }
+      </section>
+    </div>
+  );
+}
