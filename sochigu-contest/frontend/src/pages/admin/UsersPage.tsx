@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usersApi } from '@/api/users';
 import { User } from '@/types';
 import { Spinner } from '@/components/shared/Spinner';
@@ -17,21 +17,19 @@ function formatDate(str: string) {
 export function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 500);
-    return () => clearTimeout(t);
-  }, [search]);
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   useEffect(() => {
     setLoading(true);
-    usersApi.getAll({ search: debouncedSearch || undefined, role: role || undefined })
+    usersApi.getAll({ search: search || undefined, role: role || undefined })
       .then(setUsers)
       .finally(() => setLoading(false));
-  }, [debouncedSearch, role]);
+  }, [search, role]);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -40,13 +38,13 @@ export function UsersPage() {
       <div className="flex flex-wrap gap-3 mb-6">
         <input
           type="text"
-          placeholder="Поиск по имени или email..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+          placeholder="Поиск по имени или email"
+          value={searchInput}
+          onChange={e => { const v = e.target.value; setSearchInput(v); clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setSearch(v), 500); }}
           className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-64"
         />
         <select value={role} onChange={e => setRole(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white">
+          className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
           <option value="">Все роли</option>
           {Object.entries(ROLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>

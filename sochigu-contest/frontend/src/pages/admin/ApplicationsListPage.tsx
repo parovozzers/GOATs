@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { applicationsApi } from '@/api/applications';
 import { nominationsApi } from '@/api/nominations';
@@ -33,24 +33,25 @@ export function ApplicationsListPage() {
   const [nominations, setNominations] = useState<Nomination[]>([]);
   const [nominationId, setNominationId] = useState('');
   const [status, setStatus] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [university, setUniversity] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => { nominationsApi.getAll().then(setNominations); }, []);
-  useEffect(() => { const t = setTimeout(() => setDebouncedSearch(search), 500); return () => clearTimeout(t); }, [search]);
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   useEffect(() => {
     setLoading(true);
-    applicationsApi.getAll({ nominationId: nominationId||undefined, status: status||undefined, search: debouncedSearch||undefined, university: university||undefined, page, limit: LIMIT })
+    applicationsApi.getAll({ nominationId: nominationId||undefined, status: status||undefined, search: search||undefined, university: university||undefined, page, limit: LIMIT })
       .then(data => {
         const [items, count] = Array.isArray(data) && Array.isArray(data[0]) ? data : [data, data.length];
         setApps(Array.isArray(items) ? items : []);
         setTotal(typeof count === 'number' ? count : 0);
       }).finally(() => setLoading(false));
-  }, [nominationId, status, debouncedSearch, university, page]);
+  }, [nominationId, status, search, university, page]);
 
-  const reset = () => { setNominationId(''); setStatus(''); setSearch(''); setUniversity(''); setPage(1); };
+  const reset = () => { setNominationId(''); setStatus(''); setSearchInput(''); setSearch(''); setUniversity(''); setPage(1); };
 
   const handleExport = async () => {
     const blob = await applicationsApi.exportExcel();
@@ -68,16 +69,16 @@ export function ApplicationsListPage() {
         <button onClick={handleExport} className="px-4 py-2 bg-accent-600 hover:bg-accent-500 text-white text-sm font-semibold rounded-lg transition-colors">Экспорт Excel</button>
       </div>
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={nominationId} onChange={e => { setNominationId(e.target.value); setPage(1); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white">
+        <select value={nominationId} onChange={e => { setNominationId(e.target.value); setPage(1); }} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
           <option value="">Все номинации</option>
           {nominations.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
         </select>
-        <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white">
+        <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
           <option value="">Все статусы</option>
           {STATUSES.map(s => <option key={s} value={s}>{APPLICATION_STATUS_LABELS[s]}</option>)}
         </select>
-        <input type="text" placeholder="Поиск по названию..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-48" />
-        <input type="text" placeholder="Вуз..." value={university} onChange={e => { setUniversity(e.target.value); setPage(1); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-36" />
+        <input type="text" placeholder="Поиск по названию" value={searchInput} onChange={e => { const v = e.target.value; setSearchInput(v); clearTimeout(timerRef.current); timerRef.current = setTimeout(() => { setSearch(v); setPage(1); }, 500); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-48" />
+        <input type="text" placeholder="ВУЗ" value={university} onChange={e => { setUniversity(e.target.value); setPage(1); }} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-36" />
         <button onClick={reset} className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Сбросить</button>
       </div>
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
@@ -107,13 +108,53 @@ export function ApplicationsListPage() {
           )}
         </table>
       </div>
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 mt-6">
-          <button onClick={() => setPage(p => p-1)} disabled={page===1} className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">Назад</button>
-          <span className="text-sm text-gray-600">Страница {page} из {totalPages}</span>
-          <button onClick={() => setPage(p => p+1)} disabled={page===totalPages} className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">Вперёд</button>
-        </div>
-      )}
+      <div className="flex flex-wrap items-center justify-between gap-4 mt-6">
+        <span className="text-sm text-gray-500">
+          Показано {apps.length === 0 ? 0 : (page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, total)} из {total}
+        </span>
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(p => p - 1)}
+              disabled={page === 1}
+              className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              &lt;
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+              .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...');
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, i) =>
+                p === '...' ? (
+                  <span key={`ellipsis-${i}`} className="px-2 text-gray-400 text-sm">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p as number)}
+                    className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+                      p === page
+                        ? 'bg-primary-900 border-primary-900 text-white'
+                        : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            <button
+              onClick={() => setPage(p => p + 1)}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              &gt;
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

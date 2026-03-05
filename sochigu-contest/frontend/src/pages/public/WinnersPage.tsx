@@ -2,13 +2,7 @@ import { useState, useEffect } from 'react';
 import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
 import { Winner, Nomination } from '@/types';
-
-function placeMedal(place: number): string {
-  if (place === 1) return '🥇';
-  if (place === 2) return '🥈';
-  if (place === 3) return '🥉';
-  return `${place}-е`;
-}
+import { placeMedal } from '@/utils/placeMedal';
 
 function WinnerCardSkeleton() {
   return (
@@ -109,7 +103,7 @@ export function WinnersPage() {
           <select
             value={filterYear}
             onChange={(e) => setFilterYear(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="select-custom pl-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Все годы</option>
             {years.map((y) => (
@@ -120,7 +114,7 @@ export function WinnersPage() {
           <select
             value={filterNomination}
             onChange={(e) => setFilterNomination(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="select-custom pl-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Все номинации</option>
             {nominations.map((n) => (

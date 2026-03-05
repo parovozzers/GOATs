@@ -18,7 +18,7 @@ export function ApplicationDetailPage() {
   const { showToast } = useToast();
   const [app, setApp] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
-  const [newStatus, setNewStatus] = useState('');
+  const [newStatus, setNewStatus] = useState<ApplicationStatus | ''>('');
   const [comment, setComment] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -31,7 +31,7 @@ export function ApplicationDetailPage() {
     if (!app) return;
     setSaving(true);
     try {
-      const updated = await applicationsApi.updateStatus(app.id, { status: newStatus, comment: comment || undefined });
+      const updated = await applicationsApi.updateStatus(app.id, { status: newStatus as ApplicationStatus, comment: comment || undefined });
       setApp(updated);
       showToast('Статус обновлён', 'success');
     } catch {
@@ -55,8 +55,8 @@ export function ApplicationDetailPage() {
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
         <h2 className="font-semibold text-gray-900 mb-3">Изменить статус</h2>
         <div className="flex flex-wrap gap-3 items-end">
-          <select value={newStatus} onChange={e => setNewStatus(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white">
+          <select value={newStatus} onChange={e => setNewStatus(e.target.value as ApplicationStatus)}
+            className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
             {STATUSES.map(s => <option key={s} value={s}>{APPLICATION_STATUS_LABELS[s]}</option>)}
           </select>
           <textarea placeholder="Комментарий (необязательно)" value={comment} onChange={e => setComment(e.target.value)} rows={2}

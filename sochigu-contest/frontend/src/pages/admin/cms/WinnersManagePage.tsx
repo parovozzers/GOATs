@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
 import { Winner, Nomination } from '@/types';
+import { placeMedal } from '@/utils/placeMedal';
 import { Modal } from '@/components/shared/Modal';
 import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
@@ -54,8 +55,7 @@ export function WinnersManagePage() {
   };
 
   const ic = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none';
-  const medals: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
-
+  const selectIc = "w-full select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none";
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -64,7 +64,7 @@ export function WinnersManagePage() {
       </div>
 
       <div className="mb-5">
-        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white">
+        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
           <option value="">Все годы</option>
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -81,7 +81,7 @@ export function WinnersManagePage() {
             <tbody className="divide-y divide-gray-50">
               {items.map(item => (
                 <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3 text-xl">{medals[item.place] ?? item.place}</td>
+                  <td className="px-5 py-3 text-xl">{placeMedal(item.place)}</td>
                   <td className="px-5 py-3 font-medium text-gray-900 max-w-[180px] truncate">{item.projectTitle}</td>
                   <td className="px-5 py-3 text-gray-600">{item.teamName}</td>
                   <td className="px-5 py-3 text-gray-500">{item.nomination?.shortName ?? item.nomination?.name ?? '—'}</td>
@@ -102,7 +102,7 @@ export function WinnersManagePage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Место *</label>
-              <select value={form.place} onChange={e => setForm(f => ({ ...f, place: Number(e.target.value) }))} className={ic}>
+              <select value={form.place} onChange={e => setForm(f => ({ ...f, place: Number(e.target.value) }))} className={selectIc}>
                 <option value={1}>1 место</option><option value={2}>2 место</option><option value={3}>3 место</option>
               </select>
             </div>
@@ -121,7 +121,7 @@ export function WinnersManagePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Номинация *</label>
-            <select value={form.nominationId} onChange={e => setForm(f => ({ ...f, nominationId: e.target.value }))} className={ic}>
+            <select value={form.nominationId} onChange={e => setForm(f => ({ ...f, nominationId: e.target.value }))} className={selectIc}>
               <option value="">Выберите...</option>
               {nominations.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
             </select>

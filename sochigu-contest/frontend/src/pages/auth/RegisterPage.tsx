@@ -215,7 +215,7 @@ export function RegisterPage() {
                 <select
                   id="course"
                   {...register('course')}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
+                  className="w-full select-custom pl-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 >
                   <option value="">Выберите</option>
                   {[1, 2, 3, 4, 5, 6].map((n) => (
