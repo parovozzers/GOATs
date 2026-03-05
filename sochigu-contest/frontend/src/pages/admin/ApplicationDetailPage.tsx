@@ -56,7 +56,7 @@ export function ApplicationDetailPage() {
         <h2 className="font-semibold text-gray-900 mb-3">Изменить статус</h2>
         <div className="flex flex-wrap gap-3 items-end">
           <select value={newStatus} onChange={e => setNewStatus(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white">
+            className="appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[center_right_0.75rem]">
             {STATUSES.map(s => <option key={s} value={s}>{APPLICATION_STATUS_LABELS[s]}</option>)}
           </select>
           <textarea placeholder="Комментарий (необязательно)" value={comment} onChange={e => setComment(e.target.value)} rows={2}

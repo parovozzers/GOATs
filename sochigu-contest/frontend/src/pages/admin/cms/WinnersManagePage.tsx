@@ -54,6 +54,7 @@ export function WinnersManagePage() {
   };
 
   const ic = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none';
+  const selectIc = "w-full appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[center_right_0.75rem]";
   const medals: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
   return (
@@ -64,7 +65,7 @@ export function WinnersManagePage() {
       </div>
 
       <div className="mb-5">
-        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white">
+        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[center_right_0.75rem]">
           <option value="">Все годы</option>
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -102,7 +103,7 @@ export function WinnersManagePage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Место *</label>
-              <select value={form.place} onChange={e => setForm(f => ({ ...f, place: Number(e.target.value) }))} className={ic}>
+              <select value={form.place} onChange={e => setForm(f => ({ ...f, place: Number(e.target.value) }))} className={selectIc}>
                 <option value={1}>1 место</option><option value={2}>2 место</option><option value={3}>3 место</option>
               </select>
             </div>
@@ -121,7 +122,7 @@ export function WinnersManagePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Номинация *</label>
-            <select value={form.nominationId} onChange={e => setForm(f => ({ ...f, nominationId: e.target.value }))} className={ic}>
+            <select value={form.nominationId} onChange={e => setForm(f => ({ ...f, nominationId: e.target.value }))} className={selectIc}>
               <option value="">Выберите...</option>
               {nominations.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
             </select>
