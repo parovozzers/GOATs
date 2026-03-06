@@ -4,7 +4,9 @@ import {
 import { Response } from 'express';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
+import { UpdateApplicationDto } from './dto/update-application.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
+import { GetApplicationsDto } from './dto/get-applications.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -29,7 +31,7 @@ export class ApplicationsController {
   @Get('export/excel')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.MODERATOR)
-  async exportExcel(@Query() query: any, @Res() res: Response): Promise<void> {
+  async exportExcel(@Query() query: GetApplicationsDto, @Res() res: Response): Promise<void> {
     const buffer = await this.service.exportToExcel(query);
     res.set({
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -41,7 +43,7 @@ export class ApplicationsController {
   @Get()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.MODERATOR, Role.EXPERT)
-  findAll(@Query() query: any) {
+  findAll(@Query() query: GetApplicationsDto) {
     return this.service.findAll(query);
   }
 
@@ -55,9 +57,9 @@ export class ApplicationsController {
   update(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
-    @Body() body: any,
+    @Body() dto: UpdateApplicationDto,
   ) {
-    return this.service.update(id, userId, body);
+    return this.service.update(id, userId, dto);
   }
 
   @Post(':id/submit')
@@ -76,7 +78,12 @@ export class ApplicationsController {
     return this.service.updateStatus(id, adminId, dto);
   }
 
-  @Delete(':id/withdraw')
+  @Delete(':id')
+  delete(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.service.delete(id, userId);
+  }
+
+  @Post(':id/withdraw')
   withdraw(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.service.withdraw(id, userId);
   }

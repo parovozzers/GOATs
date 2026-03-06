@@ -22,6 +22,7 @@ export interface User {
   course?: number;
   city?: string;
   role: Role;
+  isActive: boolean;
   createdAt: string;
 }
 
@@ -132,6 +133,15 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface CreateApplicationDto {
+  nominationId: string;
+  projectTitle: string;
+  projectDescription: string;
+  keywords?: string[];
+  teamMembers?: TeamMember[];
+  supervisor?: Supervisor;
 }
 
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {

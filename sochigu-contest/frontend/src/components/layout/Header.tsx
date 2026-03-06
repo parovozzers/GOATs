@@ -21,7 +21,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => { await authApi.logout(); navigate('/'); };
-  const cabinetPath = user?.role === 'admin' || user?.role === 'moderator' ? '/admin' : '/cabinet';
+  const cabinetPath = user?.role === 'admin' || user?.role === 'moderator' || user?.role === 'expert' ? '/admin' : '/cabinet';
 
   return (
     <header className="sticky top-0 z-50 bg-primary shadow-lg">

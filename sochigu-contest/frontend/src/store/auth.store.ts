@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { Role } from '@/types';
 
 interface User {
   id: string;
@@ -13,7 +14,7 @@ interface User {
   department?: string;
   course?: number;
   city?: string;
-  role: string;
+  role: Role;
 }
 
 interface AuthState {

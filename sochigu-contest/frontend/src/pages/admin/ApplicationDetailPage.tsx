@@ -5,6 +5,7 @@ import { Application, ApplicationStatus, APPLICATION_STATUS_LABELS } from '@/typ
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Spinner } from '@/components/shared/Spinner';
 import { useToast } from '@/hooks/useToast';
+import { formatSize } from '@/utils/format';
 
 const STATUSES: ApplicationStatus[] = ['draft','submitted','accepted','rejected','admitted','winner','runner_up'];
 
@@ -27,12 +28,29 @@ export function ApplicationDetailPage() {
     applicationsApi.getById(id).then(a => { setApp(a); setNewStatus(a.status); }).finally(() => setLoading(false));
   }, [id]);
 
+  const handleDownload = async (fileId: string, fileName: string) => {
+    try {
+      const blob = await applicationsApi.downloadFile(fileId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      showToast('Ошибка при скачивании файла', 'error');
+    }
+  };
+
   const handleStatusSave = async () => {
     if (!app) return;
     setSaving(true);
     try {
-      const updated = await applicationsApi.updateStatus(app.id, { status: newStatus as ApplicationStatus, comment: comment || undefined });
-      setApp(updated);
+      await applicationsApi.updateStatus(app.id, { status: newStatus as ApplicationStatus, comment: comment || undefined });
+      const fresh = await applicationsApi.getById(app.id);
+      setApp(fresh);
+      setNewStatus(fresh.status);
+      setComment('');
       showToast('Статус обновлён', 'success');
     } catch {
       showToast('Ошибка при обновлении статуса', 'error');
@@ -47,7 +65,7 @@ export function ApplicationDetailPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
-        <button onClick={() => navigate(-1)} className="text-sm text-gray-500 hover:text-gray-700">← Назад</button>
+        <button onClick={() => navigate(-1)} className="text-sm text-gray-500 hover:text-gray-700">← Назад к заявкам</button>
         <h1 className="text-2xl font-bold text-primary-900 flex-1">{app.projectTitle}</h1>
         <StatusBadge status={app.status} />
       </div>
@@ -79,6 +97,7 @@ export function ApplicationDetailPage() {
               ['Факультет', app.user?.faculty ?? '—'],
               ['Курс', app.user?.course?.toString() ?? '—'],
               ['Город', app.user?.city ?? '—'],
+              ['Телефон', app.user?.phone ?? '—'],
             ].map(([k, v]) => (
               <div key={k} className="flex gap-2">
                 <dt className="text-gray-400 w-24 flex-shrink-0">{k}</dt>
@@ -150,9 +169,15 @@ export function ApplicationDetailPage() {
           <h2 className="font-semibold text-gray-900 mb-3">Файлы</h2>
           <div className="space-y-2">
             {app.files.map(f => (
-              <div key={f.id} className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">{f.originalName}</span>
-                <a href={applicationsApi.downloadFileUrl(f.id)} download className="text-primary-700 hover:underline font-medium ml-4">Скачать</a>
+              <div key={f.id} className="flex items-center justify-between text-sm py-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="text-gray-700 truncate">{f.originalName}</span>
+                  <span className="text-gray-400 flex-shrink-0">({formatSize(f.size)})</span>
+                </div>
+                <button onClick={() => handleDownload(f.id, f.originalName)} className="text-primary-700 hover:underline font-medium ml-4 flex-shrink-0">Скачать</button>
               </div>
             ))}
           </div>
@@ -166,7 +191,9 @@ export function ApplicationDetailPage() {
             {app.logs.map(log => (
               <li key={log.id} className="relative">
                 <div className="absolute -left-[1.35rem] top-1 w-3 h-3 rounded-full bg-primary-600 border-2 border-white" />
-                <p className="text-sm font-medium text-gray-800">{log.fromStatus ? `${log.fromStatus} → ` : ''}{log.toStatus}</p>
+                <p className="text-sm font-medium text-gray-800">
+                  {log.fromStatus ? `${APPLICATION_STATUS_LABELS[log.fromStatus]} → ` : ''}{APPLICATION_STATUS_LABELS[log.toStatus]}
+                </p>
                 {log.comment && <p className="text-xs text-gray-500 mt-0.5">{log.comment}</p>}
                 <p className="text-xs text-gray-400 mt-0.5">{formatDate(log.createdAt)}</p>
               </li>

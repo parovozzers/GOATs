@@ -18,7 +18,8 @@ export class UsersController {
 
   @Patch('me')
   updateMe(@CurrentUser('id') id: string, @Body() body: any) {
-    return this.usersService.update(id, body);
+    const { firstName, lastName, middleName, phone, university, faculty, department, course, city } = body;
+    return this.usersService.update(id, { firstName, lastName, middleName, phone, university, faculty, department, course, city });
   }
 
   @Get()

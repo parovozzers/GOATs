@@ -1,25 +1,18 @@
 import { apiClient } from './client';
-import { Application } from '@/types';
-
-export interface CreateApplicationDto {
-  nominationId: string;
-  projectTitle: string;
-  projectDescription: string;
-  keywords?: string[];
-  teamMembers?: { name: string; role: string; email?: string }[];
-  supervisor?: { name: string; title: string; email?: string };
-}
+import { Application, ApplicationStatus, CreateApplicationDto, PaginatedResponse } from '@/types';
 
 export const applicationsApi = {
   create: (data: CreateApplicationDto) => apiClient.post<Application>('/applications', data).then(r => r.data),
   getMy: () => apiClient.get<Application[]>('/applications/my').then(r => r.data),
-  getAll: (params?: Record<string, string | number | undefined>) => apiClient.get('/applications', { params }).then(r => r.data),
+  getAll: (params?: Record<string, string | number | undefined>) =>
+    apiClient.get<PaginatedResponse<Application>>('/applications', { params }).then(r => r.data),
   getById: (id: string) => apiClient.get<Application>(`/applications/${id}`).then(r => r.data),
   update: (id: string, data: Partial<CreateApplicationDto>) => apiClient.patch<Application>(`/applications/${id}`, data).then(r => r.data),
   submit: (id: string) => apiClient.post<Application>(`/applications/${id}/submit`).then(r => r.data),
-  updateStatus: (id: string, data: { status: string; comment?: string }) =>
+  updateStatus: (id: string, data: { status: ApplicationStatus; comment?: string }) =>
     apiClient.patch<Application>(`/applications/${id}/status`, data).then(r => r.data),
-  withdraw: (id: string) => apiClient.delete(`/applications/${id}/withdraw`).then(r => r.data),
+  deleteApp: (id: string) => apiClient.delete(`/applications/${id}`).then(r => r.data),
+  withdraw: (id: string) => apiClient.post(`/applications/${id}/withdraw`).then(r => r.data),
   uploadFile: (applicationId: string, file: File, category: string) => {
     const fd = new FormData();
     fd.append('file', file);
