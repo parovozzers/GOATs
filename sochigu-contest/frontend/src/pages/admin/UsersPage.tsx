@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { apiClient } from '@/api/client';
+import { usersApi } from '@/api/users';
 import { User } from '@/types';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -37,13 +37,15 @@ export function UsersPage() {
   const [role, setRole] = useState('');
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
+  const reset = () => { setSearchInput(''); setSearch(''); setRole(''); };
+
   useEffect(() => () => clearTimeout(timerRef.current), []);
 
   useEffect(() => {
     setLoading(true);
-    apiClient
-      .get<User[]>('/users', { params: { search: search || undefined, role: role || undefined } })
-      .then(r => setUsers(r.data))
+    usersApi
+      .getAll({ search: search || undefined, role: role || undefined })
+      .then(setUsers)
       .finally(() => setLoading(false));
   }, [search, role]);
 
@@ -74,6 +76,7 @@ export function UsersPage() {
             <option key={v} value={v}>{l}</option>
           ))}
         </select>
+        <button onClick={reset} className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Сбросить</button>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">

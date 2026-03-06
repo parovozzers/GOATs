@@ -95,8 +95,8 @@ export function ApplicationPage() {
     setSubmitting(true);
     try {
       await applicationsApi.deleteApp(app.id);
-      await fetchApps();
       setSelectedIdx(0);
+      await fetchApps();
     } catch {
       setError('Не удалось удалить заявку. Попробуйте ещё раз.');
     } finally {

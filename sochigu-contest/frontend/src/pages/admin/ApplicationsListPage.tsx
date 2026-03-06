@@ -47,9 +47,8 @@ export function ApplicationsListPage() {
     setLoading(true);
     applicationsApi.getAll({ nominationId: nominationId||undefined, status: status||undefined, search: search||undefined, university: university||undefined, page, limit: LIMIT })
       .then(data => {
-        const [items, count] = Array.isArray(data) && Array.isArray(data[0]) ? data : [data, data.length];
-        setApps(Array.isArray(items) ? items : []);
-        setTotal(typeof count === 'number' ? count : 0);
+        setApps(data.data);
+        setTotal(data.total);
       }).finally(() => setLoading(false));
   }, [nominationId, status, search, university, page]);
 

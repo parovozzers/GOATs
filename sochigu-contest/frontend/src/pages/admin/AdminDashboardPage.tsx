@@ -21,7 +21,7 @@ export function AdminDashboardPage() {
       applicationsApi.getAll({ limit: 5, page: 1 }),
     ]).then(([s, apps]) => {
       setSummary(s);
-      setRecentApps(Array.isArray(apps[0]) ? apps[0] : apps);
+      setRecentApps(apps.data);
     }).finally(() => setLoading(false));
   }, []);
 
