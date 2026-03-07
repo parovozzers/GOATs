@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
-import { applicationsApi, CreateApplicationDto } from '@/api/applications';
+import { applicationsApi } from '@/api/applications';
 import { nominationsApi } from '@/api/nominations';
-import { Nomination, AppFile, TeamMember } from '@/types';
+import { Nomination, AppFile, TeamMember, CreateApplicationDto } from '@/types';
 import { Spinner } from '@/components/shared/Spinner';
 import { Alert } from '@/components/ui/Alert';
 
