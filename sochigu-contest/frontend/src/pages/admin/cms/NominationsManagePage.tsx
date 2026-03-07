@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { nominationsApi } from '@/api/nominations';
 import { Nomination } from '@/types';
-import { Modal } from '@/components/shared/Modal';
+import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
 
@@ -36,7 +36,7 @@ export function NominationsManagePage() {
   };
 
   const handleDelete = async (item: Nomination) => {
-    if (!confirm(`Удалить "${item.name}"?`)) return;
+    if (!confirm(`Удаление номинации может повлиять на существующие заявки.\nУдалить "${item.name}"?`)) return;
     try { await nominationsApi.remove(item.id); showToast('Удалено', 'success'); load(); }
     catch { showToast('Ошибка', 'error'); }
   };

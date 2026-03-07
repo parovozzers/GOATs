@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { DocumentsService } from './documents.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -19,6 +21,27 @@ export class DocumentsController {
   @Roles(Role.ADMIN)
   findAllAdmin() {
     return this.documentsService.findAll();
+  }
+
+  @Post('upload')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads/docs',
+      filename: (_, f, cb) => cb(null, `${Date.now()}-${f.originalname}`),
+    }),
+  }))
+  uploadDocument(@UploadedFile() file: Express.Multer.File, @Body() body: any) {
+    return this.documentsService.create({
+      title: body.title,
+      fileName: file.originalname,
+      storagePath: file.path,
+      mimeType: file.mimetype,
+      size: file.size,
+      category: body.category,
+      isPublished: body.isPublished === 'true',
+    });
   }
 
   @Post()

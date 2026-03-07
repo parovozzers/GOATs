@@ -6,4 +6,5 @@ export const usersApi = {
     apiClient.get<User[]>('/users', { params }).then(r => r.data),
   getMe: () => apiClient.get<User>('/users/me').then(r => r.data),
   updateMe: (data: Partial<User>) => apiClient.patch<User>('/users/me', data).then(r => r.data),
+  updateRole: (id: string, role: string) => apiClient.patch(`/users/${id}/role`, { role }).then(r => r.data),
 };
