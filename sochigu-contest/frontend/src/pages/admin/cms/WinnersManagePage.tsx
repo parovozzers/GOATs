@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
 import { Winner, Nomination } from '@/types';
 import { placeMedal } from '@/utils/placeMedal';
-import { Modal } from '@/components/shared/Modal';
+import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
 
@@ -26,11 +26,11 @@ export function WinnersManagePage() {
     winnersApi.getYears().then(y => setYears(y.map(x => x.year)));
   }, []);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     winnersApi.getAll({ year: yearFilter ? Number(yearFilter) : undefined }).then(setItems).finally(() => setLoading(false));
-  };
-  useEffect(() => { load(); }, [yearFilter]);
+  }, [yearFilter]);
+  useEffect(() => { load(); }, [load]);
 
   const openCreate = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
   const openEdit = (item: Winner) => {
@@ -54,8 +54,8 @@ export function WinnersManagePage() {
     catch { showToast('Ошибка', 'error'); }
   };
 
-  const ic = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none';
-  const selectIc = "w-full select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none";
+  const selectIc = 'w-full select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none';
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -76,7 +76,7 @@ export function WinnersManagePage() {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-gray-400 text-xs uppercase border-b border-gray-100">
-              {['Место','Проект','Команда','Номинация','Год','Действия'].map(h => <th key={h} className="px-5 py-3 font-medium">{h}</th>)}
+              {['Место', 'Проект', 'Команда', 'Номинация', 'Год', 'Действия'].map(h => <th key={h} className="px-5 py-3 font-medium">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-gray-50">
               {items.map(item => (
@@ -87,7 +87,7 @@ export function WinnersManagePage() {
                   <td className="px-5 py-3 text-gray-500">{item.nomination?.shortName ?? item.nomination?.name ?? '—'}</td>
                   <td className="px-5 py-3 text-gray-400">{item.year}</td>
                   <td className="px-5 py-3 flex gap-2">
-                    <button onClick={() => openEdit(item)} className="text-primary-700 hover:underline text-xs font-medium">Изменить</button>
+                    <button onClick={() => openEdit(item)} className="text-primary-700 hover:underline text-xs font-medium">Редактировать</button>
                     <button onClick={() => handleDelete(item)} className="text-red-500 hover:underline text-xs font-medium">Удалить</button>
                   </td>
                 </tr>
@@ -108,16 +108,16 @@ export function WinnersManagePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Год *</label>
-              <input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: Number(e.target.value) }))} className={ic} />
+              <input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: Number(e.target.value) }))} className="input" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Название проекта *</label>
-            <input type="text" value={form.projectTitle} onChange={e => setForm(f => ({ ...f, projectTitle: e.target.value }))} className={ic} />
+            <input type="text" value={form.projectTitle} onChange={e => setForm(f => ({ ...f, projectTitle: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Команда *</label>
-            <input type="text" value={form.teamName} onChange={e => setForm(f => ({ ...f, teamName: e.target.value }))} className={ic} />
+            <input type="text" value={form.teamName} onChange={e => setForm(f => ({ ...f, teamName: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Номинация *</label>
@@ -128,15 +128,15 @@ export function WinnersManagePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Вуз</label>
-            <input type="text" value={form.university} onChange={e => setForm(f => ({ ...f, university: e.target.value }))} className={ic} />
+            <input type="text" value={form.university} onChange={e => setForm(f => ({ ...f, university: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Описание</label>
-            <textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className={ic} />
+            <textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">URL фото</label>
-            <input type="text" value={form.photoUrl} onChange={e => setForm(f => ({ ...f, photoUrl: e.target.value }))} className={ic} placeholder="https://..." />
+            <input type="text" value={form.photoUrl} onChange={e => setForm(f => ({ ...f, photoUrl: e.target.value }))} className="input" placeholder="https://..." />
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Отмена</button>

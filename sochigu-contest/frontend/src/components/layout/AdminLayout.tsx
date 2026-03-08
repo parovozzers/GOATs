@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth.store';
-import { LayoutDashboard, FileText, Users, BarChart3, Newspaper, FolderOpen, Trophy, Tag, ExternalLink, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BarChart3, Newspaper, FolderOpen, Trophy, Tag, UserCog, ExternalLink, LogOut } from 'lucide-react';
 
 const sidebarLinks = [
   { to: '/admin', label: 'Дашборд', icon: LayoutDashboard, exact: true },
@@ -11,6 +11,7 @@ const sidebarLinks = [
   { to: '/admin/cms/documents', label: 'Документы', icon: FolderOpen },
   { to: '/admin/cms/winners', label: 'Победители', icon: Trophy },
   { to: '/admin/cms/nominations', label: 'Номинации', icon: Tag },
+  { to: '/admin/experts', label: 'Эксперты', icon: UserCog },
 ];
 
 export function AdminLayout() {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { nominationsApi } from '@/api/nominations';
 import { Nomination } from '@/types';
-import { Modal } from '@/components/shared/Modal';
+import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
 
@@ -36,12 +36,10 @@ export function NominationsManagePage() {
   };
 
   const handleDelete = async (item: Nomination) => {
-    if (!confirm(`Удалить "${item.name}"?`)) return;
+    if (!confirm(`Удаление номинации может повлиять на существующие заявки.\nУдалить "${item.name}"?`)) return;
     try { await nominationsApi.remove(item.id); showToast('Удалено', 'success'); load(); }
     catch { showToast('Ошибка', 'error'); }
   };
-
-  const ic = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none';
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -84,19 +82,19 @@ export function NominationsManagePage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Название *</label>
-            <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={ic} />
+            <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Краткое имя</label>
-            <input type="text" value={form.shortName} onChange={e => setForm(f => ({ ...f, shortName: e.target.value }))} className={ic} />
+            <input type="text" value={form.shortName} onChange={e => setForm(f => ({ ...f, shortName: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Описание</label>
-            <textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className={ic} />
+            <textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Порядок сортировки</label>
-            <input type="number" value={form.sortOrder} onChange={e => setForm(f => ({ ...f, sortOrder: Number(e.target.value) }))} className={ic} />
+            <input type="number" value={form.sortOrder} onChange={e => setForm(f => ({ ...f, sortOrder: Number(e.target.value) }))} className="input" />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />

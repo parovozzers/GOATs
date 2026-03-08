@@ -27,6 +27,7 @@ import { NewsManagePage } from '@/pages/admin/cms/NewsManagePage';
 import { DocumentsManagePage } from '@/pages/admin/cms/DocumentsManagePage';
 import { WinnersManagePage } from '@/pages/admin/cms/WinnersManagePage';
 import { NominationsManagePage } from '@/pages/admin/cms/NominationsManagePage';
+import { ExpertsPage as AdminExpertsPage } from '@/pages/admin/ExpertsPage';
 
 export default function App() {
   return (
@@ -67,6 +68,7 @@ export default function App() {
           <Route path="/admin/cms/documents" element={<DocumentsManagePage />} />
           <Route path="/admin/cms/winners" element={<WinnersManagePage />} />
           <Route path="/admin/cms/nominations" element={<NominationsManagePage />} />
+          <Route path="/admin/experts" element={<AdminExpertsPage />} />
         </Route>
       </Route>
     </Routes>

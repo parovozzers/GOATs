@@ -1,10 +1,11 @@
-import { Controller, Get, Patch, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Role } from '../common/enums/role.enum';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -27,5 +28,12 @@ export class UsersController {
   @Roles(Role.ADMIN, Role.MODERATOR)
   getAll(@Query() query: { role?: string; search?: string }) {
     return this.usersService.findAll(query);
+  }
+
+  @Patch(':id/role')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  updateRole(@Param('id') id: string, @Body() body: UpdateRoleDto) {
+    return this.usersService.update(id, { role: body.role });
   }
 }
