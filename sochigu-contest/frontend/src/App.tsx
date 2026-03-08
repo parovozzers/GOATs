@@ -1,4 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import { PageLoader } from '@/components/ui/PageLoader';
+import { NotFoundPage } from '@/pages/NotFoundPage';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { CabinetLayout } from '@/components/layout/CabinetLayout';
@@ -22,7 +25,7 @@ import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
 import { ApplicationsListPage } from '@/pages/admin/ApplicationsListPage';
 import { ApplicationDetailPage } from '@/pages/admin/ApplicationDetailPage';
 import { UsersPage } from '@/pages/admin/UsersPage';
-import { AnalyticsPage } from '@/pages/admin/AnalyticsPage';
+const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 import { NewsManagePage } from '@/pages/admin/cms/NewsManagePage';
 import { DocumentsManagePage } from '@/pages/admin/cms/DocumentsManagePage';
 import { WinnersManagePage } from '@/pages/admin/cms/WinnersManagePage';
@@ -31,6 +34,7 @@ import { ExpertsPage as AdminExpertsPage } from '@/pages/admin/ExpertsPage';
 
 export default function App() {
   return (
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
@@ -71,6 +75,8 @@ export default function App() {
           <Route path="/admin/experts" element={<AdminExpertsPage />} />
         </Route>
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    </Suspense>
   );
 }

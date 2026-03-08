@@ -128,6 +128,12 @@ export interface AnalyticsSummary {
   totalUniversities: number;
 }
 
+export interface AnalyticsByNomination { nomination: string; count: number; }
+export interface AnalyticsTimeline { date: string; count: number; }
+export interface AnalyticsTopUniversity { university: string; count: number; }
+export interface AnalyticsGeography { city: string; count: number; }
+export interface AnalyticsKeyword { keyword: string; count: number; }
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;

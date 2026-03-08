@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
@@ -27,6 +28,7 @@ const directions = [
 ];
 
 export function NominationsPage() {
+  useEffect(() => { document.title = 'Номинации — Конкурс СочиГУ'; }, []);
   return (
     <div>
       <section className="bg-primary-light/50 py-12">

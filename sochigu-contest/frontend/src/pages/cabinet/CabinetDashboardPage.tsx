@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth.store';
 import { useMyApplications } from '@/hooks/useApplications';
@@ -9,6 +10,7 @@ function formatDate(str: string) {
 }
 
 export function CabinetDashboardPage() {
+  useEffect(() => { document.title = 'Личный кабинет — Конкурс СочиГУ'; }, []);
   const { user } = useAuthStore();
   const { applications: apps, loading } = useMyApplications();
 

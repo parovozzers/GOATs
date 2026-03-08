@@ -8,6 +8,7 @@ import { Spinner } from '@/components/shared/Spinner';
 const EMPTY = { name: '', shortName: '', description: '', isActive: true, sortOrder: 0 };
 
 export function NominationsManagePage() {
+  useEffect(() => { document.title = 'Управление номинациями — Конкурс СочиГУ'; }, []);
   const [items, setItems] = useState<Nomination[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);

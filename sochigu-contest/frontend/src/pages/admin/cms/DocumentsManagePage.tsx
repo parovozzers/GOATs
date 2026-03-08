@@ -9,6 +9,7 @@ import { Spinner } from '@/components/shared/Spinner';
 const EMPTY_FORM = { title: '', category: '', isPublished: true };
 
 export function DocumentsManagePage() {
+  useEffect(() => { document.title = 'Управление документами — Конкурс СочиГУ'; }, []);
   const [items, setItems] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);

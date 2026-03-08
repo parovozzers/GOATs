@@ -30,6 +30,7 @@ function TableSkeleton() {
 }
 
 export function UsersPage() {
+  useEffect(() => { document.title = 'Пользователи — Конкурс СочиГУ'; }, []);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState('');

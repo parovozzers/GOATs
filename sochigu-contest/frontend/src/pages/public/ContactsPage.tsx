@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { MapPin, Mail, Globe } from "lucide-react";
 
 export function ContactsPage() {
+  useEffect(() => { document.title = 'Контакты — Конкурс СочиГУ'; }, []);
   return (
     <div>
       <section className="bg-primary-light/50 py-12">

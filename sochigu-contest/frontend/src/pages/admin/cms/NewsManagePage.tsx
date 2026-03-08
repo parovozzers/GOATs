@@ -27,6 +27,7 @@ interface FormData {
 const EMPTY: FormData = { title: '', slug: '', excerpt: '', content: '', coverImage: '', isPublished: false };
 
 export function NewsManagePage() {
+  useEffect(() => { document.title = 'Управление новостями — Конкурс СочиГУ'; }, []);
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);

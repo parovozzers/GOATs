@@ -4,13 +4,13 @@ import { analyticsApi } from '@/api/analytics';
 import { applicationsApi } from '@/api/applications';
 import { Application, AnalyticsSummary } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Spinner } from '@/components/shared/Spinner';
 
 function formatDate(str: string) {
   return new Date(str).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function AdminDashboardPage() {
+  useEffect(() => { document.title = 'Панель управления — Конкурс СочиГУ'; }, []);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [recentApps, setRecentApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,14 @@ export function AdminDashboardPage() {
       <h1 className="text-2xl font-bold text-primary-900">Панель управления</h1>
 
       {loading ? (
-        <div className="flex justify-center py-12"><Spinner size="lg" /></div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+              <div className="h-10 w-20 bg-gray-200 rounded animate-pulse mb-2" />
+              <div className="h-4 w-28 bg-gray-100 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">

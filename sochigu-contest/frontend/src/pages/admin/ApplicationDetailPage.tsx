@@ -14,6 +14,7 @@ function formatDate(str: string) {
 }
 
 export function ApplicationDetailPage() {
+  useEffect(() => { document.title = 'Просмотр заявки — Конкурс СочиГУ'; }, []);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
