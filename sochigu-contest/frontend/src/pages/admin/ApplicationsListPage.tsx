@@ -4,7 +4,6 @@ import { applicationsApi } from '@/api/applications';
 import { nominationsApi } from '@/api/nominations';
 import { Application, Nomination, ApplicationStatus, APPLICATION_STATUS_LABELS } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Spinner } from '@/components/shared/Spinner';
 
 const LIMIT = 20;
 const STATUSES: ApplicationStatus[] = ['draft','submitted','accepted','rejected','admitted','winner','runner_up'];
@@ -14,7 +13,7 @@ function formatDate(str: string) { return new Date(str).toLocaleDateString('ru-R
 function TableSkeleton() {
   return (
     <tbody>
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: 10 }).map((_, i) => (
         <tr key={i} className="border-b border-gray-50">
           {Array.from({ length: 8 }).map((_, j) => (
             <td key={j} className="px-5 py-3"><div className="h-4 bg-gray-200 rounded animate-pulse" /></td>
@@ -26,6 +25,7 @@ function TableSkeleton() {
 }
 
 export function ApplicationsListPage() {
+  useEffect(() => { document.title = 'Заявки — Конкурс СочиГУ'; }, []);
   const [apps, setApps] = useState<Application[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);

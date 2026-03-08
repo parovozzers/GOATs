@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { authApi } from '@/api/auth';
@@ -10,6 +10,7 @@ type LoginForm = {
 };
 
 export function LoginPage() {
+  useEffect(() => { document.title = 'Вход — Конкурс СочиГУ'; }, []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -23,8 +24,10 @@ export function LoginPage() {
       setError(null);
       const role = useAuthStore.getState().user?.role;
       navigate(role === 'admin' || role === 'moderator' ? '/admin' : '/cabinet', { replace: true });
-    } catch {
-      setError('Неверный email или пароль.');
+    } catch (err: any) {
+      const raw = err?.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw[0] : typeof raw === 'string' ? raw : null;
+      setError(msg ?? 'Неверный email или пароль.');
     } finally {
       setLoading(false);
     }

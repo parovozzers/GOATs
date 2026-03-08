@@ -291,7 +291,7 @@ export function ApplicationFormPage() {
               <div className="space-y-2">
                 {teamMembers.map((m, i) => (
                   <div key={i} className="grid grid-cols-3 gap-2">
-                    <input type="text" placeholder="Имя" value={m.name}
+                    <input type="text" placeholder="ФИО" value={m.name}
                       onChange={e => updateMember(i, 'name', e.target.value)} className={inputClass} />
                     <input type="text" placeholder="Роль в проекте" value={m.role}
                       onChange={e => updateMember(i, 'role', e.target.value)} className={inputClass} />

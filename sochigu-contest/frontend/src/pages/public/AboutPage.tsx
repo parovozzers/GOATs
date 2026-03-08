@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { Target, BookOpen, Users, Trophy, CheckCircle, ArrowRight } from "lucide-react";
 
 export function AboutPage() {
+  useEffect(() => { document.title = 'О конкурсе — Конкурс СочиГУ'; }, []);
   const goals = [
     "Развитие интереса к проектной деятельности",
     "Профориентация студентов",

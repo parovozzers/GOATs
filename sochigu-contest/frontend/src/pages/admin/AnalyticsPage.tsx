@@ -20,6 +20,7 @@ function KpiCard({ label, value }: { label: string; value: number }) {
 }
 
 export function AnalyticsPage() {
+  useEffect(() => { document.title = 'Аналитика — Конкурс СочиГУ'; }, []);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [byNomination, setByNomination] = useState<any[]>([]);
   const [timeline, setTimeline] = useState<any[]>([]);
@@ -57,7 +58,7 @@ export function AnalyticsPage() {
       </div>
 
       {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 print-no-break">
           <KpiCard label="Всего заявок" value={summary.totalApplications} />
           <KpiCard label="Участников" value={summary.totalUsers} />
           <KpiCard label="Вузов" value={summary.totalUniversities} />
@@ -65,20 +66,21 @@ export function AnalyticsPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print-no-break">
           <h2 className="font-semibold text-gray-900 mb-4">Заявки по номинациям</h2>
           {byNomination.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных</p> : (
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={260}>
               <PieChart>
-                <Pie data={byNomination} dataKey="count" nameKey="nomination" cx="50%" cy="50%" outerRadius={80} label={({ nomination }) => nomination}>
+                <Pie data={byNomination} dataKey="count" nameKey="nomination" cx="50%" cy="45%" outerRadius={90}>
                   {byNomination.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print-no-break">
           <h2 className="font-semibold text-gray-900 mb-4">Динамика подачи заявок</h2>
           {timeline.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных</p> : (
             <ResponsiveContainer width="100%" height={220}>
@@ -87,35 +89,35 @@ export function AnalyticsPage() {
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={d => new Date(d).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' })} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip labelFormatter={d => new Date(d).toLocaleDateString('ru-RU')} />
-                <Line type="monotone" dataKey="count" stroke="#1d4ed8" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="count" name="Количество заявок" stroke="#1d4ed8" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           )}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print-no-break">
         <h2 className="font-semibold text-gray-900 mb-4">Топ-10 вузов</h2>
         {universities.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных</p> : (
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={universities.slice(0, 10)} layout="vertical">
+            <BarChart data={universities.slice(0, 10)} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis type="number" tick={{ fontSize: 11 }} />
-              <YAxis type="category" dataKey="university" width={160} tick={{ fontSize: 11 }} />
+              <YAxis type="category" dataKey="university" width={180} tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Bar dataKey="count" fill="#059669" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="count" name="Количество заявок" fill="#059669" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">География</h2>
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print-no-break">
+          <h2 className="font-semibold text-gray-900 mb-4">География участников</h2>
           {geography.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных</p> : (
             <table className="w-full text-sm">
               <thead><tr className="text-left text-gray-400 border-b border-gray-100">
-                <th className="pb-2 font-medium">Город</th><th className="pb-2 font-medium text-right">Кол-во</th>
+                <th className="pb-2 font-medium">Город</th><th className="pb-2 font-medium text-right">Участников</th>
               </tr></thead>
               <tbody className="divide-y divide-gray-50">
                 {geography.map((g, i) => (
@@ -125,7 +127,7 @@ export function AnalyticsPage() {
             </table>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print-no-break">
           <h2 className="font-semibold text-gray-900 mb-4">Ключевые слова</h2>
           {keywords.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных</p> : (
             <div className="flex flex-wrap gap-2">

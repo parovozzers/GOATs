@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { GraduationCap, Users, Gift, Trophy, ArrowRight, Calendar, CheckCircle, Presentation, Award } from "lucide-react";
 
 export function HomePage() {
+  useEffect(() => { document.title = 'Главная — Конкурс СочиГУ'; }, []);
   return (
     <div>
       <section className="hero-gradient relative overflow-hidden px-4 pb-28 pt-20 md:pb-36 md:pt-28">

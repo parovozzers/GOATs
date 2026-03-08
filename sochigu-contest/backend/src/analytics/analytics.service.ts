@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Application } from '../applications/entities/application.entity';
 import { User } from '../users/entities/user.entity';
+import { Role } from '../common/enums/role.enum';
 
 @Injectable()
 export class AnalyticsService {
@@ -14,12 +15,13 @@ export class AnalyticsService {
   async getSummary() {
     const [totalApplications, totalUsers] = await Promise.all([
       this.appRepo.count(),
-      this.userRepo.count(),
+      this.userRepo.count({ where: { role: Role.PARTICIPANT } }),
     ]);
 
     const universities = await this.userRepo
       .createQueryBuilder('u')
       .select('COUNT(DISTINCT u.university)', 'count')
+      .where("u.university IS NOT NULL AND u.university != ''")
       .getRawOne();
 
     return {
@@ -29,18 +31,20 @@ export class AnalyticsService {
     };
   }
 
-  getByNomination() {
-    return this.appRepo
+  async getByNomination() {
+    const rows = await this.appRepo
       .createQueryBuilder('a')
       .leftJoin('a.nomination', 'n')
       .select('n.name', 'nomination')
       .addSelect('COUNT(a.id)', 'count')
+      .where('a.nominationId IS NOT NULL')
       .groupBy('n.name')
       .getRawMany();
+    return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
 
-  getTimeline() {
-    return this.appRepo
+  async getTimeline() {
+    const rows = await this.appRepo
       .createQueryBuilder('a')
       .select("DATE_TRUNC('day', a.submittedAt)", 'date')
       .addSelect('COUNT(a.id)', 'count')
@@ -48,10 +52,11 @@ export class AnalyticsService {
       .groupBy("DATE_TRUNC('day', a.submittedAt)")
       .orderBy('date', 'ASC')
       .getRawMany();
+    return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
 
-  getTopUniversities() {
-    return this.appRepo
+  async getTopUniversities() {
+    const rows = await this.appRepo
       .createQueryBuilder('a')
       .leftJoin('a.user', 'u')
       .select('u.university', 'university')
@@ -61,28 +66,30 @@ export class AnalyticsService {
       .orderBy('count', 'DESC')
       .limit(10)
       .getRawMany();
+    return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
 
-  getGeography() {
-    return this.userRepo
+  async getGeography() {
+    const rows = await this.userRepo
       .createQueryBuilder('u')
       .select('u.city', 'city')
       .addSelect('COUNT(u.id)', 'count')
-      .where('u.city IS NOT NULL')
+      .where("u.city IS NOT NULL AND u.role = 'participant'")
       .groupBy('u.city')
       .orderBy('count', 'DESC')
       .getRawMany();
+    return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
 
   getKeywords() {
-    return this.appRepo
-      .createQueryBuilder('a')
-      .select('UNNEST(a.keywords)', 'keyword')
-      .addSelect('COUNT(*)', 'count')
-      .where('a.keywords IS NOT NULL')
-      .groupBy('keyword')
-      .orderBy('count', 'DESC')
-      .limit(50)
-      .getRawMany();
+    return this.appRepo.manager.query(`
+      SELECT keyword, COUNT(*) as count
+      FROM applications a,
+      UNNEST(STRING_TO_ARRAY(a.keywords, ',')) AS keyword
+      WHERE a.keywords IS NOT NULL AND a.keywords != '' AND keyword != ''
+      GROUP BY keyword
+      ORDER BY count DESC
+      LIMIT 50
+    `);
   }
 }

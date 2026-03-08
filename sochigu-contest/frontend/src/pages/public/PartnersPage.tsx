@@ -1,5 +1,8 @@
+import { useEffect } from 'react';
+
 export function PartnersPage() {
-    return (
+  useEffect(() => { document.title = 'Партнёры — Конкурс СочиГУ'; }, []);
+  return (
       <main className="min-h-screen bg-white">
         <div className="container mx-auto px-4 max-w-4xl py-8 md:py-12">
           <h1 className="text-3xl md:text-4xl font-bold text-primary-900 mb-4">

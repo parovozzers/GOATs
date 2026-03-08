@@ -1,4 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
+import { Suspense } from 'react';
+import { PageLoader } from '@/components/ui/PageLoader';
+import { NotFoundPage } from '@/pages/NotFoundPage';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { CabinetLayout } from '@/components/layout/CabinetLayout';
@@ -31,6 +34,7 @@ import { ExpertsPage as AdminExpertsPage } from '@/pages/admin/ExpertsPage';
 
 export default function App() {
   return (
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
@@ -71,6 +75,8 @@ export default function App() {
           <Route path="/admin/experts" element={<AdminExpertsPage />} />
         </Route>
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    </Suspense>
   );
 }

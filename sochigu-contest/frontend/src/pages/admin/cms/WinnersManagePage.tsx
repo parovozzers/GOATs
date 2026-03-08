@@ -10,6 +10,7 @@ import { Spinner } from '@/components/shared/Spinner';
 const EMPTY = { projectTitle: '', teamName: '', description: '', year: new Date().getFullYear(), place: 1, nominationId: '', university: '', photoUrl: '' };
 
 export function WinnersManagePage() {
+  useEffect(() => { document.title = 'Управление победителями — Конкурс СочиГУ'; }, []);
   const [items, setItems] = useState<Winner[]>([]);
   const [nominations, setNominations] = useState<Nomination[]>([]);
   const [loading, setLoading] = useState(true);

@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
 
 export function ExpertsPage() {
+  useEffect(() => { document.title = 'Эксперты — Конкурс СочиГУ'; }, []);
   const [experts, setExperts] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);

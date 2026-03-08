@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { authApi } from '@/api/auth';
@@ -19,6 +19,7 @@ type RegisterForm = {
 };
 
 export function RegisterPage() {
+  useEffect(() => { document.title = 'Регистрация — Конкурс СочиГУ'; }, []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -37,8 +38,10 @@ export function RegisterPage() {
       const { consent, course, confirmPassword: _, ...rest } = data;
       await authApi.register({ ...rest, course: course ? Number(course) : undefined });
       navigate('/cabinet', { replace: true });
-    } catch {
-      setError('Ошибка регистрации. Возможно, такой email уже занят.');
+    } catch (err: any) {
+      const raw = err?.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw[0] : typeof raw === 'string' ? raw : null;
+      setError(msg ?? 'Ошибка регистрации. Возможно, такой email уже занят.');
     } finally {
       setLoading(false);
     }
