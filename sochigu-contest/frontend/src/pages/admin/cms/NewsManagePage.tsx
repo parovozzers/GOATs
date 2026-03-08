@@ -45,7 +45,7 @@ export function NewsManagePage() {
   const titleValue = watch('title');
   useEffect(() => {
     if (!editing) setValue('slug', slugify(titleValue ?? ''));
-  }, [titleValue]);
+  }, [titleValue, editing]);
 
   const openCreate = () => { setEditing(null); reset(EMPTY); setModalOpen(true); };
   const openEdit = (item: News) => {
@@ -65,7 +65,7 @@ export function NewsManagePage() {
 
   const handleTogglePublish = async (item: News) => {
     try {
-      await newsApi.update(item.id, { isPublished: !item.isPublished, publishedAt: new Date().toISOString() });
+      await newsApi.update(item.id, { isPublished: !item.isPublished, publishedAt: !item.isPublished ? new Date().toISOString() : undefined });
       showToast(item.isPublished ? 'Снято с публикации' : 'Опубликовано', 'success');
       load();
     } catch { showToast('Ошибка', 'error'); }
@@ -76,8 +76,6 @@ export function NewsManagePage() {
     try { await newsApi.remove(item.id); showToast('Удалено', 'success'); load(); }
     catch { showToast('Ошибка при удалении', 'error'); }
   };
-
-  const ic = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none';
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -120,23 +118,23 @@ export function NewsManagePage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Заголовок *</label>
-            <input type="text" {...register('title', { required: true })} className={ic} />
+            <input type="text" {...register('title', { required: true })} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label>
-            <input type="text" {...register('slug', { required: true })} className={ic} />
+            <input type="text" {...register('slug', { required: true })} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Краткое описание</label>
-            <textarea rows={2} {...register('excerpt')} className={ic} />
+            <textarea rows={2} {...register('excerpt')} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Полный текст *</label>
-            <textarea rows={5} {...register('content', { required: true })} className={ic} />
+            <textarea rows={5} {...register('content', { required: true })} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">URL обложки</label>
-            <input type="text" {...register('coverImage')} className={ic} placeholder="https://..." />
+            <input type="text" {...register('coverImage')} className="input" placeholder="https://..." />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" {...register('isPublished')} className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />

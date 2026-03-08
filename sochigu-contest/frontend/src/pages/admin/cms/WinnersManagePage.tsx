@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
 import { Winner, Nomination } from '@/types';
@@ -26,11 +26,11 @@ export function WinnersManagePage() {
     winnersApi.getYears().then(y => setYears(y.map(x => x.year)));
   }, []);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     winnersApi.getAll({ year: yearFilter ? Number(yearFilter) : undefined }).then(setItems).finally(() => setLoading(false));
-  };
-  useEffect(() => { load(); }, [yearFilter]);
+  }, [yearFilter]);
+  useEffect(() => { load(); }, [load]);
 
   const openCreate = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
   const openEdit = (item: Winner) => {
@@ -54,7 +54,6 @@ export function WinnersManagePage() {
     catch { showToast('Ошибка', 'error'); }
   };
 
-  const ic = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none';
   const selectIc = 'w-full select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none';
 
   return (
@@ -109,16 +108,16 @@ export function WinnersManagePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Год *</label>
-              <input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: Number(e.target.value) }))} className={ic} />
+              <input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: Number(e.target.value) }))} className="input" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Название проекта *</label>
-            <input type="text" value={form.projectTitle} onChange={e => setForm(f => ({ ...f, projectTitle: e.target.value }))} className={ic} />
+            <input type="text" value={form.projectTitle} onChange={e => setForm(f => ({ ...f, projectTitle: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Команда *</label>
-            <input type="text" value={form.teamName} onChange={e => setForm(f => ({ ...f, teamName: e.target.value }))} className={ic} />
+            <input type="text" value={form.teamName} onChange={e => setForm(f => ({ ...f, teamName: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Номинация *</label>
@@ -129,15 +128,15 @@ export function WinnersManagePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Вуз</label>
-            <input type="text" value={form.university} onChange={e => setForm(f => ({ ...f, university: e.target.value }))} className={ic} />
+            <input type="text" value={form.university} onChange={e => setForm(f => ({ ...f, university: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Описание</label>
-            <textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className={ic} />
+            <textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="input" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">URL фото</label>
-            <input type="text" value={form.photoUrl} onChange={e => setForm(f => ({ ...f, photoUrl: e.target.value }))} className={ic} placeholder="https://..." />
+            <input type="text" value={form.photoUrl} onChange={e => setForm(f => ({ ...f, photoUrl: e.target.value }))} className="input" placeholder="https://..." />
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Отмена</button>

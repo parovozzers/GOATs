@@ -50,6 +50,7 @@ export function ExpertsPage() {
   };
 
   const handleRevoke = async (user: User) => {
+    if (user.role !== 'expert') return;
     if (!confirm(`Снять роль эксперта у ${user.firstName} ${user.lastName}?`)) return;
     try {
       await usersApi.updateRole(user.id, 'participant');
@@ -57,8 +58,6 @@ export function ExpertsPage() {
       load();
     } catch { showToast('Ошибка', 'error'); }
   };
-
-  const ic = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none';
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -108,7 +107,7 @@ export function ExpertsPage() {
                 value={searchEmail}
                 onChange={e => setSearchEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                className={ic}
+                className="input"
                 placeholder="example@email.com"
               />
               <button

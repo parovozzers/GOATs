@@ -15,6 +15,10 @@ export class DocumentsService {
     return this.repo.find({ order: { sortOrder: 'ASC' } });
   }
 
+  findOne(id: string) {
+    return this.repo.findOneOrFail({ where: { id } });
+  }
+
   create(data: Partial<Document>) {
     return this.repo.save(this.repo.create(data));
   }
