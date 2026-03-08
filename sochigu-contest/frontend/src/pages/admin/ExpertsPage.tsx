@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usersApi } from '@/api/users';
 import { User } from '@/types';
 import { Modal } from '@/components/ui/Modal';
@@ -11,10 +11,12 @@ export function ExpertsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [searchEmail, setSearchEmail] = useState('');
+  const [results, setResults] = useState<User[]>([]);
   const [found, setFound] = useState<User | null>(null);
   const [searching, setSearching] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const { showToast } = useToast();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -23,19 +25,22 @@ export function ExpertsPage() {
 
   useEffect(() => { load(); }, []);
 
-  const openModal = () => { setSearchEmail(''); setFound(null); setModalOpen(true); };
+  const openModal = () => { setSearchEmail(''); setFound(null); setResults([]); setModalOpen(true); };
 
-  const handleSearch = async () => {
-    if (!searchEmail.trim()) return;
-    setSearching(true);
+  const handleSearchInput = (value: string) => {
+    setSearchEmail(value);
     setFound(null);
-    try {
-      const users = await usersApi.getAll({ search: searchEmail.trim() });
-      const match = users.find(u => u.email.toLowerCase() === searchEmail.trim().toLowerCase());
-      if (match) setFound(match);
-      else showToast('Пользователь не найден', 'error');
-    } catch { showToast('Ошибка поиска', 'error'); }
-    finally { setSearching(false); }
+    setResults([]);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!value.trim()) return;
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const users = await usersApi.getAll({ search: value.trim() });
+        setResults(users.filter(u => u.role !== 'expert'));
+      } catch { showToast('Ошибка поиска', 'error'); }
+      finally { setSearching(false); }
+    }, 400);
   };
 
   const handleAssign = async () => {
@@ -101,31 +106,47 @@ export function ExpertsPage() {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Назначить эксперта">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email пользователя</label>
-            <div className="flex gap-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Поиск по email или имени</label>
+            <div className="relative">
               <input
-                type="email"
+                type="text"
                 value={searchEmail}
-                onChange={e => setSearchEmail(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                className="input"
-                placeholder="example@email.com"
+                onChange={e => handleSearchInput(e.target.value)}
+                className="input pr-8"
+                placeholder="Начните вводить..."
+                autoFocus
               />
-              <button
-                onClick={handleSearch}
-                disabled={searching}
-                className="px-3 py-2 bg-primary-700 hover:bg-primary-900 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
-              >
-                {searching ? '...' : 'Найти'}
-              </button>
+              {searching && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">...</span>}
             </div>
           </div>
 
+          {results.length > 0 && !found && (
+            <ul className="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-48 overflow-y-auto">
+              {results.map(u => (
+                <li
+                  key={u.id}
+                  onClick={() => { setFound(u); setResults([]); }}
+                  className="px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  <p className="text-sm font-medium text-gray-900">{u.lastName} {u.firstName} {u.middleName ?? ''}</p>
+                  <p className="text-xs text-gray-500">{u.email}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {searchEmail.trim() && !searching && results.length === 0 && !found && (
+            <p className="text-sm text-gray-400 text-center py-1">Пользователи не найдены</p>
+          )}
+
           {found && (
-            <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm">
-              <p className="font-medium text-gray-900">{found.lastName} {found.firstName} {found.middleName ?? ''}</p>
-              <p className="text-gray-500">{found.email}</p>
-              <p className="text-gray-400 text-xs mt-1">Текущая роль: {found.role}</p>
+            <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm flex items-start justify-between">
+              <div>
+                <p className="font-medium text-gray-900">{found.lastName} {found.firstName} {found.middleName ?? ''}</p>
+                <p className="text-gray-500">{found.email}</p>
+                <p className="text-gray-400 text-xs mt-1">Текущая роль: {found.role}</p>
+              </div>
+              <button onClick={() => { setFound(null); setSearchEmail(''); }} className="text-gray-400 hover:text-gray-600 text-xs ml-3">✕</button>
             </div>
           )}
 

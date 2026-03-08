@@ -1,5 +1,5 @@
 import { NestFactory, Reflector } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import * as fs from 'fs';
@@ -38,7 +38,8 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`Backend running on http://localhost:${port}`);
+  const logger = new Logger('Bootstrap');
+  logger.log(`Backend running on port ${port}`);
 }
 
 bootstrap();

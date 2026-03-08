@@ -21,7 +21,7 @@ export class AnalyticsService {
     const universities = await this.userRepo
       .createQueryBuilder('u')
       .select('COUNT(DISTINCT u.university)', 'count')
-      .where("u.university IS NOT NULL AND u.university != ''")
+      .where("u.university IS NOT NULL AND u.university != '' AND u.role = :role", { role: Role.PARTICIPANT })
       .getRawOne();
 
     return {
@@ -74,22 +74,23 @@ export class AnalyticsService {
       .createQueryBuilder('u')
       .select('u.city', 'city')
       .addSelect('COUNT(u.id)', 'count')
-      .where("u.city IS NOT NULL AND u.role = 'participant'")
+      .where('u.city IS NOT NULL AND u.role = :role', { role: Role.PARTICIPANT })
       .groupBy('u.city')
       .orderBy('count', 'DESC')
       .getRawMany();
     return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
 
-  getKeywords() {
-    return this.appRepo.manager.query(`
-      SELECT keyword, COUNT(*) as count
+  async getKeywords() {
+    const rows = await this.appRepo.manager.query(`
+      SELECT TRIM(keyword) AS keyword, COUNT(*) AS count
       FROM applications a,
       UNNEST(STRING_TO_ARRAY(a.keywords, ',')) AS keyword
-      WHERE a.keywords IS NOT NULL AND a.keywords != '' AND keyword != ''
-      GROUP BY keyword
+      WHERE a.keywords IS NOT NULL AND a.keywords != '' AND TRIM(keyword) != ''
+      GROUP BY TRIM(keyword)
       ORDER BY count DESC
       LIMIT 50
     `);
+    return rows.map((r: any) => ({ ...r, count: Number(r.count) }));
   }
 }

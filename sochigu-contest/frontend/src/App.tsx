@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { PublicLayout } from '@/components/layout/PublicLayout';
@@ -25,7 +25,7 @@ import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
 import { ApplicationsListPage } from '@/pages/admin/ApplicationsListPage';
 import { ApplicationDetailPage } from '@/pages/admin/ApplicationDetailPage';
 import { UsersPage } from '@/pages/admin/UsersPage';
-import { AnalyticsPage } from '@/pages/admin/AnalyticsPage';
+const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 import { NewsManagePage } from '@/pages/admin/cms/NewsManagePage';
 import { DocumentsManagePage } from '@/pages/admin/cms/DocumentsManagePage';
 import { WinnersManagePage } from '@/pages/admin/cms/WinnersManagePage';

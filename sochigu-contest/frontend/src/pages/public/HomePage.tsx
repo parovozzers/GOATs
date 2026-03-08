@@ -1,13 +1,19 @@
 import { useEffect } from 'react';
 import { Link } from "react-router-dom";
+// HERO_BG: удали эту строку чтобы убрать фото
+import heroBg from '../../../first_page.png';
 import { GraduationCap, Users, Gift, Trophy, ArrowRight, Calendar, CheckCircle, Presentation, Award } from "lucide-react";
 
 export function HomePage() {
   useEffect(() => { document.title = 'Главная — Конкурс СочиГУ'; }, []);
   return (
     <div>
-      <section className="hero-gradient relative overflow-hidden px-4 pb-28 pt-20 md:pb-36 md:pt-28">
-        <div className="container relative mx-auto text-center">
+      {/* HERO_BG: замени эту section на закомментированную ниже чтобы вернуть чистый синий */}
+      <section className="relative overflow-hidden px-4 pb-28 pt-20 md:pb-36 md:pt-28" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center top' }}>
+        <div className="absolute inset-0 hero-gradient opacity-60" />
+      {/* ОРИГИНАЛ (раскомментируй и удали 3 строки выше):
+      <section className="hero-gradient relative overflow-hidden px-4 pb-28 pt-20 md:pb-36 md:pt-28"> */}
+        <div className="container relative z-10 mx-auto text-center">
           <div className="mb-6 inline-block rounded-full bg-accent/20 px-4 py-1.5 text-sm font-semibold text-accent-foreground">
             <Calendar className="mr-1 inline-block h-4 w-4" /> Приём заявок до 30 октября
           </div>

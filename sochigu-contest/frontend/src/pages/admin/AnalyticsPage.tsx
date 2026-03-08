@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { analyticsApi } from '@/api/analytics';
-import { AnalyticsSummary } from '@/types';
+import {
+  AnalyticsSummary, AnalyticsByNomination, AnalyticsTimeline,
+  AnalyticsTopUniversity, AnalyticsGeography, AnalyticsKeyword,
+} from '@/types';
 import { Spinner } from '@/components/shared/Spinner';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -22,12 +25,13 @@ function KpiCard({ label, value }: { label: string; value: number }) {
 export function AnalyticsPage() {
   useEffect(() => { document.title = 'Аналитика — Конкурс СочиГУ'; }, []);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
-  const [byNomination, setByNomination] = useState<any[]>([]);
-  const [timeline, setTimeline] = useState<any[]>([]);
-  const [universities, setUniversities] = useState<any[]>([]);
-  const [geography, setGeography] = useState<any[]>([]);
-  const [keywords, setKeywords] = useState<any[]>([]);
+  const [byNomination, setByNomination] = useState<AnalyticsByNomination[]>([]);
+  const [timeline, setTimeline] = useState<AnalyticsTimeline[]>([]);
+  const [universities, setUniversities] = useState<AnalyticsTopUniversity[]>([]);
+  const [geography, setGeography] = useState<AnalyticsGeography[]>([]);
+  const [keywords, setKeywords] = useState<AnalyticsKeyword[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -40,10 +44,13 @@ export function AnalyticsPage() {
     ]).then(([s, n, t, u, g, k]) => {
       setSummary(s); setByNomination(n); setTimeline(t);
       setUniversities(u); setGeography(g); setKeywords(k);
+    }).catch(() => {
+      setError('Ошибка при загрузке аналитики');
     }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
+  if (error) return <div className="m-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>;
 
   const maxKw = keywords.reduce((m, k) => Math.max(m, k.count ?? 0), 1);
   const minKw = keywords.reduce((m, k) => Math.min(m, k.count ?? 0), maxKw);
@@ -53,7 +60,7 @@ export function AnalyticsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-primary-900">Аналитика</h1>
         <button onClick={() => window.print()} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors print:hidden">
-          Печать отчёта
+          Распечатать / Сохранить PDF
         </button>
       </div>
 
