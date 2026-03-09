@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import ReactWordcloud from 'react-wordcloud';
 import { analyticsApi } from '@/api/analytics';
 import {
   AnalyticsSummary, AnalyticsByNomination, AnalyticsTimeline,
   AnalyticsTopUniversity, AnalyticsGeography, AnalyticsKeyword,
 } from '@/types';
 import { Spinner } from '@/components/shared/Spinner';
+import { PrintReport } from '@/components/shared/PrintReport';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -52,15 +54,23 @@ export function AnalyticsPage() {
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
   if (error) return <div className="m-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>;
 
-  const maxKw = keywords.reduce((m, k) => Math.max(m, k.count ?? 0), 1);
-  const minKw = keywords.reduce((m, k) => Math.min(m, k.count ?? 0), maxKw);
+  const generatedAt = new Date().toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' });
+
+  const wcOptions = {
+    rotations: 2,
+    rotationAngles: [0, 90] as [number, number],
+    fontSizes: [14, 60] as [number, number],
+    colors: ['#1e3a8a', '#2563eb', '#059669', '#0284c7', '#7c3aed'],
+  };
+  const wcWords = keywords.map(k => ({ text: k.keyword, value: k.count }));
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-8">
+    <>
+    <div className="p-6 max-w-6xl mx-auto space-y-8 print:hidden">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-primary-900">Аналитика</h1>
         <button onClick={() => window.print()} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors print:hidden">
-          Распечатать / Сохранить PDF
+          Сгенерировать PDF-отчёт
         </button>
       </div>
 
@@ -75,7 +85,7 @@ export function AnalyticsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print-no-break">
           <h2 className="font-semibold text-gray-900 mb-4">Заявки по номинациям</h2>
-          {byNomination.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных</p> : (
+          {byNomination.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Заявок пока нет</p> : (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
                 <Pie data={byNomination} dataKey="count" nameKey="nomination" cx="50%" cy="45%" outerRadius={90}>
@@ -89,7 +99,7 @@ export function AnalyticsPage() {
         </div>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print-no-break">
           <h2 className="font-semibold text-gray-900 mb-4">Динамика подачи заявок</h2>
-          {timeline.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных</p> : (
+          {timeline.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных для отображения</p> : (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={timeline}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -105,7 +115,7 @@ export function AnalyticsPage() {
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print-no-break">
         <h2 className="font-semibold text-gray-900 mb-4">Топ-10 вузов</h2>
-        {universities.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных</p> : (
+        {universities.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Вузов пока нет</p> : (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={universities.slice(0, 10)} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -136,19 +146,24 @@ export function AnalyticsPage() {
         </div>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print-no-break">
           <h2 className="font-semibold text-gray-900 mb-4">Ключевые слова</h2>
-          {keywords.length === 0 ? <p className="text-gray-400 text-sm text-center py-8">Нет данных</p> : (
-            <div className="flex flex-wrap gap-2">
-              {keywords.map((k, i) => {
-                const ratio = maxKw === minKw ? 0.5 : (k.count - minKw) / (maxKw - minKw);
-                const size = Math.round(14 + ratio * 34);
-                return (
-                  <span key={i} style={{ fontSize: size }} className="text-primary-700 font-medium leading-tight">{k.keyword}</span>
-                );
-              })}
-            </div>
-          )}
+          {keywords.length === 0
+            ? <p className="text-gray-400 text-sm text-center py-8">Ключевые слова появятся после подачи заявок</p>
+            : <div style={{ height: 300 }}><ReactWordcloud words={wcWords} options={wcOptions} /></div>
+          }
         </div>
       </div>
+
     </div>
+
+    {summary && (
+      <PrintReport
+        summary={summary}
+        byNomination={byNomination}
+        topUniversities={universities}
+        geography={geography}
+        generatedAt={generatedAt}
+      />
+    )}
+    </>
   );
 }

@@ -82,6 +82,8 @@
 }
 
 @media print {
+  aside, nav, button, .no-print { display: none !important; }
+  .print-content { width: 100% !important; }
   .sidebar-print-hide { display: none !important; }
   .print-full { width: 100% !important; margin: 0 !important; }
   .print-no-break { break-inside: avoid; page-break-inside: avoid; }
