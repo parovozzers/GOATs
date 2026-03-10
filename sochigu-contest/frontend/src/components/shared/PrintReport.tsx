@@ -2,9 +2,10 @@ import type { CSSProperties } from 'react';
 
 interface PrintReportProps {
   summary: { totalApplications: number; totalUsers: number; totalUniversities: number };
-  byNomination: { nomination: string; count: number | string }[];
-  topUniversities: { university: string; count: number | string }[];
-  geography: { city: string; count: number | string }[];
+  byNomination: { nomination: string; count: number }[];
+  topUniversities: { university: string; count: number }[];
+  geography: { city: string; count: number }[];
+  keywords: { keyword: string; count: number }[];
   generatedAt: string;
 }
 
@@ -39,7 +40,7 @@ const h2: CSSProperties = {
   paddingBottom: 4,
 };
 
-export function PrintReport({ summary, byNomination, topUniversities, geography, generatedAt }: PrintReportProps) {
+export function PrintReport({ summary, byNomination, topUniversities, geography, keywords, generatedAt }: PrintReportProps) {
   return (
     <div className="hidden print:block" style={{ fontFamily: 'Arial, sans-serif', color: '#111827', padding: '16px 24px' }}>
 
@@ -135,6 +136,31 @@ export function PrintReport({ summary, byNomination, topUniversities, geography,
                 {geography.map((row, i) => (
                   <tr key={i}>
                     <td style={td}>{row.city}</td>
+                    <td style={td}>{row.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+      </div>
+
+      {/* Раздел 5: Ключевые слова */}
+      <div style={section}>
+        <div style={h2}>5. Топ-20 ключевых слов</div>
+        {keywords.length === 0
+          ? <p style={{ fontSize: 12, color: '#9ca3af' }}>Нет данных</p>
+          : (
+            <table style={table}>
+              <thead>
+                <tr>
+                  <th style={th}>Ключевое слово</th>
+                  <th style={{ ...th, width: 120 }}>Упоминаний</th>
+                </tr>
+              </thead>
+              <tbody>
+                {keywords.slice(0, 20).map((row, i) => (
+                  <tr key={i}>
+                    <td style={td}>{row.keyword}</td>
                     <td style={td}>{row.count}</td>
                   </tr>
                 ))}

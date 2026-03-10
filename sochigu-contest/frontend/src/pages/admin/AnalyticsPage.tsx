@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import ReactWordcloud from 'react-wordcloud';
+import { useState, useEffect, useMemo } from 'react';
 import { analyticsApi } from '@/api/analytics';
 import {
   AnalyticsSummary, AnalyticsByNomination, AnalyticsTimeline,
@@ -14,6 +13,7 @@ import {
 } from 'recharts';
 
 const COLORS = ['#1e3a8a', '#059669', '#0284c7', '#7c3aed', '#dc2626', '#d97706'];
+
 
 function KpiCard({ label, value }: { label: string; value: number }) {
   return (
@@ -34,6 +34,10 @@ export function AnalyticsPage() {
   const [keywords, setKeywords] = useState<AnalyticsKeyword[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const generatedAt = useMemo(
+    () => new Date().toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' }),
+    [],
+  );
 
   useEffect(() => {
     Promise.all([
@@ -54,22 +58,12 @@ export function AnalyticsPage() {
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
   if (error) return <div className="m-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>;
 
-  const generatedAt = new Date().toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' });
-
-  const wcOptions = {
-    rotations: 2,
-    rotationAngles: [0, 90] as [number, number],
-    fontSizes: [14, 60] as [number, number],
-    colors: ['#1e3a8a', '#2563eb', '#059669', '#0284c7', '#7c3aed'],
-  };
-  const wcWords = keywords.map(k => ({ text: k.keyword, value: k.count }));
-
   return (
     <>
     <div className="p-6 max-w-6xl mx-auto space-y-8 print:hidden">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-primary-900">Аналитика</h1>
-        <button onClick={() => window.print()} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors print:hidden">
+        <button onClick={() => window.print()} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors print-hide">
           Сгенерировать PDF-отчёт
         </button>
       </div>
@@ -148,7 +142,38 @@ export function AnalyticsPage() {
           <h2 className="font-semibold text-gray-900 mb-4">Ключевые слова</h2>
           {keywords.length === 0
             ? <p className="text-gray-400 text-sm text-center py-8">Ключевые слова появятся после подачи заявок</p>
-            : <div style={{ height: 300 }}><ReactWordcloud words={wcWords} options={wcOptions} /></div>
+            : (
+              <div className="flex flex-wrap items-center justify-center" style={{ minHeight: 220, padding: '12px 8px', gap: '6px 10px' }}>
+                {keywords.map((k, i) => {
+                  const ratio = k.count / Math.max(...keywords.map(x => x.count));
+                  const size = Math.round(13 + ratio * 40);
+                  const isVertical = (i * 7 + (k.keyword.charCodeAt(0) || 0)) % 3 === 0;
+                  const colors = ['#1e3a8a', '#2563eb', '#059669', '#0284c7', '#7c3aed', '#dc2626', '#d97706'];
+                  return (
+                    <span
+                      key={k.keyword}
+                      data-wc-tip={k.count}
+                      className="wc-word"
+                      style={{
+                        fontSize: size,
+                        color: colors[i % colors.length],
+                        fontWeight: ratio > 0.6 ? 700 : ratio > 0.3 ? 500 : 400,
+                        writingMode: isVertical ? 'vertical-rl' : 'horizontal-tb',
+                        display: 'inline-block',
+                        lineHeight: 1.1,
+                        padding: '2px 3px',
+                        cursor: 'default',
+                        position: 'relative',
+                        alignSelf: 'center',
+                        transition: 'opacity 0.18s, transform 0.18s',
+                      }}
+                    >
+                      {k.keyword}
+                    </span>
+                  );
+                })}
+              </div>
+            )
           }
         </div>
       </div>
@@ -161,6 +186,7 @@ export function AnalyticsPage() {
         byNomination={byNomination}
         topUniversities={universities}
         geography={geography}
+        keywords={keywords}
         generatedAt={generatedAt}
       />
     )}
