@@ -81,7 +81,34 @@
   }
 }
 
+/* Word cloud */
+.wc-word:hover { opacity: 1 !important; transform: scale(1.18); }
+
+/* Word cloud tooltip */
+[data-wc-tip] { isolation: isolate; }
+[data-wc-tip]::after {
+  content: attr(data-wc-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) rotate(0deg);
+  background: #1e293b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 10;
+}
+[data-wc-tip]:hover::after { opacity: 1; }
+
 @media print {
+  aside, nav, .print-hide, .no-print { display: none !important; }
+  .print-content { width: 100% !important; }
   .sidebar-print-hide { display: none !important; }
   .print-full { width: 100% !important; margin: 0 !important; }
   .print-no-break { break-inside: avoid; page-break-inside: avoid; }
