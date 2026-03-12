@@ -104,7 +104,7 @@ export class ApplicationsService {
     await this.repo.save(app);
     await this.logStatusChange(app.id, adminId, prev, dto.status, dto.comment);
     this.mailService.sendStatusUpdate(app).catch(err => console.error('Ошибка отправки письма об изменении статуса:', err));
-    return app;
+    return this.findById(id);
   }
 
   async exportToExcel(filters: any): Promise<ArrayBuffer> {
