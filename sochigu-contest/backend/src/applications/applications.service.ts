@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as ExcelJS from 'exceljs';
@@ -12,6 +12,8 @@ import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class ApplicationsService {
+  private readonly logger = new Logger(ApplicationsService.name);
+
   constructor(
     @InjectRepository(Application) private repo: Repository<Application>,
     @InjectRepository(ApplicationLog) private logRepo: Repository<ApplicationLog>,
@@ -103,8 +105,8 @@ export class ApplicationsService {
     app.adminComment = dto.comment || app.adminComment;
     await this.repo.save(app);
     await this.logStatusChange(app.id, adminId, prev, dto.status, dto.comment);
-    this.mailService.sendStatusUpdate(app).catch(err => console.error('Ошибка отправки письма об изменении статуса:', err));
-    return app;
+    this.mailService.sendStatusUpdate(app).catch(err => this.logger.error('Ошибка отправки письма об изменении статуса:', err));
+    return this.findById(id);
   }
 
   async exportToExcel(filters: any): Promise<ArrayBuffer> {
