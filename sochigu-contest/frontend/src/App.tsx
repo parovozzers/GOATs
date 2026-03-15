@@ -32,6 +32,8 @@ import { DocumentsManagePage } from '@/pages/admin/cms/DocumentsManagePage';
 import { WinnersManagePage } from '@/pages/admin/cms/WinnersManagePage';
 import { NominationsManagePage } from '@/pages/admin/cms/NominationsManagePage';
 import { ExpertsPage as AdminExpertsPage } from '@/pages/admin/ExpertsPage';
+import { ContactMessagesPage } from '@/pages/admin/ContactMessagesPage';
+import { ContactMessageDetailPage } from '@/pages/admin/ContactMessageDetailPage';
 export default function App() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -89,6 +91,12 @@ export default function App() {
           } />
           <Route path="/admin/experts" element={
             <RoleGuard roles={['admin', 'moderator']}><AdminExpertsPage /></RoleGuard>
+          } />
+          <Route path="/admin/contacts" element={
+            <RoleGuard roles={['admin', 'moderator']}><ContactMessagesPage /></RoleGuard>
+          } />
+          <Route path="/admin/contacts/:id" element={
+            <RoleGuard roles={['admin', 'moderator']}><ContactMessageDetailPage /></RoleGuard>
           } />
         </Route>
       </Route>

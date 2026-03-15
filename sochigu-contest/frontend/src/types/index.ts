@@ -24,6 +24,10 @@ export interface User {
   role: Role;
   isActive: boolean;
   createdAt: string;
+  avatarUrl?: string;
+  position?: string;
+  bio?: string;
+  isExpertVisible?: boolean;
 }
 
 export interface Nomination {
@@ -169,3 +173,15 @@ export const APPLICATION_STATUS_COLORS: Record<ApplicationStatus, string> = {
   winner: 'bg-purple-100 text-purple-800',
   runner_up: 'bg-indigo-100 text-indigo-800',
 };
+
+export type ContactMessageStatus = 'pending' | 'done';
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  message: string;
+  status: ContactMessageStatus;
+  createdAt: string;
+}

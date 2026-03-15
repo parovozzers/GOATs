@@ -1,10 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/auth.store';
 import { useUiStore } from '@/store/ui.store';
 import { authApi } from '@/api/auth';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import logoWhite from '@/logo_white.png';
+import { hoverBtn } from '@/utils/animations';
+
+const MotionLink = motion(Link);
+const spring = { type: 'spring' as const, stiffness: 300, damping: 22 };
+const hoverNav = { whileHover: { scale: 1.07, transition: spring }, whileTap: { scale: 0.96 } };
 
 const navLinks = [
   { to: '/', label: 'Главная' },
@@ -29,42 +35,47 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-primary shadow-lg">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2 text-primary-foreground">
+        <MotionLink to="/" className="flex items-center gap-2 text-primary-foreground" {...hoverNav}>
           <img src={logoWhite} alt="СочиГУ" className="h-10 w-auto" />
           <span className="hidden text-sm font-medium text-primary-foreground/80 sm:inline">| Конкурс проектов</span>
-        </Link>
+        </MotionLink>
 
         <nav className="hidden items-center gap-1 lg:flex">
           {navLinks.map((link) => (
-            <Link key={link.to} to={link.to}
-              className="rounded-md px-3 py-2 text-sm font-medium text-primary-foreground/80 transition-colors hover:bg-primary-mid hover:text-primary-foreground">
+            <MotionLink key={link.to} to={link.to}
+              className="rounded-md px-3 py-2 text-sm font-medium text-primary-foreground/80 transition-colors hover:bg-white hover:text-primary"
+              {...hoverNav}>
               {link.label}
-            </Link>
+            </MotionLink>
           ))}
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
           {user ? (
             <>
-              <Link to={cabinetPath}
-                className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-mid">
+              <MotionLink to={cabinetPath}
+                className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-white hover:text-primary hover:border-white"
+                {...hoverBtn}>
                 Личный кабинет
-              </Link>
-              <button onClick={handleLogout}
-                className="text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground">
+              </MotionLink>
+              <motion.button onClick={handleLogout}
+                className="text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
+                {...hoverNav}>
                 Выйти
-              </button>
+              </motion.button>
             </>
           ) : (
             <>
-              <button onClick={() => openAuthModal('login')}
-                className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-mid">
+              <motion.button onClick={() => openAuthModal('login')}
+                className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-white hover:text-primary hover:border-white"
+                {...hoverBtn}>
                 Войти
-              </button>
-              <button onClick={() => openAuthModal('register')}
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover">
+              </motion.button>
+              <motion.button onClick={() => openAuthModal('register')}
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
+                {...hoverBtn}>
                 Участвовать
-              </button>
+              </motion.button>
             </>
           )}
         </div>
@@ -79,7 +90,7 @@ export function Header() {
           <nav className="flex flex-col gap-1 pt-2">
             {navLinks.map((link) => (
               <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-primary-foreground/80 transition-colors hover:bg-primary-mid">
+                className="rounded-md px-3 py-2 text-sm font-medium text-primary-foreground/80 transition-colors hover:bg-white hover:text-primary">
                 {link.label}
               </Link>
             ))}

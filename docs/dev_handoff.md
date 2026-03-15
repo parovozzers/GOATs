@@ -459,3 +459,73 @@ Known issues / technical debt:
 - Форма обратной связи на ContactsPage — заглушка
 
 ---
+
+## Неделя 6 — UI-полировка, валидация телефона, модуль «Обращения»
+
+### Изменения
+
+[UI-полировка: этапы, анимации, кнопки, карточки]
+- HomePage + AboutPage: карточки этапов — белый фон, кружок цвета #A6C5DC → #011145 при наведении, цифра внутри белая, hover-scale через hoverCard
+- Ключевые даты (HomePage): hover-анимация через `whileHover="hovered"` на строке с вариантами только на кружке и тексте (линия-разделитель не смещается)
+- Stat-карточки (HomePage): кружок bg-accent (#BEE3FE), иконка text-primary (#011145)
+- Header: nav-ссылки, «Войти», «Личный кабинет» — hover:bg-white hover:text-primary; «Участвовать» — без изменений
+- CSS: --accent-hover изменён с 205 90% 75% на 205 97% 85% — убрано синее свечение на кнопках
+- NewsPage: весь блок карточки новости кликабелен (MotionLink = motion(Link))
+
+[Валидация телефона]
+- ContactsPage: поле «Номер телефона» рядом с email, авто-форматирование +7(XXX)XXX-XX-XX, валидация 11 цифр, обязательно хотя бы одно из email/phone
+- AuthModal (RegisterForm): то же поле с той же логикой форматирования через register() + custom onChange
+
+[Модуль «Обращения» — полный стек]
+- Backend: ContactMessage entity (id, name, email?, phone?, message, status: pending/done, createdAt), DTO, service, controller, module
+- POST /contact-messages — публичный эндпоинт (без авторизации)
+- GET /contact-messages — только admin/moderator, фильтр по ?status=
+- GET /contact-messages/:id — только admin/moderator
+- PATCH /contact-messages/:id/status — только admin/moderator
+- ContactsModule добавлен в AppModule, сущность — в database.config
+- Frontend API: contactsApi (submit / getAll / getById / updateStatus)
+- Admin: /admin/contacts — таблица (Имя, Email, Телефон, Дата, Статус, Действия), фильтр по статусу
+- Admin: /admin/contacts/:id — детальный просмотр + смена статуса (pending ↔ done)
+- AdminLayout: ссылка «Обращения» с иконкой MessageSquare
+- App.tsx: маршруты /admin/contacts и /admin/contacts/:id
+- types/index.ts: ContactMessageStatus, ContactMessage
+
+Files changed:
+- sochigu-contest/frontend/src/index.css
+- sochigu-contest/frontend/src/utils/animations.ts
+- sochigu-contest/frontend/src/components/layout/Header.tsx
+- sochigu-contest/frontend/src/components/layout/AdminLayout.tsx
+- sochigu-contest/frontend/src/pages/public/HomePage.tsx
+- sochigu-contest/frontend/src/pages/public/AboutPage.tsx
+- sochigu-contest/frontend/src/pages/public/NewsPage.tsx
+- sochigu-contest/frontend/src/pages/public/ContactsPage.tsx
+- sochigu-contest/frontend/src/components/shared/AuthModal.tsx
+- sochigu-contest/frontend/src/App.tsx
+- sochigu-contest/frontend/src/types/index.ts
+- sochigu-contest/frontend/src/api/contacts.ts (новый)
+- sochigu-contest/frontend/src/pages/admin/ContactMessagesPage.tsx (новый)
+- sochigu-contest/frontend/src/pages/admin/ContactMessageDetailPage.tsx (новый)
+- sochigu-contest/backend/src/contacts/entities/contact-message.entity.ts (новый)
+- sochigu-contest/backend/src/contacts/dto/create-contact-message.dto.ts (новый)
+- sochigu-contest/backend/src/contacts/dto/update-contact-status.dto.ts (новый)
+- sochigu-contest/backend/src/contacts/contacts.service.ts (новый)
+- sochigu-contest/backend/src/contacts/contacts.controller.ts (новый)
+- sochigu-contest/backend/src/contacts/contacts.module.ts (новый)
+- sochigu-contest/backend/src/app.module.ts
+- sochigu-contest/backend/src/config/database.config.ts
+
+Important context for the next developer:
+- ContactMessage: TypeORM synchronize:true создаёт таблицу автоматически в dev-режиме
+- Статусы: pending (по умолчанию при создании) и done
+- Публичный POST защищён только class-validator DTO (no auth); GET/PATCH — JwtAuthGuard + RolesGuard (admin/moderator)
+- formatPhone в ContactsPage и AuthModal — отдельные копии одной функции (не shared util)
+
+Next steps / suggested work:
+- Реализовать экспорт Excel в ApplicationsListPage (кнопка-заглушка уже есть)
+- Финальное тестирование флоу: регистрация → заявка → смена статуса → аналитика
+- Проверить npm run build без ошибок перед merge в main
+
+Known issues / technical debt:
+- AnalyticsPage: облако ключевых слов без весов/размеров
+
+---
