@@ -31,10 +31,12 @@ import { DocumentsManagePage } from '@/pages/admin/cms/DocumentsManagePage';
 import { WinnersManagePage } from '@/pages/admin/cms/WinnersManagePage';
 import { NominationsManagePage } from '@/pages/admin/cms/NominationsManagePage';
 import { ExpertsPage as AdminExpertsPage } from '@/pages/admin/ExpertsPage';
+import { ScrollToTop } from '@/components/shared/ScrollToTop';
 
 export default function App() {
   return (
     <Suspense fallback={<PageLoader />}>
+    <ScrollToTop />
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />

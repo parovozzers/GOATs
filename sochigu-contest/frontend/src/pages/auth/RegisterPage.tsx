@@ -205,7 +205,7 @@ export function RegisterPage() {
                   type="text"
                   {...register('faculty')}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  placeholder="Инженерно-экологический"
+                  placeholder="Инновационных, инженерных и цифровых технологий"
                 />
               </div>
             </div>

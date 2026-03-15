@@ -209,3 +209,60 @@ Next steps / suggested work:
 - Реализовать экспорт Excel в ApplicationsListPage
 
 ---
+
+Date: 2026-03-15
+Developer: DEV2 (parovozzers)
+
+PR / Change:
+feature/week5-winners-photo-hero-polish → dev
+
+What was implemented:
+- WinnersManagePage: загрузка фото через файловый input (кнопка + превью) в дополнение к полю URL
+- Backend: POST /winners/upload-photo — загрузка изображений через Multer memoryStorage; поддержка JPEG, PNG, GIF, WebP, HEIC/HEIF
+- Backend: HEIC/HEIF конвертируется в JPEG на сервере через пакет heic-convert v1 (CommonJS)
+- Backend: GET /winners/photo/:filename — раздача сохранённых фото
+- api/winners.ts: метод uploadPhoto(file) через FormData с Content-Type: undefined (обход axios-дефолта)
+- AllExceptionsFilter: расширен — теперь логирует 4xx как warn (раньше только 5xx как error)
+- backend/src/types/heic-convert.d.ts: type declaration для heic-convert (CommonJS модуль без типов)
+- HomePage: hero-секция переработана — маскот absolute внутри container (не в потоке текста), h-[720px], -top-10
+- HomePage: px-4 перенесён с section на container — выравнивание левого края совпадает со stat-cards
+- HomePage: бейдж и кнопки — явный self-start; текстовый блок — регулируемый pl-* отступ вправо
+- HomePage: секция получила md:h-[520px] для консистентной высоты на всех экранах
+
+Files changed:
+- sochigu-contest/backend/package.json (heic-convert зависимость)
+- sochigu-contest/backend/src/common/filters/http-exception.filter.ts
+- sochigu-contest/backend/src/winners/winners.controller.ts
+- sochigu-contest/backend/src/winners/winners.module.ts
+- sochigu-contest/backend/src/types/heic-convert.d.ts (новый)
+- sochigu-contest/frontend/mascot-removebg-preview.png (новый — маскот с прозрачным фоном)
+- sochigu-contest/frontend/src/api/winners.ts
+- sochigu-contest/frontend/src/pages/admin/cms/WinnersManagePage.tsx
+- sochigu-contest/frontend/src/pages/public/HomePage.tsx
+
+Bug fixes:
+- 400 Bad Request при загрузке фото: убран fileFilter из Multer (NestJS не обрабатывает multer-ошибки стандартно), валидация перенесена в тело хендлера
+- Windows отправляет HEIC как application/octet-stream — добавлена fallback-проверка по расширению файла
+- heic-convert v2 (ESM) несовместим с NestJS CommonJS — откат к v1, используется require()
+- Маскот прыгал по горизонтали: теперь absolute внутри container (right-0 = правый край контейнера, не viewport)
+- Левый край hero-контента не совпадал с stat-cards: перенос px-4 с section на container
+
+Important context for the next developer:
+- heic-convert ОБЯЗАТЕЛЬНО v1 (CommonJS). v2 — ESM и не работает с NestJS. Не обновлять.
+- Фото победителей хранятся в ./uploads/winners/ (создаётся автоматически)
+- Маскот: sochigu-contest/frontend/mascot-removebg-preview.png — PNG с прозрачным фоном
+- Размер маскота регулируется через h-[720px] в HomePage.tsx:13, отступ сверху — -top-10, справа — right-0
+- Размер секции hero — md:h-[520px] в HomePage.tsx:10 — меняй синхронно с маскотом
+- Текстовый блок (h1+p) имеет отступ вправо через pl-* на обёртке (HomePage.tsx:22)
+
+Next steps / suggested work:
+- Реализовать экспорт Excel в ApplicationsListPage (кнопка-заглушка уже есть)
+- Финальное тестирование флоу: регистрация → заявка → смена статуса → аналитика
+- Проверить npm run build без ошибок перед merge в main
+
+Known issues / technical debt:
+- ExpertsPage: нет дебаунса на поиск по email (унаследовано)
+- AnalyticsPage: облако ключевых слов без весов/размеров
+- Форма обратной связи на ContactsPage — заглушка
+
+---

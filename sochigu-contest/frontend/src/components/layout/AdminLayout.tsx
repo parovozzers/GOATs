@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth.store';
 import { LayoutDashboard, FileText, Users, BarChart3, Newspaper, FolderOpen, Trophy, Tag, UserCog, ExternalLink, LogOut } from 'lucide-react';
+import logoWhite from '@/logo_white.png';
 
 const sidebarLinks = [
   { to: '/admin', label: 'Дашборд', icon: LayoutDashboard, exact: true },
@@ -24,9 +25,9 @@ export function AdminLayout() {
   return (
     <div className="flex min-h-screen">
       <aside className="sidebar-print-hide fixed left-0 top-0 z-40 flex h-screen w-56 flex-col bg-primary text-primary-foreground">
-        <div className="border-b border-primary-mid p-4">
-          <span className="text-lg font-bold text-accent">СочиГУ</span>
-          <p className="text-xs text-primary-foreground/70">Панель управления</p>
+        <div className="border-b border-primary-mid p-4 flex items-center gap-3">
+          <img src={logoWhite} alt="СочиГУ" className="h-10 w-auto shrink-0" />
+          <p className="text-xs text-primary-foreground/70 leading-snug">Панель управления</p>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {sidebarLinks.map((link) => {

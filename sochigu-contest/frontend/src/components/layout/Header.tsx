@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/api/auth';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import logoWhite from '@/logo_white.png';
 
 const navLinks = [
   { to: '/', label: 'Главная' },
@@ -27,7 +28,7 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-primary shadow-lg">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-2 text-primary-foreground">
-          <span className="text-xl font-bold text-accent">СочиГУ</span>
+          <img src={logoWhite} alt="СочиГУ" className="h-10 w-auto" />
           <span className="hidden text-sm font-medium text-primary-foreground/80 sm:inline">| Конкурс проектов</span>
         </Link>
 

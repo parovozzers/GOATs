@@ -1,36 +1,40 @@
 import { useEffect } from 'react';
 import { Link } from "react-router-dom";
-// HERO_BG: удали эту строку чтобы убрать фото
-import heroBg from '../../../first_page.png';
+import mascot from '../../../mascot-removebg-preview.png';
 import { GraduationCap, Users, Gift, Trophy, ArrowRight, Calendar, CheckCircle, Presentation, Award } from "lucide-react";
 
 export function HomePage() {
   useEffect(() => { document.title = 'Главная — Конкурс СочиГУ'; }, []);
   return (
     <div>
-      {/* HERO_BG: замени эту section на закомментированную ниже чтобы вернуть чистый синий */}
-      <section className="relative overflow-hidden px-4 pb-28 pt-20 md:pb-36 md:pt-28" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center top' }}>
-        <div className="absolute inset-0 hero-gradient opacity-60" />
-      {/* ОРИГИНАЛ (раскомментируй и удали 3 строки выше):
-      <section className="hero-gradient relative overflow-hidden px-4 pb-28 pt-20 md:pb-36 md:pt-28"> */}
-        <div className="container relative z-10 mx-auto text-center">
-          <div className="mb-6 inline-block rounded-full bg-accent/20 px-4 py-1.5 text-sm font-semibold text-accent-foreground">
-            <Calendar className="mr-1 inline-block h-4 w-4" /> Приём заявок до 30 октября
-          </div>
-          <h1 className="mx-auto mb-6 max-w-3xl text-4xl font-extrabold leading-tight text-primary-foreground md:text-5xl lg:text-6xl">
-            Конкурс студенческих проектов{" "}
-            <span className="text-accent">СочиГУ 2026</span>
-          </h1>
-          <p className="mx-auto mb-8 max-w-xl text-lg text-primary-foreground/80 md:text-xl">
-            Представь свой проект. Получи поддержку. Стань победителем.
-          </p>
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link to="/register" className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-3.5 text-base font-semibold text-accent-foreground shadow-lg transition-all hover:bg-accent-hover">
-              Подать заявку <ArrowRight size={18} />
-            </Link>
-            <Link to="/about" className="inline-flex items-center gap-2 rounded-lg border-2 border-primary-foreground/30 px-8 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary-mid">
-              Узнать подробнее
-            </Link>
+      <section className="hero-gradient relative overflow-hidden pt-20 pb-20 md:pt-20 md:pb-24 md:h-[520px]">
+        <div className="container relative z-10 mx-auto px-4 h-full">
+          {/* Барсик absolute внутри container — right-0 = правый край контейнера, одинаков на всех экранах */}
+          <img src={mascot} alt="" aria-hidden className="absolute -top-28 right-[-130px] h-[720px] w-auto object-contain object-top pointer-events-none select-none hidden md:block" />
+          <div className="w-full md:w-[58%] flex flex-col items-start text-left">
+            <div className="mb-6 self-start rounded-full bg-accent/20 px-4 py-1.5 text-sm font-semibold text-accent-foreground">
+              <Calendar className="mr-1 inline-block h-4 w-4" /> Приём заявок до 30 октября
+            </div>
+            {/* ↓ Отступ текстового блока вправо — меняй pl-6 на нужное значение */}
+            <div className="pl-20">
+              <h1 className="mb-6 text-4xl font-extrabold leading-tight text-primary-foreground md:text-5xl lg:text-5xl">
+                Конкурс студенческих<br />
+                проектов <span className="text-accent">СочиГУ</span>
+              </h1>
+              <p className="mb-8 text-lg text-primary-foreground/80 md:text-xl">
+                Представь свой проект. Получи поддержку.<br />
+                <span className="font-bold text-primary-foreground">Стань победителем.</span>
+              </p>
+            </div>
+            <div className="self-start flex flex-col items-start gap-4 sm:flex-row sm:justify-start">
+              <Link to="/register" className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-3.5 text-base font-semibold text-accent-foreground shadow-lg transition-all hover:bg-accent-hover">
+                Подать заявку <ArrowRight size={18} />
+              </Link>
+              <Link to="/about" className="inline-flex items-center gap-2 rounded-lg border-2 border-primary-foreground/30 px-8 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary-mid">
+                Узнать подробнее
+              </Link>
+            </div>
+            <img src={mascot} alt="" aria-hidden className="mx-auto mt-8 h-auto max-h-[280px] w-auto object-contain pointer-events-none select-none block md:hidden" />
           </div>
         </div>
       </section>
@@ -41,7 +45,7 @@ export function HomePage() {
             { icon: Trophy, label: "2 номинации", desc: "Бизнес и практико-ориентированные" },
             { icon: Users, label: "500+ участников", desc: "Студенты со всей России" },
             { icon: Gift, label: "Бесплатное участие", desc: "Без взносов и платежей" },
-            { icon: Award, label: "Денежные призы", desc: "Для победителей и призёров" },
+            { icon: Award, label: "Денежные гранты", desc: "Для победителей и призёров" },
           ].map((stat) => (
             <div key={stat.label} className="flex items-start gap-4 rounded-xl bg-card p-5 shadow-md">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-light">

@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth.store';
 import { LayoutDashboard, FileText, LogOut } from 'lucide-react';
+import logo from '@/logo.png';
 
 const sidebarLinks = [
   { to: '/cabinet', label: 'Обзор', icon: LayoutDashboard, exact: true },
@@ -19,7 +20,7 @@ export function CabinetLayout() {
       <div className="border-b bg-card shadow-sm">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-accent">СочиГУ</span>
+            <img src={logo} alt="СочиГУ" className="h-9 w-auto" />
             <span className="text-sm text-muted-foreground">| Личный кабинет</span>
           </Link>
           <div className="flex items-center gap-4">
