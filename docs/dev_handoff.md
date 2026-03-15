@@ -266,3 +266,196 @@ Known issues / technical debt:
 - Форма обратной связи на ContactsPage — заглушка
 
 ---
+
+Date: 2026-03-15
+Developer: DEV2 (parovozzers)
+
+PR / Change:
+feature/week5-winners-photo-hero-polish (продолжение сессии)
+
+What was implemented:
+- Security audit: исправлены все 8 замечаний code review + 5 дополнительно найденных при аудите
+- NewsManagePage: загрузка обложки через файловый input (кнопка + превью + URL fallback), аналогично winners
+- Backend: POST /news/upload-photo + GET /news/photo/:filename — те же правила что у winners (HEIC, 5MB, path traversal)
+- ExpertsPage (admin): таблица теперь показывает фото, должность, галочку видимости; кнопка «Профиль» открывает модал с загрузкой фото, должностью, биографией, чекбоксом «Показывать на сайте»
+- ExpertsPage (public): заглушка заменена на реальные данные из GET /users/experts
+- Users entity: добавлены 4 колонки — avatarUrl, position, bio, isExpertVisible (все nullable/default false)
+- Backend: GET /users/experts — публичный эндпоинт без авторизации, возвращает ТОЛЬКО публичные поля (id, firstName, lastName, middleName, avatarUrl, position, bio)
+- Backend: PATCH /users/:id/expert-profile (admin only), POST /users/upload-photo + GET /users/photo/:filename
+- ApplicationFormPage: кнопка «Отменить» (красная, справа сверху), ведёт на /cabinet
+- WinnersManagePage: валидация размера файла на клиенте (>5MB → ошибка под полем, запрос не уходит)
+- Цветовая схема: primary → тёмно-синий лого (#0D1B6B), accent → голубой лого (#4DAED5), destructive → коралловый розовый
+
+Files changed (backend):
+- sochigu-contest/backend/src/users/entities/user.entity.ts
+- sochigu-contest/backend/src/users/users.controller.ts
+- sochigu-contest/backend/src/users/users.service.ts
+- sochigu-contest/backend/src/news/news.controller.ts
+- sochigu-contest/backend/src/files/files.controller.ts
+- sochigu-contest/backend/src/files/files.module.ts
+- sochigu-contest/backend/src/files/files.service.ts
+- sochigu-contest/backend/src/documents/documents.controller.ts
+- sochigu-contest/backend/src/winners/winners.controller.ts
+- sochigu-contest/backend/src/winners/winners.module.ts
+
+Files changed (frontend):
+- sochigu-contest/frontend/src/types/index.ts
+- sochigu-contest/frontend/src/api/users.ts
+- sochigu-contest/frontend/src/api/news.ts
+- sochigu-contest/frontend/src/api/winners.ts
+- sochigu-contest/frontend/src/index.css
+- sochigu-contest/frontend/tailwind.config.js
+- sochigu-contest/frontend/src/pages/admin/ExpertsPage.tsx
+- sochigu-contest/frontend/src/pages/admin/cms/NewsManagePage.tsx
+- sochigu-contest/frontend/src/pages/admin/cms/WinnersManagePage.tsx
+- sochigu-contest/frontend/src/pages/public/ExpertsPage.tsx
+- sochigu-contest/frontend/src/pages/cabinet/ApplicationFormPage.tsx
+
+Security fixes:
+- Path traversal: winners/photo, news/photo, users/photo, documents/download, files/download — все защищены safePath.startsWith(DIR + sep)
+- fs.writeFileSync → await fs.promises.writeFile во всех контроллерах
+- fs.existsSync + fs.unlinkSync → await fs.promises.unlink (files.service.ts)
+- fs.mkdirSync на уровне модуля → onModuleInit() в winners, news, documents, users контроллерах
+- resolve('./') → resolve(__dirname, '../..') во всех контроллерах и files.module.ts
+- require('heic-convert') вынесен на уровень модуля (один раз при старте)
+- Дублированный import @nestjs/common в files.module.ts объединён
+- Лишний MulterModule.register() в winners.module.ts удалён
+
+Important context for the next developer:
+- GET /users/experts — публичный (без JwtAuthGuard). Остальные /users/* — требуют авторизации. Не переставлять порядок guard'ов.
+- Эксперты на публичной странице = users с role='expert' И isExpertVisible=true
+- heic-convert ОБЯЗАТЕЛЬНО v1 (CommonJS). v2 — ESM, не работает с NestJS. Не обновлять.
+- Цвета сайта в index.css: --primary (229 78% 27%), --primary-mid (225 70% 42%), --accent (195 90% 65%), --destructive (0 85% 70%)
+- Фото хранятся в ./uploads/{winners|news|experts}/ — создаются автоматически в onModuleInit()
+- Кнопка «Отменить» в ApplicationFormPage ведёт на /cabinet (не /cabinet/application)
+
+Next steps / suggested work:
+- Реализовать экспорт Excel в ApplicationsListPage (кнопка-заглушка уже есть)
+- Финальное тестирование флоу: регистрация → заявка → смена статуса → аналитика
+- Проверить npm run build без ошибок перед merge в main
+- Добавить сортировку экспертов по полю order (опционально)
+
+Known issues / technical debt:
+- AnalyticsPage: облако ключевых слов без весов/размеров
+- Форма обратной связи на ContactsPage — заглушка
+
+---
+
+Date: 2026-03-15
+Developer: DEV2 (parovozzers)
+
+PR / Change:
+feature/week5-winners-photo-hero-polish (сессия 2 — фикс анимаций при навигации)
+
+What was implemented:
+- ScrollToTop.tsx: новый компонент в shared/, использует useLayoutEffect(() => { window.scrollTo(0, 0); }, []) — должен быть ПЕРВЫМ дочерним элементом внутри keyed motion.div
+- PublicLayout.tsx: ScrollToTop добавлен как первый child в motion.div (до <Outlet />); key={pathname} для корректной смены ключа AnimatePresence
+- CabinetLayout.tsx: то же самое — ScrollToTop первым child в motion.div (до <Outlet />); убраны useState/useRef renderedPath — вернулись к простому key={location.pathname}
+- App.tsx: убран импорт и рендер ScrollToTop (теперь обрабатывается внутри layouts)
+
+Files changed:
+- sochigu-contest/frontend/src/components/shared/ScrollToTop.tsx (новый)
+- sochigu-contest/frontend/src/components/layout/PublicLayout.tsx
+- sochigu-contest/frontend/src/components/layout/CabinetLayout.tsx
+- sochigu-contest/frontend/src/App.tsx
+
+Bug fixes:
+- whileInView-анимации не срабатывали на нижней части новой страницы при переходе с прокрученной страницы: IntersectionObserver регистрировался при старом scrollY, элементы в зоне видимости помечались intersecting → once: true срабатывал навсегда → анимации застывали в состоянии show
+- Scroll не сбрасывался при навигации: onExitComplete(() => scrollTo(0,0)) не работает — Framer Motion рендерит новый контент ДО вызова onExitComplete (setRenderedChildren вызывается на строке перед onExitComplete в исходниках AnimatePresence)
+
+Important context for the next developer:
+- Корень фикса: React useLayoutEffect выполняется depth-first по дереву. Первый sibling (ScrollToTop) отрабатывает раньше, чем глубокие children второго sibling (Outlet). Framer Motion регистрирует IntersectionObserver через useIsomorphicLayoutEffect (= useLayoutEffect в браузере) — он запускается ПОСЛЕ scroll=0 из ScrollToTop. Поэтому IO смотрит на координаты уже от 0, а не от старого scrollY.
+- ScrollToTop ОБЯЗАН быть первым child внутри keyed motion.div — иначе эффект не гарантирован.
+- whileInView с viewport={{ once: true }} на публичных страницах — оставлять, работает корректно с этим фиксом.
+- Не добавлять onExitComplete для scroll — это НЕ работает с AnimatePresence mode="wait" (новая страница монтируется до коллбэка).
+
+Next steps / suggested work:
+- Реализовать экспорт Excel в ApplicationsListPage (кнопка-заглушка уже есть)
+- Финальное тестирование флоу: регистрация → заявка → смена статуса → аналитика
+- Проверить npm run build без ошибок перед merge в main
+
+Known issues / technical debt:
+- AnalyticsPage: облако ключевых слов без весов/размеров
+- Форма обратной связи на ContactsPage — заглушка
+
+---
+
+Date: 2026-03-15
+Developer: DEV2 (parovozzers)
+
+PR / Change:
+feature/week5-winners-photo-hero-polish (сессия 3 — UX-полировка, роли, модалка авторизации)
+
+What was implemented:
+
+[BackToTopButton]
+- BackToTopButton.tsx: новый shared-компонент, кнопка «↑» появляется при scrollY > 300px
+- Умная смена цвета: document.elementsFromPoint() определяет цвет фона под кнопкой в реальном времени; вычисляется luminance (0.299R+0.587G+0.114B)/255; на тёмном фоне — белый круг + синяя стрелка, на светлом — синий круг + белая стрелка
+- Поддержка gradient-фонов: дополнительно проверяется backgroundImage (backgroundColor у gradient-элементов = transparent)
+- Добавлен во все три layout: PublicLayout, CabinetLayout, AdminLayout
+
+[AuthModal — модальная авторизация]
+- ui.store.ts: новый Zustand-стор (authModal: 'login'|'register'|null, openAuthModal, closeAuthModal)
+- AuthModal.tsx: модальное окно с вкладками Войти/Регистрация поверх текущей страницы
+  - Backdrop с blur, закрытие по клику на фон и по Escape
+  - Блокировка прокрутки body при открытии
+  - LoginForm и RegisterForm вынесены как внутренние компоненты со своей логикой
+  - После успешного входа/регистрации — автоматический редирект + закрытие модалки
+- Header.tsx: кнопки «Войти» и «Участвовать» (десктоп + мобильное меню) открывают модалку вместо перехода на страницу
+- HomePage.tsx: обе кнопки «Подать заявку» (hero + CTA) открывают модалку регистрации; если пользователь уже залогинен — переход в /cabinet
+- PublicLayout.tsx: <AuthModal /> добавлен один раз (не пересоздаётся при навигации)
+- Страницы /login и /register остаются доступны по прямой ссылке
+
+[Поля ВУЗ и Город — обязательные]
+- RegisterPage.tsx и AuthModal.tsx: поля «ВУЗ» и «Город» стали обязательными (required + сообщение об ошибке)
+
+[Роль эксперта — разграничение доступа]
+- AccessDenied.tsx: новый shared-компонент — заглушка «Нет доступа» с иконкой ShieldOff
+- RoleGuard.tsx: новый shared-компонент — обёртка, принимает roles[] и опциональный redirectTo; рендерит children или AccessDenied/Navigate
+- App.tsx: все admin-страницы, недоступные эксперту, обёрнуты в RoleGuard; /admin для эксперта → redirectTo="/admin/applications"
+- AdminLayout.tsx: sidebarLinks получили поле roles[]; для пользователя без доступа к ссылке — opacity-30 + cursor-not-allowed + tooltip «Нет доступа» (вместо Link рендерится <span>)
+- LoginPage.tsx + AuthModal.tsx: эксперт после логина → /admin/applications (не /cabinet и не /admin)
+- Доступно эксперту: /admin/applications, /admin/applications/:id, /admin/cms/winners
+- Всё остальное в админке — RoleGuard показывает AccessDenied
+
+[Фикс кнопки «Повторить» на страницах с ошибкой загрузки]
+- NewsPage: setPage(1) при page===1 не перезапускал useEffect (React bail-out при неизменном state) → заменено на retryKey-счётчик в зависимостях
+- WinnersPage: не было кнопки «Повторить» вообще → добавлена кнопка + retryKey в useEffect([filterYear, filterNomination, retryKey])
+- AnalyticsPage: не было кнопки «Повторить» → добавлена inline-кнопка рядом с текстом ошибки + retryKey; также добавлен setLoading(true)/setError(null) в начало эффекта
+
+Files changed (frontend):
+- sochigu-contest/frontend/src/components/shared/BackToTopButton.tsx (новый)
+- sochigu-contest/frontend/src/components/shared/AuthModal.tsx (новый)
+- sochigu-contest/frontend/src/components/shared/AccessDenied.tsx (новый)
+- sochigu-contest/frontend/src/components/shared/RoleGuard.tsx (новый)
+- sochigu-contest/frontend/src/store/ui.store.ts (новый)
+- sochigu-contest/frontend/src/components/layout/PublicLayout.tsx
+- sochigu-contest/frontend/src/components/layout/CabinetLayout.tsx
+- sochigu-contest/frontend/src/components/layout/AdminLayout.tsx
+- sochigu-contest/frontend/src/components/layout/Header.tsx
+- sochigu-contest/frontend/src/App.tsx
+- sochigu-contest/frontend/src/pages/auth/LoginPage.tsx
+- sochigu-contest/frontend/src/pages/auth/RegisterPage.tsx
+- sochigu-contest/frontend/src/pages/public/HomePage.tsx
+- sochigu-contest/frontend/src/pages/public/NewsPage.tsx
+- sochigu-contest/frontend/src/pages/public/WinnersPage.tsx
+- sochigu-contest/frontend/src/pages/admin/AnalyticsPage.tsx
+
+Important context for the next developer:
+- BackToTopButton: document.elementsFromPoint проверяет backgroundColor И backgroundImage (gradient). data-back-to-top атрибут нужен чтобы пропустить саму кнопку при проверке.
+- AuthModal: страницы /login и /register НЕ удалены — они по-прежнему работают при прямом переходе. Модалка — дополнение, не замена.
+- ui.store.ts: простой стор без persist, состояние сбрасывается при перезагрузке страницы — это правильно.
+- RoleGuard: redirectTo используется только для /admin → /admin/applications для эксперта. Для всех остальных недоступных страниц — показывается AccessDenied.
+- Эксперт: роли доступа определены в sidebarLinks (AdminLayout) и в RoleGuard-обёртках в App.tsx — оба места нужно обновлять синхронно при изменении прав.
+- retryKey-паттерн: стандартное решение для retry useEffect с пустыми/неизменными deps — добавить retryKey в deps и инкрементировать при клике.
+
+Next steps / suggested work:
+- Реализовать экспорт Excel в ApplicationsListPage (кнопка-заглушка уже есть)
+- Финальное тестирование флоу: регистрация → заявка → смена статуса → аналитика
+- Проверить npm run build без ошибок перед merge в main
+
+Known issues / technical debt:
+- AnalyticsPage: облако ключевых слов без весов/размеров
+- Форма обратной связи на ContactsPage — заглушка
+
+---

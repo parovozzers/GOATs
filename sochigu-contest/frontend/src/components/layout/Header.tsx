@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth.store';
+import { useUiStore } from '@/store/ui.store';
 import { authApi } from '@/api/auth';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
@@ -19,6 +20,7 @@ const navLinks = [
 export function Header() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const { openAuthModal } = useUiStore();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => { await authApi.logout(); navigate('/'); };
@@ -55,14 +57,14 @@ export function Header() {
             </>
           ) : (
             <>
-              <Link to="/login"
+              <button onClick={() => openAuthModal('login')}
                 className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-mid">
                 Войти
-              </Link>
-              <Link to="/register"
+              </button>
+              <button onClick={() => openAuthModal('register')}
                 className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover">
                 Участвовать
-              </Link>
+              </button>
             </>
           )}
         </div>
@@ -94,10 +96,10 @@ export function Header() {
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setMobileOpen(false)}
-                  className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-center text-sm font-medium text-primary-foreground">Войти</Link>
-                <Link to="/register" onClick={() => setMobileOpen(false)}
-                  className="rounded-lg bg-accent px-4 py-2 text-center text-sm font-semibold text-accent-foreground">Участвовать</Link>
+                <button onClick={() => { openAuthModal('login'); setMobileOpen(false); }}
+                  className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-center text-sm font-medium text-primary-foreground">Войти</button>
+                <button onClick={() => { openAuthModal('register'); setMobileOpen(false); }}
+                  className="rounded-lg bg-accent px-4 py-2 text-center text-sm font-semibold text-accent-foreground">Участвовать</button>
               </>
             )}
           </div>

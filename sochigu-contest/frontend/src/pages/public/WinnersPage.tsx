@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
 import { Winner, Nomination } from '@/types';
 import { placeMedal } from '@/utils/placeMedal';
+import { fadeUp, stagger, cardItem } from '@/utils/animations';
 
 function WinnerCardSkeleton() {
   return (
@@ -23,13 +25,12 @@ function WinnerCardSkeleton() {
 
 function WinnerCard({ winner }: { winner: Winner }) {
   return (
-    <article className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+    <motion.article
+      className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow"
+      variants={cardItem}
+    >
       {winner.photoUrl ? (
-        <img
-          src={winner.photoUrl}
-          alt={winner.teamName}
-          className="w-full h-48 object-cover"
-        />
+        <img src={winner.photoUrl} alt={winner.teamName} className="w-full h-48 object-cover" />
       ) : (
         <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-300 select-none">
           <svg xmlns="http://www.w3.org/2000/svg" className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -37,27 +38,17 @@ function WinnerCard({ winner }: { winner: Winner }) {
           </svg>
         </div>
       )}
-
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-center justify-between mb-3">
           <span className="text-2xl" title={`${winner.place}-е место`}>{placeMedal(winner.place)}</span>
-          <span className="text-xs font-medium bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">
-            {winner.year}
-          </span>
+          <span className="text-xs font-medium bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">{winner.year}</span>
         </div>
-
         <h2 className="font-bold text-gray-900 leading-snug mb-1">{winner.projectTitle}</h2>
         <p className="text-sm text-gray-600 mb-2">{winner.teamName}</p>
-
-        {winner.nomination && (
-          <p className="text-xs text-accent-600 font-medium mb-1">{winner.nomination.name}</p>
-        )}
-
-        {winner.university && (
-          <p className="text-xs text-gray-400 mt-auto pt-2">{winner.university}</p>
-        )}
+        {winner.nomination && <p className="text-xs text-accent-600 font-medium mb-1">{winner.nomination.name}</p>}
+        {winner.university && <p className="text-xs text-gray-400 mt-auto pt-2">{winner.university}</p>}
       </div>
-    </article>
+    </motion.article>
   );
 }
 
@@ -69,14 +60,12 @@ export function WinnersPage() {
   const [error, setError] = useState(false);
   const [filterYear, setFilterYear] = useState('');
   const [filterNomination, setFilterNomination] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     document.title = 'Победители — Конкурс СочиГУ';
     Promise.all([nominationsApi.getAll(), winnersApi.getYears()])
-      .then(([noms, yrs]) => {
-        setNominations(noms);
-        setYears(yrs.map((y) => y.year));
-      })
+      .then(([noms, yrs]) => { setNominations(noms); setYears(yrs.map((y) => y.year)); })
       .catch((err) => console.error('Failed to load filters:', err));
   }, []);
 
@@ -85,61 +74,64 @@ export function WinnersPage() {
     const params: { year?: number; nominationId?: string } = {};
     if (filterYear) params.year = Number(filterYear);
     if (filterNomination) params.nominationId = filterNomination;
-
     winnersApi
       .getAll(params)
       .then((data) => { setWinners(data); setError(false); })
       .catch((err) => { console.error('Failed to load winners:', err); setError(true); })
       .finally(() => setLoading(false));
-  }, [filterYear, filterNomination]);
+  }, [filterYear, filterNomination, retryKey]);
 
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 max-w-6xl py-10">
-        <h1 className="text-3xl font-bold text-primary-900 mb-8">Победители конкурса</h1>
+        <motion.h1
+          className="text-3xl font-bold text-primary-900 mb-8"
+          initial="hidden" animate="show" variants={fadeUp}
+        >
+          Победители конкурса
+        </motion.h1>
 
-        {/* Фильтры */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          <select
-            value={filterYear}
-            onChange={(e) => setFilterYear(e.target.value)}
-            className="select-custom pl-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
+        <motion.div
+          className="flex flex-wrap gap-3 mb-8"
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+        >
+          <select value={filterYear} onChange={(e) => setFilterYear(e.target.value)}
+            className="select-custom pl-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">Все годы</option>
-            {years.map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
+            {years.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
-
-          <select
-            value={filterNomination}
-            onChange={(e) => setFilterNomination(e.target.value)}
-            className="select-custom pl-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
+          <select value={filterNomination} onChange={(e) => setFilterNomination(e.target.value)}
+            className="select-custom pl-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">Все номинации</option>
-            {nominations.map((n) => (
-              <option key={n.id} value={n.id}>{n.name}</option>
-            ))}
+            {nominations.map((n) => <option key={n.id} value={n.id}>{n.name}</option>)}
           </select>
-        </div>
+        </motion.div>
 
-        {/* Контент */}
         {error ? (
-          <p className="text-red-500 text-center py-20">Не удалось загрузить победителей. Попробуйте позже.</p>
+          <div className="text-center py-20">
+            <p className="text-red-500 mb-4">Не удалось загрузить победителей. Попробуйте позже.</p>
+            <button onClick={() => setRetryKey(k => k + 1)}
+              className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+              Повторить
+            </button>
+          </div>
         ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <WinnerCardSkeleton key={i} />
-            ))}
+            {Array.from({ length: 6 }).map((_, i) => <WinnerCardSkeleton key={i} />)}
           </div>
-        ) : !error && winners.length === 0 ? (
+        ) : winners.length === 0 ? (
           <p className="text-gray-500 text-center py-20">Победители пока не объявлены.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {winners.map((w) => (
-              <WinnerCard key={w.id} winner={w} />
-            ))}
-          </div>
+          <motion.div
+            key={`${filterYear}-${filterNomination}`}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={stagger}
+            initial="hidden"
+            animate="show"
+          >
+            {winners.map((w) => <WinnerCard key={w.id} winner={w} />)}
+          </motion.div>
         )}
       </div>
     </main>

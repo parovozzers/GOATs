@@ -34,12 +34,15 @@ export function AnalyticsPage() {
   const [keywords, setKeywords] = useState<AnalyticsKeyword[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const generatedAt = useMemo(
     () => new Date().toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' }),
     [],
   );
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     Promise.all([
       analyticsApi.getSummary(),
       analyticsApi.getByNomination(),
@@ -53,10 +56,18 @@ export function AnalyticsPage() {
     }).catch(() => {
       setError('Ошибка при загрузке аналитики');
     }).finally(() => setLoading(false));
-  }, []);
+  }, [retryKey]);
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
-  if (error) return <div className="m-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>;
+  if (error) return (
+    <div className="m-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-4">
+      <span>{error}</span>
+      <button onClick={() => setRetryKey(k => k + 1)}
+        className="ml-auto px-3 py-1.5 rounded-lg border border-red-300 text-red-700 text-sm hover:bg-red-100 transition-colors whitespace-nowrap">
+        Повторить
+      </button>
+    </div>
+  );
 
   return (
     <>
