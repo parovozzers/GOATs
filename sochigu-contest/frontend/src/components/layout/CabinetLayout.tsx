@@ -1,6 +1,10 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { BackToTopButton } from '@/components/shared/BackToTopButton';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/auth.store';
 import { LayoutDashboard, FileText, LogOut } from 'lucide-react';
+import logo from '@/logo.png';
+import { ScrollToTop } from '@/components/shared/ScrollToTop';
 
 const sidebarLinks = [
   { to: '/cabinet', label: 'Обзор', icon: LayoutDashboard, exact: true },
@@ -19,7 +23,7 @@ export function CabinetLayout() {
       <div className="border-b bg-card shadow-sm">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-accent">СочиГУ</span>
+            <img src={logo} alt="СочиГУ" className="h-9 w-auto" />
             <span className="text-sm text-muted-foreground">| Личный кабинет</span>
           </Link>
           <div className="flex items-center gap-4">
@@ -51,9 +55,21 @@ export function CabinetLayout() {
           </nav>
         </aside>
         <main className="flex-1 min-w-0">
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+            >
+              <ScrollToTop />
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
+      <BackToTopButton />
     </div>
   );
 }

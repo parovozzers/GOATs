@@ -23,7 +23,10 @@ export function LoginPage() {
       await authApi.login(data);
       setError(null);
       const role = useAuthStore.getState().user?.role;
-      navigate(role === 'admin' || role === 'moderator' ? '/admin' : '/cabinet', { replace: true });
+      const dest = role === 'admin' || role === 'moderator' ? '/admin'
+        : role === 'expert' ? '/admin/applications'
+        : '/cabinet';
+      navigate(dest, { replace: true });
     } catch (err: any) {
       const raw = err?.response?.data?.message;
       const msg = Array.isArray(raw) ? raw[0] : typeof raw === 'string' ? raw : null;

@@ -20,7 +20,20 @@ export function WinnersManagePage() {
   const [editing, setEditing] = useState<Winner | null>(null);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { showToast } = useToast();
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await winnersApi.uploadPhoto(file);
+      setForm(f => ({ ...f, photoUrl: url }));
+      showToast('Фото загружено', 'success');
+    } catch { showToast('Ошибка загрузки фото', 'error'); }
+    finally { setUploading(false); e.target.value = ''; }
+  };
 
   useEffect(() => {
     nominationsApi.getAll().then(setNominations);
@@ -136,8 +149,19 @@ export function WinnersManagePage() {
             <textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="input" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">URL фото</label>
-            <input type="text" value={form.photoUrl} onChange={e => setForm(f => ({ ...f, photoUrl: e.target.value }))} className="input" placeholder="https://..." />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Фото</label>
+            <div className="flex gap-2 items-start">
+              {form.photoUrl && (
+                <img src={form.photoUrl} alt="preview" className="h-16 w-16 rounded-lg object-cover border border-gray-200 shrink-0" />
+              )}
+              <div className="flex-1 space-y-2">
+                <label className={`flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 cursor-pointer hover:border-primary-400 hover:text-primary-600 transition-colors ${uploading ? 'opacity-60 pointer-events-none' : ''}`}>
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                  {uploading ? 'Загрузка...' : '📁 Загрузить файл'}
+                </label>
+                <input type="text" value={form.photoUrl} onChange={e => setForm(f => ({ ...f, photoUrl: e.target.value }))} className="input text-xs" placeholder="или вставьте URL..." />
+              </div>
+            </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Отмена</button>

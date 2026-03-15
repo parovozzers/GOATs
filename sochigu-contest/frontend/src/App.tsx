@@ -6,6 +6,7 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { CabinetLayout } from '@/components/layout/CabinetLayout';
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
+import { RoleGuard } from '@/components/shared/RoleGuard';
 import { HomePage } from '@/pages/public/HomePage';
 import { AboutPage } from '@/pages/public/AboutPage';
 import { NominationsPage } from '@/pages/public/NominationsPage';
@@ -31,7 +32,6 @@ import { DocumentsManagePage } from '@/pages/admin/cms/DocumentsManagePage';
 import { WinnersManagePage } from '@/pages/admin/cms/WinnersManagePage';
 import { NominationsManagePage } from '@/pages/admin/cms/NominationsManagePage';
 import { ExpertsPage as AdminExpertsPage } from '@/pages/admin/ExpertsPage';
-
 export default function App() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -63,16 +63,33 @@ export default function App() {
 
       <Route element={<ProtectedRoute roles={['admin', 'moderator', 'expert']} />}>
         <Route element={<AdminLayout />}>
-          <Route path="/admin" element={<AdminDashboardPage />} />
+          {/* Эксперт на /admin → редирект на /admin/applications */}
+          <Route path="/admin" element={
+            <RoleGuard roles={['admin', 'moderator']} redirectTo="/admin/applications">
+              <AdminDashboardPage />
+            </RoleGuard>
+          } />
           <Route path="/admin/applications" element={<ApplicationsListPage />} />
           <Route path="/admin/applications/:id" element={<ApplicationDetailPage />} />
-          <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/admin/analytics" element={<AnalyticsPage />} />
-          <Route path="/admin/cms/news" element={<NewsManagePage />} />
-          <Route path="/admin/cms/documents" element={<DocumentsManagePage />} />
+          <Route path="/admin/users" element={
+            <RoleGuard roles={['admin', 'moderator']}><UsersPage /></RoleGuard>
+          } />
+          <Route path="/admin/analytics" element={
+            <RoleGuard roles={['admin', 'moderator']}><AnalyticsPage /></RoleGuard>
+          } />
+          <Route path="/admin/cms/news" element={
+            <RoleGuard roles={['admin', 'moderator']}><NewsManagePage /></RoleGuard>
+          } />
+          <Route path="/admin/cms/documents" element={
+            <RoleGuard roles={['admin', 'moderator']}><DocumentsManagePage /></RoleGuard>
+          } />
           <Route path="/admin/cms/winners" element={<WinnersManagePage />} />
-          <Route path="/admin/cms/nominations" element={<NominationsManagePage />} />
-          <Route path="/admin/experts" element={<AdminExpertsPage />} />
+          <Route path="/admin/cms/nominations" element={
+            <RoleGuard roles={['admin', 'moderator']}><NominationsManagePage /></RoleGuard>
+          } />
+          <Route path="/admin/experts" element={
+            <RoleGuard roles={['admin', 'moderator']}><AdminExpertsPage /></RoleGuard>
+          } />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />

@@ -186,15 +186,18 @@ export function RegisterPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="university" className="block text-sm font-medium text-gray-700 mb-1">
-                  Вуз
+                  ВУЗ <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="university"
                   type="text"
-                  {...register('university')}
+                  {...register('university', { required: 'Обязательное поле' })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   placeholder="СочиГУ"
                 />
+                {errors.university && (
+                  <p className="text-red-500 text-xs mt-1">{errors.university.message}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="faculty" className="block text-sm font-medium text-gray-700 mb-1">
@@ -205,7 +208,7 @@ export function RegisterPage() {
                   type="text"
                   {...register('faculty')}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  placeholder="Инженерно-экологический"
+                  placeholder="ФИИЦТ"
                 />
               </div>
             </div>
@@ -230,15 +233,18 @@ export function RegisterPage() {
               </div>
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                  Город
+                  Город <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="city"
                   type="text"
-                  {...register('city')}
+                  {...register('city', { required: 'Обязательное поле' })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   placeholder="Сочи"
                 />
+                {errors.city && (
+                  <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>
+                )}
               </div>
             </div>
 

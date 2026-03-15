@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Res, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Res, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { extname, resolve } from 'path';
 import { Response } from 'express';
 import { v4 as uuid } from 'uuid';
+import * as fs from 'fs';
+
+const UPLOAD_DIR = resolve('./uploads/docs');
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 import { DocumentsService } from './documents.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -31,7 +35,7 @@ export class DocumentsController {
   @Roles(Role.ADMIN)
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/docs',
+      destination: UPLOAD_DIR,
       filename: (_, f, cb) => {
         const originalName = Buffer.from(f.originalname, 'latin1').toString('utf8');
         cb(null, `${uuid()}${extname(originalName)}`);
@@ -39,6 +43,7 @@ export class DocumentsController {
     }),
   }))
   uploadDocument(@UploadedFile() file: Express.Multer.File, @Body() body: any) {
+    if (!file) throw new BadRequestException('Файл не был загружен');
     const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
     return this.documentsService.create({
       title: body.title,
@@ -54,7 +59,7 @@ export class DocumentsController {
   @Get(':id/download')
   async download(@Param('id') id: string, @Res() res: Response) {
     const doc = await this.documentsService.findOne(id);
-    res.download(join(process.cwd(), doc.storagePath), doc.fileName);
+    res.download(doc.storagePath, doc.fileName);
   }
 
   @Patch(':id')

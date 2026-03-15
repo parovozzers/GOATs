@@ -1,8 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth.store';
+import { useUiStore } from '@/store/ui.store';
 import { authApi } from '@/api/auth';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import logoWhite from '@/logo_white.png';
 
 const navLinks = [
   { to: '/', label: 'Главная' },
@@ -18,6 +20,7 @@ const navLinks = [
 export function Header() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const { openAuthModal } = useUiStore();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => { await authApi.logout(); navigate('/'); };
@@ -27,7 +30,7 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-primary shadow-lg">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-2 text-primary-foreground">
-          <span className="text-xl font-bold text-accent">СочиГУ</span>
+          <img src={logoWhite} alt="СочиГУ" className="h-10 w-auto" />
           <span className="hidden text-sm font-medium text-primary-foreground/80 sm:inline">| Конкурс проектов</span>
         </Link>
 
@@ -54,14 +57,14 @@ export function Header() {
             </>
           ) : (
             <>
-              <Link to="/login"
+              <button onClick={() => openAuthModal('login')}
                 className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-mid">
                 Войти
-              </Link>
-              <Link to="/register"
+              </button>
+              <button onClick={() => openAuthModal('register')}
                 className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover">
                 Участвовать
-              </Link>
+              </button>
             </>
           )}
         </div>
@@ -93,10 +96,10 @@ export function Header() {
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setMobileOpen(false)}
-                  className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-center text-sm font-medium text-primary-foreground">Войти</Link>
-                <Link to="/register" onClick={() => setMobileOpen(false)}
-                  className="rounded-lg bg-accent px-4 py-2 text-center text-sm font-semibold text-accent-foreground">Участвовать</Link>
+                <button onClick={() => { openAuthModal('login'); setMobileOpen(false); }}
+                  className="rounded-lg border border-primary-foreground/30 px-4 py-2 text-center text-sm font-medium text-primary-foreground">Войти</button>
+                <button onClick={() => { openAuthModal('register'); setMobileOpen(false); }}
+                  className="rounded-lg bg-accent px-4 py-2 text-center text-sm font-semibold text-accent-foreground">Участвовать</button>
               </>
             )}
           </div>

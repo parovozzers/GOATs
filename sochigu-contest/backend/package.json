@@ -27,6 +27,8 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "exceljs": "^4.4.0",
+    "express-rate-limit": "^7.2.0",
+    "heic-convert": "^1.2.4",
     "helmet": "^7.1.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.9",
@@ -35,8 +37,7 @@
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
-    "typeorm": "^0.3.20",
-    "express-rate-limit": "^7.2.0"
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.2",
