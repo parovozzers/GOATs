@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/auth.store';
 import { useMyApplications } from '@/hooks/useApplications';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Spinner } from '@/components/shared/Spinner';
+import { stagger, cardItem } from '@/utils/animations';
 
 function formatDate(str: string) {
   return new Date(str).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -15,13 +17,21 @@ export function CabinetDashboardPage() {
   const { applications: apps, loading } = useMyApplications();
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">
+    <motion.div
+      className="space-y-6"
+      variants={stagger}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.h1 className="text-2xl font-bold text-foreground" variants={cardItem}>
         Добро пожаловать, {user?.firstName}!
-      </h1>
+      </motion.h1>
 
       {/* Мои данные */}
-      <section className="rounded-xl bg-card border border-border shadow-sm p-6">
+      <motion.section
+        className="rounded-xl bg-card border border-border shadow-sm p-6"
+        variants={cardItem}
+      >
         <h2 className="text-lg font-semibold text-foreground mb-4">Мои данные</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
           <div>
@@ -59,10 +69,13 @@ export function CabinetDashboardPage() {
             </div>
           )}
         </dl>
-      </section>
+      </motion.section>
 
       {/* Мои заявки */}
-      <section className="rounded-xl bg-card border border-border shadow-sm p-6">
+      <motion.section
+        className="rounded-xl bg-card border border-border shadow-sm p-6"
+        variants={cardItem}
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-foreground">Мои заявки</h2>
           <Link
@@ -88,11 +101,17 @@ export function CabinetDashboardPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={stagger}
+            initial="hidden"
+            animate="show"
+          >
             {apps.map(app => (
-              <div
+              <motion.div
                 key={app.id}
                 className="flex items-center justify-between gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-muted/40"
+                variants={cardItem}
               >
                 <div className="min-w-0">
                   <p className="font-medium text-foreground truncate">{app.projectTitle}</p>
@@ -103,18 +122,15 @@ export function CabinetDashboardPage() {
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <StatusBadge status={app.status} />
-                  <Link
-                    to="/cabinet/application"
-                    className="text-sm font-medium text-primary hover:underline"
-                  >
+                  <Link to="/cabinet/application" className="text-sm font-medium text-primary hover:underline">
                     Перейти →
                   </Link>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 }

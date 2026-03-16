@@ -529,3 +529,84 @@ Known issues / technical debt:
 - AnalyticsPage: облако ключевых слов без весов/размеров
 
 ---
+
+Date: 2026-03-17
+Developer: DEV2 (parovozzers)
+
+PR / Change:
+feature/week6-ui-polish-contacts (продолжение) — дашборд аналитики: фиксы, полировка, печать
+
+What was implemented:
+
+[Фикс временных зон — root cause]
+- backend/.env: добавлен TZ=UTC — Node.js (Windows, UTC+3) интерпретировал timestamp without timezone из Docker PostgreSQL (UTC) как локальное время, сдвигая все метки на +3 часа. TZ=UTC устраняет баг без изменений в коде.
+- backend/.env: SMTP-настройки очищены для локальной разработки (сервер ещё не выдан)
+
+[AnalyticsPage — фиксы логики]
+- newThisWeek: использует submittedAt вместо createdAt; окно — 6 дней назад (не 7), чтобы считать ровно 7 дней включая текущий
+- teamApplications + avgTeamSize: порог изменён с > 1 на >= 1 (команда из одного человека валидна)
+- avgTeamSize SQL: добавлен FILTER (WHERE jsonb_array_length >= 1) для корректного AVG
+- Желтый KPI-виджет «На проверке»: valueColor + bg + labelColor пропсы у KpiCard, статус submitted выделен жёлтым фоном
+
+[AnalyticsPage — фикс графика «Динамика»]
+- filledTimeline: итерация через UTC noon (T12:00:00Z) и setUTCDate/toISOString().slice(0,10) — исключает баги смещения дня из-за DST/timezone-границ
+- XAxis tickFormatter и Tooltip formatter: явный timeZone: 'UTC' для корректного отображения дат
+
+[AnalyticsPage — фикс «Последние события»]
+- relativeTime(): добавлена нормализация строки pg-timestamp: /Z|[+-]\d{2}:\d{2}$/.test(iso) ? iso : iso.replace(' ', 'T') + 'Z' — без этого new Date() создавал объект в локальном времени
+
+[AnalyticsPage — UX/визуал]
+- Таблица «География»: overflow-y-auto geo-scroll, maxHeight 260px, sticky-заголовок
+- Custom scrollbar .geo-scroll (index.css): track #efd2cd, thumb #826a9c — вписывается в палитру дашборда
+- Tooltip-компонент Tip: обёртка с hover-показом тёмного пузыря, применена на воронке и номинациях
+- Номинации: добавлена колонка pct (%) после бара; процент также в tooltip
+- Сетка статусов: числа text-4xl font-extrabold, фон cell.color + '22' (10% opacity от цвета)
+- Polling interval: 15 секунд (было 60)
+- Кнопка «Экспорт PDF»: цвет изменён на #9f83a6 (PALETTE[3]); класс analytics-no-print
+
+[AnalyticsPage — печать/PDF]
+- CSS @media print в index.css: analytics-grid-2 → 1 колонка, geo-scroll без ограничения высоты, analytics-no-print скрыт
+- print-color-adjust: exact на .analytics-bar, .analytics-track, .analytics-card, .analytics-kpi — принудительный вывод фоновых цветов при печати
+
+[Фикс цветов бейджей в adminке]
+- UsersPage: ROLE_COLORS map (participant→blue, expert→purple, moderator→orange, admin→red); бейдж «Активен» → bg-green-100 text-green-800
+- NewsManagePage, DocumentsManagePage, NominationsManagePage, ExpertsPage: бейджи isPublished/isActive/isExpertVisible → bg-green-100 text-green-800 (было bg-primary-100 text-primary-700 = стально-синий из-за override в tailwind.config.js)
+
+Files changed:
+- sochigu-contest/backend/.env
+- sochigu-contest/backend/src/analytics/analytics.service.ts
+- sochigu-contest/frontend/src/index.css
+- sochigu-contest/frontend/src/pages/admin/AnalyticsPage.tsx
+- sochigu-contest/frontend/src/pages/admin/UsersPage.tsx
+- sochigu-contest/frontend/src/pages/admin/ExpertsPage.tsx
+- sochigu-contest/frontend/src/pages/admin/cms/NewsManagePage.tsx
+- sochigu-contest/frontend/src/pages/admin/cms/DocumentsManagePage.tsx
+- sochigu-contest/frontend/src/pages/admin/cms/NominationsManagePage.tsx
+
+Bug fixes:
+- «3 часа назад» в ленте событий: TZ=UTC в .env + нормализация pg-строки в relativeTime()
+- График «Динамика» показывал предыдущий день: UTC noon trick в filledTimeline
+- teamApplications не считал одиночные заявки: порог >= 1
+- newThisWeek считал 8 дней: окно 6 * 24h + текущий день
+- Цветные бейджи в adminке выглядели синими: bg-primary-* переопределён в tailwind.config.js
+
+Important context for the next developer:
+- TZ=UTC в backend/.env — КРИТИЧНО для корректной работы временных зон. Не удалять.
+- SMTP настройки пустые — email-отправка отключена до получения сервера. Заполнить при деплое.
+- bg-primary-100 / text-primary-* в admin-таблицах = стально-синий (НЕ зелёный). Использовать Tailwind-семантику (green/blue/purple) для цветных бейджей.
+- Tooltip-компонент Tip определён локально в AnalyticsPage.tsx — при необходимости вынести в shared/
+- print-color-adjust: exact задан через index.css @media print, не инлайн
+
+Next steps / suggested work:
+- Реализовать экспорт Excel в ApplicationsListPage (кнопка-заглушка уже есть)
+- Финальное тестирование флоу: регистрация → заявка → смена статуса → аналитика
+- Проверить npm run build без ошибок перед merge в main
+- Заполнить SMTP в backend/.env при получении серверного доступа
+- Передать публичный SSH-ключ администратору сервера для деплоя
+
+Known issues / technical debt:
+- AnalyticsPage: облако ключевых слов без весов/размеров
+- Форма обратной связи на ContactsPage — заглушка
+- SMTP отключён локально — email-уведомления не отправляются
+
+---

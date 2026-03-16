@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { applicationsApi } from '@/api/applications';
 import { nominationsApi } from '@/api/nominations';
 import { Nomination, AppFile, TeamMember, CreateApplicationDto } from '@/types';
@@ -160,10 +161,24 @@ export function ApplicationFormPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-bold text-foreground">
-        {isEdit ? 'Редактировать заявку' : 'Подать заявку'}
-      </h1>
+    <motion.div
+      className="mx-auto max-w-3xl"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: 'easeOut' }}
+    >
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">
+          {isEdit ? 'Редактировать заявку' : 'Подать заявку'}
+        </h1>
+        <button
+          type="button"
+          onClick={() => navigate('/cabinet')}
+          className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-colors hover:opacity-90"
+        >
+          Отменить
+        </button>
+      </div>
 
       {/* Прогресс-бар */}
       <div className="mb-8 flex items-center">
@@ -196,11 +211,11 @@ export function ApplicationFormPage() {
       )}
 
       {/* Контент шагов */}
-      <div className="min-h-80 rounded-xl border border-border bg-card p-6 shadow-sm">
-
+      <div className="min-h-80 rounded-xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+        <AnimatePresence mode="wait">
         {/* Шаг 1 — Номинация */}
         {step === 1 && (
-          <div>
+          <motion.div key="step1" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25 }}>
             <h2 className="mb-4 text-lg font-semibold text-foreground">{STEP_TITLES[0]}</h2>
             {nominations.length === 0 ? (
               <div className="flex justify-center py-8"><Spinner /></div>
@@ -224,12 +239,12 @@ export function ApplicationFormPage() {
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Шаг 2 — Описание и команда */}
         {step === 2 && (
-          <div className="space-y-5">
+          <motion.div key="step2" className="space-y-5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25 }}>
             <h2 className="text-lg font-semibold text-foreground">{STEP_TITLES[1]}</h2>
 
             <div>
@@ -319,12 +334,12 @@ export function ApplicationFormPage() {
                   onChange={e => setSupervisor(s => ({ ...s, email: e.target.value }))} className={inputClass} />
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Шаг 3 — Файлы */}
         {step === 3 && (
-          <div className="space-y-5">
+          <motion.div key="step3" className="space-y-5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25 }}>
             <h2 className="text-lg font-semibold text-foreground">{STEP_TITLES[2]}</h2>
             <FileUploadZone
               label="Файлы проекта"
@@ -355,12 +370,12 @@ export function ApplicationFormPage() {
                 </div>
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Шаг 4 — Подтверждение */}
         {step === 4 && (
-          <div className="space-y-5">
+          <motion.div key="step4" className="space-y-5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25 }}>
             <h2 className="text-lg font-semibold text-foreground">{STEP_TITLES[3]}</h2>
             <div className="space-y-2 rounded-lg bg-muted p-4 text-sm">
               <p>
@@ -399,8 +414,9 @@ export function ApplicationFormPage() {
                 Подтверждаю корректность введённых данных
               </span>
             </label>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
 
       {/* Навигация */}
@@ -444,7 +460,7 @@ export function ApplicationFormPage() {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 

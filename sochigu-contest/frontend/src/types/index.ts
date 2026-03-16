@@ -130,6 +130,21 @@ export interface AnalyticsSummary {
   totalApplications: number;
   totalUsers: number;
   totalUniversities: number;
+  newThisWeek: number;
+  underReview: number;
+  teamApplications: number;
+  avgTeamSize: number;
+}
+
+export interface AnalyticsByStatus { status: string; count: number; }
+export interface AnalyticsActivityItem {
+  id: string;
+  toStatus: string;
+  fromStatus: string | null;
+  createdAt: string;
+  projectTitle: string;
+  userName: string;
+  nominationName: string;
 }
 
 export interface AnalyticsByNomination { nomination: string; count: number; }

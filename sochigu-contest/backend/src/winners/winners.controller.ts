@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Res } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const heicConvert = require('heic-convert');
+
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Res, OnModuleInit } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { resolve } from 'path';
+import { resolve, sep } from 'path';
 import { Response } from 'express';
 import { v4 as uuid } from 'uuid';
 import * as fs from 'fs';
@@ -11,12 +14,15 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
 
-const PHOTO_DIR = resolve('./uploads/winners');
-fs.mkdirSync(PHOTO_DIR, { recursive: true });
+const PHOTO_DIR = resolve(__dirname, '../../uploads/winners');
 
 @Controller('winners')
-export class WinnersController {
+export class WinnersController implements OnModuleInit {
   constructor(private winnersService: WinnersService) {}
+
+  onModuleInit() {
+    fs.mkdirSync(PHOTO_DIR, { recursive: true });
+  }
 
   @Get()
   findAll(@Query('year') year?: number, @Query('nominationId') nominationId?: string) {
@@ -46,23 +52,24 @@ export class WinnersController {
     let filename: string;
 
     if (file.mimetype === 'image/heic' || file.mimetype === 'image/heif' || ext === 'heic' || ext === 'heif') {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const convert = require('heic-convert');
-      const converted = await convert({ buffer: file.buffer, format: 'JPEG', quality: 0.9 });
+      const converted = await heicConvert({ buffer: file.buffer, format: 'JPEG', quality: 0.9 });
       buffer = Buffer.from(converted);
       filename = `${uuid()}.jpg`;
     } else {
-      const ext = file.originalname.split('.').pop()?.toLowerCase() || 'jpg';
       filename = `${uuid()}.${ext}`;
     }
 
-    fs.writeFileSync(resolve(PHOTO_DIR, filename), buffer);
+    await fs.promises.writeFile(resolve(PHOTO_DIR, filename), buffer);
     return { url: `/api/winners/photo/${filename}` };
   }
 
   @Get('photo/:filename')
   servePhoto(@Param('filename') filename: string, @Res() res: Response) {
-    res.sendFile(resolve(PHOTO_DIR, filename));
+    const safePath = resolve(PHOTO_DIR, filename);
+    if (!safePath.startsWith(PHOTO_DIR + sep)) {
+      throw new BadRequestException('Invalid filename');
+    }
+    res.sendFile(safePath);
   }
 
   @Post()

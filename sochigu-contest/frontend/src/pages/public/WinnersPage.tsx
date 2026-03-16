@@ -4,7 +4,7 @@ import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
 import { Winner, Nomination } from '@/types';
 import { placeMedal } from '@/utils/placeMedal';
-import { fadeUp, stagger, cardItem } from '@/utils/animations';
+import { fadeUp, stagger, cardItem, hoverCardSm } from '@/utils/animations';
 
 function WinnerCardSkeleton() {
   return (
@@ -26,8 +26,9 @@ function WinnerCardSkeleton() {
 function WinnerCard({ winner }: { winner: Winner }) {
   return (
     <motion.article
-      className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow"
+      className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow relative"
       variants={cardItem}
+      {...hoverCardSm}
     >
       {winner.photoUrl ? (
         <img src={winner.photoUrl} alt={winner.teamName} className="w-full h-48 object-cover" />

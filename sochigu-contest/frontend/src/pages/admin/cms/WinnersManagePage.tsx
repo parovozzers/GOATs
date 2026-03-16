@@ -21,18 +21,27 @@ export function WinnersManagePage() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState('');
   const { showToast } = useToast();
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setPhotoError('');
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Файл слишком большой. Изображение должно быть не более 5 МБ.');
+      e.target.value = '';
+      return;
+    }
     setUploading(true);
     try {
       const url = await winnersApi.uploadPhoto(file);
       setForm(f => ({ ...f, photoUrl: url }));
       showToast('Фото загружено', 'success');
-    } catch { showToast('Ошибка загрузки фото', 'error'); }
-    finally { setUploading(false); e.target.value = ''; }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message;
+      setPhotoError(typeof msg === 'string' ? msg : 'Ошибка загрузки фото. Попробуйте ещё раз.');
+    } finally { setUploading(false); e.target.value = ''; }
   };
 
   useEffect(() => {
@@ -46,10 +55,11 @@ export function WinnersManagePage() {
   }, [yearFilter]);
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
+  const openCreate = () => { setEditing(null); setForm(EMPTY); setPhotoError(''); setModalOpen(true); };
   const openEdit = (item: Winner) => {
     setEditing(item);
     setForm({ projectTitle: item.projectTitle, teamName: item.teamName, description: item.description ?? '', year: item.year, place: item.place, nominationId: item.nominationId ?? '', university: item.university ?? '', photoUrl: item.photoUrl ?? '' });
+    setPhotoError('');
     setModalOpen(true);
   };
 
@@ -74,7 +84,7 @@ export function WinnersManagePage() {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary-900">Управление победителями</h1>
-        <button onClick={openCreate} className="px-4 py-2 bg-accent-600 hover:bg-accent-500 text-white text-sm font-semibold rounded-lg transition-colors">+ Создать</button>
+        <button onClick={openCreate} className="px-4 py-2 bg-primary hover:bg-primary-mid text-white text-sm font-semibold rounded-lg transition-colors">+ Создать</button>
       </div>
 
       <div className="mb-5">
@@ -160,12 +170,13 @@ export function WinnersManagePage() {
                   {uploading ? 'Загрузка...' : '📁 Загрузить файл'}
                 </label>
                 <input type="text" value={form.photoUrl} onChange={e => setForm(f => ({ ...f, photoUrl: e.target.value }))} className="input text-xs" placeholder="или вставьте URL..." />
+                {photoError && <p className="text-xs text-red-500">{photoError}</p>}
               </div>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Отмена</button>
-            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-accent-600 hover:bg-accent-500 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors">
+            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-accent-foreground text-sm font-semibold rounded-lg transition-colors">
               {saving ? 'Сохраняем...' : 'Сохранить'}
             </button>
           </div>

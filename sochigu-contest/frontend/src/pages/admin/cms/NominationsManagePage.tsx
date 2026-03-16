@@ -46,7 +46,7 @@ export function NominationsManagePage() {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary-900">Управление номинациями</h1>
-        <button onClick={openCreate} className="px-4 py-2 bg-accent-600 hover:bg-accent-500 text-white text-sm font-semibold rounded-lg transition-colors">+ Создать</button>
+        <button onClick={openCreate} className="px-4 py-2 bg-primary hover:bg-primary-mid text-white text-sm font-semibold rounded-lg transition-colors">+ Создать</button>
       </div>
 
       {loading ? <div className="flex justify-center py-12"><Spinner size="lg" /></div> : items.length === 0 ? (
@@ -63,7 +63,7 @@ export function NominationsManagePage() {
                   <td className="px-5 py-3 font-medium text-gray-900">{item.name}</td>
                   <td className="px-5 py-3 text-gray-500">{item.shortName ?? '—'}</td>
                   <td className="px-5 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
                       {item.isActive ? 'Да' : 'Нет'}
                     </span>
                   </td>
@@ -103,7 +103,7 @@ export function NominationsManagePage() {
           </label>
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Отмена</button>
-            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-accent-600 hover:bg-accent-500 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors">
+            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-accent-foreground text-sm font-semibold rounded-lg transition-colors">
               {saving ? 'Сохраняем...' : 'Сохранить'}
             </button>
           </div>
