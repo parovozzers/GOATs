@@ -109,13 +109,15 @@ if (hasErrors) {
   console.log(`
 ${BOLD}Следующие шаги:${RESET}
 
-  ${CYAN}npm run dev${RESET}        — запустить весь проект одной командой
-                     (БД, backend, frontend)
+  ${CYAN}npm run dev${RESET}        — локальная разработка (БД в Docker, backend и frontend нативно)
+  ${CYAN}npm run prod${RESET}       — продакшн-запуск (всё в Docker, как на сервере)
 
-  ${CYAN}npm run db:down${RESET}    — остановить базу данных
+  ${CYAN}npm run db:down${RESET}    — остановить БД (dev)
+  ${CYAN}npm run prod:down${RESET}  — остановить все контейнеры (prod)
+  ${CYAN}npm run prod:logs${RESET}  — посмотреть логи prod-контейнеров
 
   Приложение будет доступно:
-    Frontend  →  http://localhost:5173
-    Backend   →  http://localhost:3000/api
+    dev  →  Frontend: http://localhost:5173  |  Backend: http://localhost:3000/api
+    prod →  Frontend: http://localhost:5173  |  Backend: http://localhost:3000/api
 `);
 }
