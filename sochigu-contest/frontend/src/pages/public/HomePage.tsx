@@ -188,13 +188,13 @@ export function HomePage() {
         </motion.h2>
         <div className="mx-auto max-w-md">
           {[
-            { date: "До 30 октября", label: "Приём заявок", active: true },
-            { date: "Ноябрь", label: "Доработка проектов", active: false },
-            { date: "Декабрь", label: "Очная презентация", active: false },
-            { date: "Декабрь", label: "Награждение победителей", active: false },
+            { date: "До 30 октября", label: "Приём заявок" },
+            { date: "Ноябрь", label: "Доработка проектов" },
+            { date: "Декабрь", label: "Очная презентация" },
+            { date: "Декабрь", label: "Награждение победителей" },
           ].map((item, i) => (
             <motion.div
-              key={i} className="flex gap-4 relative"
+              key={i} className="group flex gap-4 relative"
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -203,7 +203,7 @@ export function HomePage() {
             >
               <div className="flex flex-col items-center">
                 <motion.div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${item.active ? "bg-primary text-primary-foreground" : "bg-primary-light text-primary"}`}
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold bg-primary-light text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-200"
                   variants={{ hovered: { scale: 1.3 } }}
                   transition={{ type: 'spring', stiffness: 300, damping: 18 }}
                 >
@@ -217,8 +217,8 @@ export function HomePage() {
                 transition={{ type: 'spring', stiffness: 300, damping: 18 }}
                 style={{ transformOrigin: 'left center' }}
               >
-                <p className="text-sm font-semibold text-primary-mid">{item.date}</p>
-                <p className="text-base font-semibold text-foreground">{item.label}</p>
+                <p className="text-sm font-semibold text-primary-light group-hover:text-primary-mid transition-colors duration-200">{item.date}</p>
+                <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-200">{item.label}</p>
               </motion.div>
             </motion.div>
           ))}
