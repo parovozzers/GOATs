@@ -1,0 +1,25 @@
+version: '3.9'
+
+# Только база данных для локальной разработки.
+# Backend и Frontend запускаются нативно через npm run dev.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sochigu_db
+    environment:
+      POSTGRES_DB: sochigu_contest
+      POSTGRES_USER: sochigu
+      POSTGRES_PASSWORD: sochigu_pass
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sochigu -d sochigu_contest']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata_dev:
