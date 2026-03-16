@@ -137,13 +137,13 @@
   width: 4px;
 }
 .geo-scroll::-webkit-scrollbar-track {
-  background: #efd2cd;
+  background: rgba(181,210,203,0.30);
   border-radius: 4px;
 }
 .geo-scroll::-webkit-scrollbar-thumb {
-  background: #826a9c;
+  background: #AC7B84;
   border-radius: 4px;
 }
 .geo-scroll::-webkit-scrollbar-thumb:hover {
-  background: #635392;
+  background: #6C464F;
 }
