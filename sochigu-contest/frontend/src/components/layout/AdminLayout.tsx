@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth.store';
 import { BackToTopButton } from '@/components/shared/BackToTopButton';
-import { LayoutDashboard, FileText, Users, BarChart3, Newspaper, FolderOpen, Trophy, Tag, UserCog, ExternalLink, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BarChart3, Newspaper, FolderOpen, Trophy, Tag, UserCog, ExternalLink, LogOut, MessageSquare } from 'lucide-react';
 import logoWhite from '@/logo_white.png';
 import type { Role } from '@/types';
 
@@ -15,6 +15,7 @@ const sidebarLinks: { to: string; label: string; icon: React.ElementType; exact?
   { to: '/admin/cms/winners',   label: 'Победители',   icon: Trophy,                        roles: ['admin', 'moderator', 'expert'] },
   { to: '/admin/cms/nominations', label: 'Номинации',  icon: Tag,                           roles: ['admin', 'moderator'] },
   { to: '/admin/experts',       label: 'Эксперты',     icon: UserCog,                       roles: ['admin', 'moderator'] },
+  { to: '/admin/contacts',      label: 'Обращения',    icon: MessageSquare,                 roles: ['admin', 'moderator'] },
 ];
 
 export function AdminLayout() {

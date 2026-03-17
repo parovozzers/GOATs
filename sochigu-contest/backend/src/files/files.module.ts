@@ -1,9 +1,8 @@
-import { Module } from '@nestjs/common';
-import { BadRequestException } from '@nestjs/common';
+import { Module, BadRequestException } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, resolve } from 'path';
 import { v4 as uuid } from 'uuid';
 import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
@@ -15,7 +14,7 @@ import { Application } from '../applications/entities/application.entity';
     TypeOrmModule.forFeature([AppFile, Application]),
     MulterModule.register({
       storage: diskStorage({
-        destination: './uploads',
+        destination: resolve(__dirname, '../../uploads'),
         filename: (_, file, cb) => {
           cb(null, `${uuid()}${extname(file.originalname)}`);
         },

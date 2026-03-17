@@ -55,6 +55,18 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ nullable: true })
+  avatarUrl: string;
+
+  @Column({ nullable: true })
+  position: string;
+
+  @Column({ nullable: true, type: 'text' })
+  bio: string;
+
+  @Column({ default: false })
+  isExpertVisible: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

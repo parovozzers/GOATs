@@ -42,7 +42,11 @@ export class FilesService {
 
   async remove(id: string) {
     const file = await this.findById(id);
-    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+    try {
+      await fs.promises.unlink(file.path);
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') throw err;
+    }
     return this.repo.remove(file);
   }
 

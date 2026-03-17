@@ -8,6 +8,7 @@ import { AppFile } from '../files/entities/file.entity';
 import { News } from '../news/entities/news.entity';
 import { Document } from '../documents/entities/document.entity';
 import { Winner } from '../winners/entities/winner.entity';
+import { ContactMessage } from '../contacts/entities/contact-message.entity';
 
 export const databaseConfig = (
   configService: ConfigService,
@@ -18,7 +19,7 @@ export const databaseConfig = (
   username: configService.get('DB_USER', 'sochigu'),
   password: configService.get('DB_PASS', 'sochigu_pass'),
   database: configService.get('DB_NAME', 'sochigu_contest'),
-  entities: [User, Nomination, Application, ApplicationLog, AppFile, News, Document, Winner],
+  entities: [User, Nomination, Application, ApplicationLog, AppFile, News, Document, Winner, ContactMessage],
   synchronize: configService.get('NODE_ENV') !== 'production',
   logging: configService.get('NODE_ENV') === 'development',
   migrations: ['dist/database/migrations/*.js'],

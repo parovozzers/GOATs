@@ -70,7 +70,7 @@ export function RegisterPage() {
                 <input
                   id="lastName"
                   type="text"
-                  {...register('lastName', { required: 'Обязательное поле' })}
+                  {...register('lastName', { required: 'Обязательное поле', maxLength: { value: 50, message: 'Максимум 50 символов' } })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   placeholder="Иванов"
                 />
@@ -85,7 +85,7 @@ export function RegisterPage() {
                 <input
                   id="firstName"
                   type="text"
-                  {...register('firstName', { required: 'Обязательное поле' })}
+                  {...register('firstName', { required: 'Обязательное поле', maxLength: { value: 50, message: 'Максимум 50 символов' } })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   placeholder="Иван"
                 />
@@ -102,7 +102,7 @@ export function RegisterPage() {
               <input
                 id="middleName"
                 type="text"
-                {...register('middleName')}
+                {...register('middleName', { maxLength: { value: 50, message: 'Максимум 50 символов' } })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 placeholder="Иванович"
               />
@@ -191,7 +191,7 @@ export function RegisterPage() {
                 <input
                   id="university"
                   type="text"
-                  {...register('university', { required: 'Обязательное поле' })}
+                  {...register('university', { required: 'Обязательное поле', maxLength: { value: 200, message: 'Максимум 200 символов' } })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   placeholder="СочиГУ"
                 />
@@ -206,7 +206,7 @@ export function RegisterPage() {
                 <input
                   id="faculty"
                   type="text"
-                  {...register('faculty')}
+                  {...register('faculty', { maxLength: { value: 200, message: 'Максимум 200 символов' } })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   placeholder="ФИИЦТ"
                 />
@@ -238,7 +238,7 @@ export function RegisterPage() {
                 <input
                   id="city"
                   type="text"
-                  {...register('city', { required: 'Обязательное поле' })}
+                  {...register('city', { required: 'Обязательное поле', maxLength: { value: 100, message: 'Максимум 100 символов' } })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   placeholder="Сочи"
                 />

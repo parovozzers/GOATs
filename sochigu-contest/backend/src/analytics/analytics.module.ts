@@ -4,9 +4,10 @@ import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
 import { Application } from '../applications/entities/application.entity';
 import { User } from '../users/entities/user.entity';
+import { ApplicationLog } from '../applications/entities/application-log.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Application, User])],
+  imports: [TypeOrmModule.forFeature([Application, User, ApplicationLog])],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],
 })

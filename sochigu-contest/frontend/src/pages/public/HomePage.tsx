@@ -5,7 +5,9 @@ import { useAuthStore } from '@/store/auth.store';
 import { useUiStore } from '@/store/ui.store';
 import mascot from '../../../mascot-removebg-preview.png';
 import { GraduationCap, Users, Gift, Trophy, ArrowRight, Calendar, CheckCircle, Presentation, Award } from "lucide-react";
-import { fadeUp, fadeUpView, fadeIn, staggerView, cardItem } from '@/utils/animations';
+import { fadeUp, fadeUpView, fadeIn, staggerView, cardItem, hoverCard, hoverBtn } from '@/utils/animations';
+
+const MotionLink = motion(Link);
 
 export function HomePage() {
   useEffect(() => { document.title = 'Главная — Конкурс СочиГУ'; }, []);
@@ -32,7 +34,7 @@ export function HomePage() {
           <div className="w-full md:w-[58%] flex flex-col items-start text-left">
             {/* Badge */}
             <motion.div
-              className="mb-6 self-start rounded-full bg-accent/20 px-4 py-1.5 text-sm font-semibold text-accent-foreground"
+              className="mb-6 self-start rounded-full bg-accent/90 px-4 py-1.5 text-sm font-semibold text-accent-foreground"
               initial="hidden" animate="show" custom={0.1} variants={fadeUp}
             >
               <Calendar className="mr-1 inline-block h-4 w-4" /> Приём заявок до 30 октября
@@ -63,12 +65,12 @@ export function HomePage() {
               className="self-start flex flex-col items-start gap-4 sm:flex-row sm:justify-start"
               initial="hidden" animate="show" custom={0.5} variants={fadeUp}
             >
-              <button onClick={handleApply} className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-3.5 text-base font-semibold text-accent-foreground shadow-lg transition-all hover:bg-accent-hover">
+              <motion.button onClick={handleApply} className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-3.5 text-base font-semibold text-accent-foreground shadow-lg transition-colors hover:bg-accent-hover" {...hoverBtn}>
                 Подать заявку <ArrowRight size={18} />
-              </button>
-              <Link to="/about" className="inline-flex items-center gap-2 rounded-lg border-2 border-primary-foreground/30 px-8 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary-mid">
+              </motion.button>
+              <MotionLink to="/about" className="inline-flex items-center gap-2 rounded-lg border-2 border-primary-foreground/30 px-8 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-white hover:text-primary hover:border-white" {...hoverBtn}>
                 Узнать подробнее
-              </Link>
+              </MotionLink>
             </motion.div>
 
             {/* Mobile mascot */}
@@ -95,8 +97,8 @@ export function HomePage() {
             { icon: Gift, label: "Бесплатное участие", desc: "Без взносов и платежей" },
             { icon: Award, label: "Денежные гранты", desc: "Для победителей и призёров" },
           ].map((stat) => (
-            <motion.div key={stat.label} className="flex items-start gap-4 rounded-xl bg-card p-5 shadow-md" variants={cardItem}>
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-light">
+            <motion.div key={stat.label} className="flex items-start gap-4 rounded-xl bg-card p-5 shadow-md relative" variants={cardItem} {...hoverCard}>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent">
                 <stat.icon className="h-6 w-6 text-primary" />
               </div>
               <div>
@@ -128,12 +130,12 @@ export function HomePage() {
             { num: 3, icon: Presentation, title: "Презентация", desc: "Защита перед экспертами" },
             { num: 4, icon: Award, title: "Награждение", desc: "Победители" },
           ].map((stage) => (
-            <motion.div key={stage.num} className="rounded-xl bg-card p-6 text-center shadow-sm" variants={cardItem}>
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
+            <motion.div key={stage.num} className="rounded-xl bg-white p-6 text-center shadow-sm border-2 border-primary/10 group relative transition-colors duration-300" variants={cardItem} {...hoverCard}>
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-light group-hover:bg-primary text-2xl font-bold text-white transition-colors duration-300">
                 {stage.num}
               </div>
               <h3 className="mb-2 text-lg font-semibold text-foreground">{stage.title}</h3>
-              <p className="text-sm text-muted-foreground">{stage.desc}</p>
+              <p className="text-sm text-foreground/60">{stage.desc}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -186,28 +188,38 @@ export function HomePage() {
         </motion.h2>
         <div className="mx-auto max-w-md">
           {[
-            { date: "До 30 октября", label: "Приём заявок", active: true },
-            { date: "Ноябрь", label: "Доработка проектов", active: false },
-            { date: "Декабрь", label: "Очная презентация", active: false },
-            { date: "Декабрь", label: "Награждение победителей", active: false },
+            { date: "До 30 октября", label: "Приём заявок" },
+            { date: "Ноябрь", label: "Доработка проектов" },
+            { date: "Декабрь", label: "Очная презентация" },
+            { date: "Декабрь", label: "Награждение победителей" },
           ].map((item, i) => (
             <motion.div
-              key={i} className="flex gap-4"
+              key={i} className="group flex gap-4 relative"
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, ease: 'easeOut', delay: i * 0.12 }}
+              whileHover="hovered"
             >
               <div className="flex flex-col items-center">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${item.active ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+                <motion.div
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold bg-primary-light text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-200"
+                  variants={{ hovered: { scale: 1.3 } }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                >
                   {i + 1}
-                </div>
-                {i < 3 && <div className="h-12 w-0.5 bg-border" />}
+                </motion.div>
+                {i < 3 && <div className="h-12 w-0.5 bg-primary-light" />}
               </div>
-              <div className="pb-8">
-                <p className="text-sm font-semibold text-accent">{item.date}</p>
-                <p className="font-medium text-foreground">{item.label}</p>
-              </div>
+              <motion.div
+                className="pb-8"
+                variants={{ hovered: { scale: 1.12 } }}
+                transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                style={{ transformOrigin: 'left center' }}
+              >
+                <p className="text-sm font-semibold text-primary-light group-hover:text-primary-mid transition-colors duration-200">{item.date}</p>
+                <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-200">{item.label}</p>
+              </motion.div>
             </motion.div>
           ))}
         </div>
@@ -243,9 +255,9 @@ export function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.35 }}
           >
-            <button onClick={handleApply} className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-3.5 text-base font-semibold text-accent-foreground shadow-lg transition-all hover:bg-accent-hover">
+            <motion.button onClick={handleApply} className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-3.5 text-base font-semibold text-accent-foreground shadow-lg transition-colors hover:bg-accent-hover" {...hoverBtn}>
               Подать заявку <ArrowRight size={18} />
-            </button>
+            </motion.button>
           </motion.div>
         </div>
       </motion.section>

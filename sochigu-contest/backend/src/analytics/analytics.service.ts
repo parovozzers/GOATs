@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Application } from '../applications/entities/application.entity';
 import { User } from '../users/entities/user.entity';
+import { ApplicationLog } from '../applications/entities/application-log.entity';
 import { Role } from '../common/enums/role.enum';
 
 @Injectable()
@@ -10,12 +11,23 @@ export class AnalyticsService {
   constructor(
     @InjectRepository(Application) private appRepo: Repository<Application>,
     @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(ApplicationLog) private logRepo: Repository<ApplicationLog>,
   ) {}
 
   async getSummary() {
-    const [totalApplications, totalUsers] = await Promise.all([
+    const weekAgo = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
+
+    const [totalApplications, totalUsers, newThisWeek, underReview] = await Promise.all([
       this.appRepo.count(),
       this.userRepo.count({ where: { role: Role.PARTICIPANT } }),
+      this.appRepo
+        .createQueryBuilder('a')
+        .where('a.submittedAt >= :since', { since: weekAgo })
+        .getCount(),
+      this.appRepo
+        .createQueryBuilder('a')
+        .where('a.status = :status', { status: 'submitted' })
+        .getCount(),
     ]);
 
     const universities = await this.userRepo
@@ -24,11 +36,61 @@ export class AnalyticsService {
       .where("u.university IS NOT NULL AND u.university != '' AND u.role = :role", { role: Role.PARTICIPANT })
       .getRawOne();
 
+    const teamStats = await this.appRepo.manager.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE jsonb_array_length(COALESCE("teamMembers", '[]'::jsonb)) >= 1)::int AS team_applications,
+        COALESCE(ROUND(AVG(jsonb_array_length("teamMembers")) FILTER (WHERE jsonb_array_length(COALESCE("teamMembers", '[]'::jsonb)) >= 1)::numeric, 1), 0)::float AS avg_team_size
+      FROM applications
+    `);
+
     return {
       totalApplications,
       totalUsers,
       totalUniversities: +universities.count,
+      newThisWeek,
+      underReview,
+      teamApplications: Number(teamStats[0]?.team_applications ?? 0),
+      avgTeamSize: Number(teamStats[0]?.avg_team_size ?? 0),
     };
+  }
+
+  async getByStatus() {
+    const rows = await this.appRepo
+      .createQueryBuilder('a')
+      .select('a.status', 'status')
+      .addSelect('COUNT(a.id)', 'count')
+      .groupBy('a.status')
+      .getRawMany();
+    return rows.map(r => ({ status: r.status, count: Number(r.count) }));
+  }
+
+  async getActivity() {
+    const rows = await this.logRepo
+      .createQueryBuilder('al')
+      .leftJoin('al.application', 'a')
+      .leftJoin('al.changedBy', 'u')
+      .leftJoin('a.nomination', 'n')
+      .select('al.id', 'id')
+      .addSelect('al.toStatus', 'toStatus')
+      .addSelect('al.fromStatus', 'fromStatus')
+      .addSelect('al.createdAt', 'createdAt')
+      .addSelect('a.projectTitle', 'projectTitle')
+      .addSelect('u.firstName', 'firstName')
+      .addSelect('u.lastName', 'lastName')
+      .addSelect('n.name', 'nominationName')
+      .orderBy('al.createdAt', 'DESC')
+      .limit(20)
+      .getRawMany();
+
+    return rows.map(r => ({
+      id: r.id,
+      toStatus: r.toStatus,
+      fromStatus: r.fromStatus,
+      createdAt: r.createdAt,
+      projectTitle: r.projectTitle || '—',
+      userName: r.firstName && r.lastName ? `${r.firstName} ${r.lastName}` : '—',
+      nominationName: r.nominationName || '—',
+    }));
   }
 
   async getByNomination() {
@@ -39,6 +101,7 @@ export class AnalyticsService {
       .addSelect('COUNT(a.id)', 'count')
       .where('a.nominationId IS NOT NULL')
       .groupBy('n.name')
+      .orderBy('count', 'DESC')
       .getRawMany();
     return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
@@ -51,20 +114,6 @@ export class AnalyticsService {
       .where('a.submittedAt IS NOT NULL')
       .groupBy("DATE_TRUNC('day', a.submittedAt)")
       .orderBy('date', 'ASC')
-      .getRawMany();
-    return rows.map(r => ({ ...r, count: Number(r.count) }));
-  }
-
-  async getTopUniversities() {
-    const rows = await this.appRepo
-      .createQueryBuilder('a')
-      .leftJoin('a.user', 'u')
-      .select('u.university', 'university')
-      .addSelect('COUNT(a.id)', 'count')
-      .where('u.university IS NOT NULL')
-      .groupBy('u.university')
-      .orderBy('count', 'DESC')
-      .limit(10)
       .getRawMany();
     return rows.map(r => ({ ...r, count: Number(r.count) }));
   }

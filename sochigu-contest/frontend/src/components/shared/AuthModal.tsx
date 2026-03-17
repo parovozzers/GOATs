@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -75,6 +75,25 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
+function formatPhone(raw: string, prev = ''): string {
+  let digits = raw.replace(/\D/g, '');
+  // Если пользователь удалил разделитель (строка короче, но цифры те же) — удаляем ещё одну цифру
+  if (prev && raw.length < prev.length && digits === prev.replace(/\D/g, '') && digits.length > 0) {
+    digits = digits.slice(0, -1);
+  }
+  if (digits.startsWith('8')) digits = '7' + digits.slice(1);
+  else if (digits.length > 0 && !digits.startsWith('7')) digits = '7' + digits;
+  digits = digits.slice(0, 11);
+  if (!digits) return '';
+  const rest = digits.slice(1);
+  let out = '+7';
+  if (rest.length > 0) out += '(' + rest.slice(0, 3);
+  if (rest.length >= 3) out += ')' + rest.slice(3, 6);
+  if (rest.length >= 6) out += '-' + rest.slice(6, 8);
+  if (rest.length >= 8) out += '-' + rest.slice(8, 10);
+  return out;
+}
+
 // ── Register ─────────────────────────────────────────────────────────────────
 
 type RegisterForm = {
@@ -144,7 +163,20 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Телефон</label>
-          <input type="tel" {...register('phone')} className={field} placeholder="+7 (999) 123-45-67" />
+          {(() => {
+            const phoneReg = register('phone', {
+              validate: v => !v || v.replace(/\D/g, '').length === 11 || 'Введите корректный номер телефона',
+            });
+            return (
+              <>
+                <input type="tel" {...phoneReg}
+                  onChange={(e) => { e.target.value = formatPhone(e.target.value, getValues('phone') ?? ''); phoneReg.onChange(e); }}
+                  className={errors.phone ? `${field} border-red-400` : field}
+                  placeholder="+7(999)123-45-67" />
+                {errors.phone && <p className="text-red-500 text-xs mt-0.5">{errors.phone.message}</p>}
+              </>
+            );
+          })()}
         </div>
       </div>
 
@@ -208,7 +240,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold transition-colors text-sm"
+        className="w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed text-accent-foreground font-semibold transition-colors text-sm"
       >
         {loading ? 'Регистрируем...' : 'Зарегистрироваться'}
       </button>
@@ -220,11 +252,46 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
 
 export function AuthModal() {
   const { authModal, closeAuthModal, openAuthModal } = useUiStore();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [activeMode, setActiveMode] = useState<'login' | 'register'>('login');
+  const [visible, setVisible] = useState(true);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const prevAuthModal = useRef<typeof authModal>(null);
+
+  // Вычисляется во время рендера: при первом открытии prevAuthModal.current ещё null
+  // (эффект ещё не запустился), поэтому берём authModal напрямую — без layout-анимации
+  const displayMode: 'login' | 'register' =
+    authModal !== null && prevAuthModal.current === null ? authModal : activeMode;
 
   useEffect(() => {
-    if (authModal) setMode(authModal);
+    if (authModal && !prevAuthModal.current) {
+      // Модалка открывается заново — синхронизируем activeMode (displayMode уже правильный)
+      clearTimeout(timerRef.current);
+      setActiveMode(authModal);
+      setVisible(true);
+    } else if (authModal && prevAuthModal.current) {
+      // Модалка уже открыта — анимированный переход
+      switchMode(authModal);
+    }
+    if (!authModal) prevAuthModal.current = null;
+    else prevAuthModal.current = authModal;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authModal]);
+
+  const switchMode = (m: 'login' | 'register') => {
+    if (m === activeMode) return;
+    clearTimeout(timerRef.current);
+    setVisible(false);                          // 1. старая форма гаснет
+    timerRef.current = setTimeout(() => {
+      setActiveMode(m);                         // 2. контент меняется → layout анимирует высоту
+      timerRef.current = setTimeout(() => {
+        setVisible(true);                       // 3. новая форма появляется
+      }, 500);
+    }, 220);
+  };
+
+  useEffect(() => {
+    return () => { clearTimeout(timerRef.current); };
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') closeAuthModal(); };
@@ -233,8 +300,18 @@ export function AuthModal() {
   }, [closeAuthModal]);
 
   useEffect(() => {
-    document.body.style.overflow = authModal ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    if (authModal) {
+      const sw = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${sw}px`;
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
   }, [authModal]);
 
   return (
@@ -242,51 +319,65 @@ export function AuthModal() {
       {authModal && (
         <motion.div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
         >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeAuthModal} />
+          {/* Backdrop — анимируется независимо, поэтому blur появляется вместе с формой */}
+          <motion.div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            onClick={closeAuthModal}
+          />
 
           {/* Card */}
           <motion.div
-            className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
-            initial={{ scale: 0.96, opacity: 0, y: 8 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.96, opacity: 0, y: 8 }}
-            transition={{ duration: 0.18 }}
+            layout
+            className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+            initial={{ clipPath: 'inset(0 0 100% 0 round 1rem)', opacity: 0 }}
+            animate={{ clipPath: 'inset(0 0 0% 0 round 1rem)', opacity: 1 }}
+            exit={{ clipPath: 'inset(0 0 100% 0 round 1rem)', opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 28, layout: { duration: 0.6, ease: [0.4, 0, 0.2, 1] } }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
-            <button
+            <motion.button
+              layout
               onClick={closeAuthModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
               aria-label="Закрыть"
             >
               <X size={20} />
-            </button>
+            </motion.button>
 
             {/* Tabs */}
-            <div className="flex border-b border-gray-200">
+            <motion.div layout className="flex border-b border-gray-200">
               {(['login', 'register'] as const).map((m) => (
-                <button
+                <motion.button
+                  layout
                   key={m}
-                  onClick={() => { setMode(m); openAuthModal(m); }}
+                  onClick={() => { switchMode(m); openAuthModal(m); }}
                   className={`flex-1 py-4 text-sm font-semibold transition-colors ${
-                    mode === m
+                    displayMode === m
                       ? 'border-b-2 border-primary text-primary'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   {m === 'login' ? 'Войти' : 'Регистрация'}
-                </button>
+                </motion.button>
               ))}
-            </div>
+            </motion.div>
 
-            {mode === 'login'
-              ? <LoginForm onSuccess={closeAuthModal} />
-              : <RegisterForm onSuccess={closeAuthModal} />
-            }
+            <motion.div
+              animate={{ opacity: visible ? 1 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {displayMode === 'login'
+                ? <LoginForm onSuccess={closeAuthModal} />
+                : <RegisterForm onSuccess={closeAuthModal} />
+              }
+            </motion.div>
           </motion.div>
         </motion.div>
       )}

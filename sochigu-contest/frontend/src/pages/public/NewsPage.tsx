@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+
+const MotionLink = motion(Link);
 import { newsApi } from '@/api/news';
 import { News } from '@/types';
 import { formatDate } from '@/utils/formatDate';
-import { fadeUp, stagger, cardItem } from '@/utils/animations';
+import { fadeUp, stagger, cardItem, hoverCardSm } from '@/utils/animations';
 
 const LIMIT = 10;
 
@@ -30,9 +32,11 @@ function NewsCardSkeleton() {
 function NewsCard({ item }: { item: News }) {
   const date = item.publishedAt ?? item.createdAt;
   return (
-    <motion.article
-      className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow"
+    <MotionLink
+      to={`/news/${item.slug}`}
+      className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
       variants={cardItem}
+      {...hoverCardSm}
     >
       {item.coverImage ? (
         <img src={item.coverImage} alt={item.title} className="w-full h-[200px] object-cover" />
@@ -45,11 +49,9 @@ function NewsCard({ item }: { item: News }) {
         <time className="text-xs text-gray-400 mb-2">{formatDate(date)}</time>
         <h2 className="font-semibold text-gray-900 line-clamp-2 mb-2 leading-snug">{item.title}</h2>
         {item.excerpt && <p className="text-sm text-gray-600 line-clamp-3 flex-1">{item.excerpt}</p>}
-        <Link to={`/news/${item.slug}`} className="mt-4 text-sm text-primary-700 hover:text-primary-900 font-medium self-start">
-          Читать →
-        </Link>
+        <span className="mt-4 text-sm text-primary-700 font-medium self-start">Читать →</span>
       </div>
-    </motion.article>
+    </MotionLink>
   );
 }
 

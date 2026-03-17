@@ -49,3 +49,21 @@ export const slideInLeft: Variants = {
   hidden: { opacity: 0, x: -20 },
   show: { opacity: 1, x: 0, transition: { duration: 0.45, ease } },
 };
+
+const springHover = { type: 'spring' as const, stiffness: 280, damping: 22 };
+
+/** Hover lift для карточек — scale + zIndex */
+export const hoverCard = {
+  whileHover: { scale: 1.08, zIndex: 2, transition: springHover },
+};
+
+/** Меньший lift для новостей/победителей/экспертов */
+export const hoverCardSm = {
+  whileHover: { scale: 1.06, zIndex: 2, transition: springHover },
+};
+
+/** Для кнопок — lift + tap */
+export const hoverBtn = {
+  whileHover: { scale: 1.08, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } },
+  whileTap: { scale: 0.97 },
+};

@@ -26,11 +26,6 @@ export class AnalyticsController {
     return this.analyticsService.getTimeline();
   }
 
-  @Get('top-universities')
-  getTopUniversities() {
-    return this.analyticsService.getTopUniversities();
-  }
-
   @Get('geography')
   getGeography() {
     return this.analyticsService.getGeography();
@@ -39,5 +34,15 @@ export class AnalyticsController {
   @Get('keywords')
   getKeywords() {
     return this.analyticsService.getKeywords();
+  }
+
+  @Get('by-status')
+  getByStatus() {
+    return this.analyticsService.getByStatus();
+  }
+
+  @Get('activity')
+  getActivity() {
+    return this.analyticsService.getActivity();
   }
 }

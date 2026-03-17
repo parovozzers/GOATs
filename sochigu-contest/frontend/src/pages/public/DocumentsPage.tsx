@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { documentsApi } from '@/api/documents';
 import { Document } from '@/types';
 import { formatDate } from '@/utils/formatDate';
 import { formatFileSize } from '@/utils/formatFileSize';
+import { fadeUp, fadeUpView, stagger, staggerView, cardItem } from '@/utils/animations';
 
 function FileIcon({ mimeType }: { mimeType: string }) {
   if (mimeType === 'application/pdf') {
@@ -54,24 +56,21 @@ function DocumentRowSkeleton() {
 
 function DocumentRow({ doc }: { doc: Document }) {
   return (
-    <div className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition-colors rounded-lg group">
+    <motion.div
+      className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition-colors rounded-lg group"
+      variants={cardItem}
+    >
       <FileIcon mimeType={doc.mimeType} />
-
       <div className="flex-1 min-w-0">
         <p className="font-medium text-gray-900 truncate">{doc.title}</p>
-        {doc.category && (
-          <p className="text-sm text-gray-500 truncate">{doc.category}</p>
-        )}
+        {doc.category && <p className="text-sm text-gray-500 truncate">{doc.category}</p>}
       </div>
-
       <time className="hidden sm:block text-sm text-gray-400 flex-shrink-0 whitespace-nowrap">
         {formatDate(doc.updatedAt)}
       </time>
-
       <span className="hidden md:block text-sm text-gray-400 flex-shrink-0 w-16 text-right">
         {formatFileSize(doc.size)}
       </span>
-
       <a
         href={`/api/documents/${doc.id}/download`}
         target="_blank"
@@ -80,7 +79,7 @@ function DocumentRow({ doc }: { doc: Document }) {
       >
         Скачать
       </a>
-    </div>
+    </motion.div>
   );
 }
 
@@ -99,23 +98,18 @@ export function DocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    document.title = 'Документы — Конкурс СочиГУ';
-  }, []);
+  useEffect(() => { document.title = 'Документы — Конкурс СочиГУ'; }, []);
 
   function loadDocuments() {
     setLoading(true);
     setError(false);
-    documentsApi
-      .getAll()
+    documentsApi.getAll()
       .then(setDocuments)
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => {
-    loadDocuments();
-  }, []);
+  useEffect(() => { loadDocuments(); }, []);
 
   const grouped = groupByCategory(documents);
   const hasMultipleCategories = grouped.size > 1;
@@ -123,7 +117,12 @@ export function DocumentsPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 max-w-4xl py-10">
-        <h1 className="text-3xl font-bold text-primary-900 mb-8">Документы конкурса</h1>
+        <motion.h1
+          className="text-3xl font-bold text-primary-900 mb-8"
+          initial="hidden" animate="show" variants={fadeUp}
+        >
+          Документы конкурса
+        </motion.h1>
 
         {error ? (
           <div className="text-center py-20">
@@ -137,31 +136,36 @@ export function DocumentsPage() {
           </div>
         ) : loading ? (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-100">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <DocumentRowSkeleton key={i} />
-            ))}
+            {Array.from({ length: 5 }).map((_, i) => <DocumentRowSkeleton key={i} />)}
           </div>
         ) : documents.length === 0 ? (
           <p className="text-gray-500 text-center py-20">Документов пока нет.</p>
         ) : hasMultipleCategories ? (
           <div className="space-y-8">
             {Array.from(grouped.entries()).map(([category, docs]) => (
-              <section key={category}>
+              <motion.section
+                key={category}
+                initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={fadeUpView}
+              >
                 <h2 className="text-lg font-semibold text-gray-700 mb-3 px-1">{category}</h2>
-                <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-100">
-                  {docs.map((doc) => (
-                    <DocumentRow key={doc.id} doc={doc} />
-                  ))}
-                </div>
-              </section>
+                <motion.div
+                  className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-100"
+                  variants={staggerView}
+                  initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }}
+                >
+                  {docs.map((doc) => <DocumentRow key={doc.id} doc={doc} />)}
+                </motion.div>
+              </motion.section>
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-100">
-            {documents.map((doc) => (
-              <DocumentRow key={doc.id} doc={doc} />
-            ))}
-          </div>
+          <motion.div
+            className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-100"
+            variants={stagger}
+            initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }}
+          >
+            {documents.map((doc) => <DocumentRow key={doc.id} doc={doc} />)}
+          </motion.div>
         )}
       </div>
     </main>

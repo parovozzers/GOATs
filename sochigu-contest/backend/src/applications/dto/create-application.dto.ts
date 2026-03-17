@@ -1,13 +1,15 @@
-import { IsString, IsUUID, IsArray, IsOptional, IsObject } from 'class-validator';
+import { IsString, IsUUID, IsArray, IsOptional, IsObject, MaxLength } from 'class-validator';
 
 export class CreateApplicationDto {
   @IsUUID()
   nominationId: string;
 
   @IsString()
+  @MaxLength(200)
   projectTitle: string;
 
   @IsString()
+  @MaxLength(5000)
   projectDescription: string;
 
   @IsOptional()

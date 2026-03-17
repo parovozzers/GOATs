@@ -1,9 +1,12 @@
 import {
   Controller, Post, Delete, Get, Param, Body, UploadedFile,
-  UseGuards, UseInterceptors, Res, ForbiddenException,
+  UseGuards, UseInterceptors, Res, ForbiddenException, BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { resolve, sep } from 'path';
 import { Response } from 'express';
+
+const FILES_DIR = resolve(__dirname, '../../uploads');
 import { FilesService } from './files.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FileCategory } from '../common/enums/file-type.enum';
@@ -35,7 +38,11 @@ export class FilesController {
     if (user.role === 'participant' && file.application?.userId !== user.id) {
       throw new ForbiddenException();
     }
-    res.download(file.path, file.originalName);
+    const safePath = resolve(file.path);
+    if (!safePath.startsWith(FILES_DIR + sep)) {
+      throw new BadRequestException('Invalid file path');
+    }
+    res.download(safePath, file.originalName);
   }
 
   @Delete(':id')

@@ -48,29 +48,53 @@ sochigu-contest/
 
 ## Быстрый старт
 
-### 1. Клонировать и настроить окружение
+> **Требования:** Node.js 18+, npm, Docker Desktop
+
+### 1 команда для нового разработчика
 
 ```bash
-git clone <repo-url> sochigu-contest
+git clone <repo-url>
 cd sochigu-contest
 
-cp backend/.env.example backend/.env
-# Заполнить backend/.env реальными значениями
+node setup.js     # установит зависимости, создаст .env, проверит Docker
+npm run dev       # запустит БД + backend + frontend одновременно
 ```
 
-### 2. Запуск через Docker
+Приложение будет доступно:
+- **Frontend** → http://localhost:5173
+- **Backend API** → http://localhost:3000/api
 
-```bash
-docker-compose up -d postgres
-cd backend && npm install && npm run start:dev
-cd ../frontend && npm install && npm run dev
-```
+---
 
-### 3. Запуск БД
+### Детали
 
-При первом запуске TypeORM автоматически создаст таблицы (`synchronize: true` в dev-режиме).
+**Что делает `npm run dev`:**
+1. Поднимает PostgreSQL в Docker (из `docker-compose.dev.yml`)
+2. Запускает NestJS с hot-reload (`nest start --watch`)
+3. Запускает Vite dev-server
 
-Для production использовать миграции:
+**Режимы запуска:**
+
+| Команда | Где | Что запускает |
+|---------|-----|---------------|
+| `npm run dev` | Локальная разработка | PostgreSQL в Docker + NestJS hot-reload + Vite dev-server |
+| `npm run prod` | Сервер / prod-like | Все три сервиса в Docker (`docker-compose.yml`) |
+
+**Остальные команды:**
+
+| Команда | Описание |
+|---------|----------|
+| `npm run setup` | Первоначальная настройка (= `node setup.js`) |
+| `npm run db:down` | Остановить БД (dev) |
+| `npm run db:reset` | Сбросить БД и данные (удалит volume!) |
+| `npm run prod:down` | Остановить все prod-контейнеры |
+| `npm run prod:logs` | Логи prod-контейнеров в реальном времени |
+| `npm run install:all` | Переустановить все зависимости |
+| `npm run build` | Сборка backend + frontend |
+
+**При первом запуске** TypeORM автоматически создаст таблицы (`synchronize: true` в dev-режиме).
+
+**Для production** использовать миграции:
 ```bash
 cd backend
 npm run migration:generate -- -n InitialMigration

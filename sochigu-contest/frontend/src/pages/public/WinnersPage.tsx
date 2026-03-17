@@ -4,7 +4,7 @@ import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
 import { Winner, Nomination } from '@/types';
 import { placeMedal } from '@/utils/placeMedal';
-import { fadeUp, stagger, cardItem } from '@/utils/animations';
+import { fadeUp, stagger, cardItem, hoverCardSm } from '@/utils/animations';
 
 function WinnerCardSkeleton() {
   return (
@@ -26,8 +26,9 @@ function WinnerCardSkeleton() {
 function WinnerCard({ winner }: { winner: Winner }) {
   return (
     <motion.article
-      className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow"
+      className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow relative"
       variants={cardItem}
+      {...hoverCardSm}
     >
       {winner.photoUrl ? (
         <img src={winner.photoUrl} alt={winner.teamName} className="w-full h-48 object-cover" />
@@ -106,6 +107,14 @@ export function WinnersPage() {
             <option value="">Все номинации</option>
             {nominations.map((n) => <option key={n.id} value={n.id}>{n.name}</option>)}
           </select>
+          {(filterYear || filterNomination) && (
+            <button
+              onClick={() => { setFilterYear(''); setFilterNomination(''); }}
+              className="pl-3 py-2 pr-3 rounded-lg border border-gray-300 text-sm text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors"
+            >
+              Сбросить
+            </button>
+          )}
         </motion.div>
 
         {error ? (

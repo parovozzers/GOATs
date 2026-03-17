@@ -9,4 +9,9 @@ export const newsApi = {
   create: (data: Partial<News>) => apiClient.post('/news', data).then(r => r.data),
   update: (id: string, data: Partial<News>) => apiClient.patch(`/news/${id}`, data).then(r => r.data),
   remove: (id: string) => apiClient.delete(`/news/${id}`).then(r => r.data),
+  uploadPhoto: (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return apiClient.post<{ url: string }>('/news/upload-photo', fd, { headers: { 'Content-Type': undefined } }).then(r => r.data.url);
+  },
 };

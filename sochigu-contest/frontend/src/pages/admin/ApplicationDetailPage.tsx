@@ -81,7 +81,7 @@ export function ApplicationDetailPage() {
           <textarea placeholder="Комментарий (необязательно)" value={comment} onChange={e => setComment(e.target.value)} rows={2}
             className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-none" />
           <button onClick={handleStatusSave} disabled={saving}
-            className="px-4 py-2 bg-accent-600 hover:bg-accent-500 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors">
+            className="px-4 py-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-accent-foreground text-sm font-semibold rounded-lg transition-colors">
             {saving ? 'Сохраняем...' : 'Сохранить статус'}
           </button>
         </div>

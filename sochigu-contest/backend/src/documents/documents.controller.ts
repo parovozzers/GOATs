@@ -1,22 +1,25 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Res, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Res, UseGuards, UseInterceptors, UploadedFile, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname, resolve } from 'path';
+import { extname, resolve, sep } from 'path';
 import { Response } from 'express';
 import { v4 as uuid } from 'uuid';
 import * as fs from 'fs';
-
-const UPLOAD_DIR = resolve('./uploads/docs');
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 import { DocumentsService } from './documents.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
 
+const UPLOAD_DIR = resolve(__dirname, '../../uploads/docs');
+
 @Controller('documents')
-export class DocumentsController {
+export class DocumentsController implements OnModuleInit {
   constructor(private documentsService: DocumentsService) {}
+
+  onModuleInit() {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  }
 
   @Get()
   findAll() {
@@ -59,7 +62,11 @@ export class DocumentsController {
   @Get(':id/download')
   async download(@Param('id') id: string, @Res() res: Response) {
     const doc = await this.documentsService.findOne(id);
-    res.download(doc.storagePath, doc.fileName);
+    const safePath = resolve(doc.storagePath);
+    if (!safePath.startsWith(UPLOAD_DIR + sep)) {
+      throw new BadRequestException('Invalid file path');
+    }
+    res.download(safePath, doc.fileName);
   }
 
   @Patch(':id')

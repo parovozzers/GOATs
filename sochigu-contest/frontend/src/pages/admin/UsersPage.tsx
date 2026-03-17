@@ -9,6 +9,13 @@ const ROLE_LABELS: Record<string, string> = {
   admin: 'Администратор',
 };
 
+const ROLE_COLORS: Record<string, string> = {
+  participant: 'bg-blue-100 text-blue-800',
+  expert:      'bg-purple-100 text-purple-800',
+  moderator:   'bg-orange-100 text-orange-800',
+  admin:       'bg-red-100 text-red-800',
+};
+
 function formatDate(str: string) {
   return new Date(str).toLocaleDateString('ru-RU');
 }
@@ -33,28 +40,50 @@ export function UsersPage() {
   useEffect(() => { document.title = 'Пользователи — Конкурс СочиГУ'; }, []);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [nameInput, setNameInput] = useState('');
+  const [name, setName] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
+  const nameTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const reset = () => { setSearchInput(''); setSearch(''); setRole(''); };
+  const reset = () => {
+    setNameInput(''); setName('');
+    setSearchInput(''); setSearch('');
+    setRole('');
+  };
 
-  useEffect(() => () => clearTimeout(timerRef.current), []);
+  useEffect(() => () => {
+    clearTimeout(timerRef.current);
+    clearTimeout(nameTimerRef.current);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
     usersApi
-      .getAll({ search: search || undefined, role: role || undefined })
+      .getAll({ search: search || undefined, name: name || undefined, role: role || undefined })
       .then(setUsers)
       .finally(() => setLoading(false));
-  }, [search, role]);
+  }, [search, name, role]);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-primary-900 mb-6">Пользователи системы</h1>
 
       <div className="flex flex-wrap gap-3 mb-6">
+        <input
+          type="text"
+          placeholder="Поиск по ФИО"
+          value={nameInput}
+          onChange={e => {
+            const v = e.target.value;
+            setNameInput(v);
+            clearTimeout(nameTimerRef.current);
+            nameTimerRef.current = setTimeout(() => setName(v), 500);
+          }}
+          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-52"
+        />
         <input
           type="text"
           placeholder="Поиск по email"
@@ -65,7 +94,7 @@ export function UsersPage() {
             clearTimeout(timerRef.current);
             timerRef.current = setTimeout(() => setSearch(v), 500);
           }}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-64"
+          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-52"
         />
         <select
           value={role}
@@ -111,7 +140,7 @@ export function UsersPage() {
                   </td>
                   <td className="px-5 py-3 text-gray-600">{u.email}</td>
                   <td className="px-5 py-3">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[u.role] ?? 'bg-gray-100 text-gray-700'}`}>
                       {ROLE_LABELS[u.role] ?? u.role}
                     </span>
                   </td>
@@ -119,7 +148,7 @@ export function UsersPage() {
                   <td className="px-5 py-3 text-gray-400">{formatDate(u.createdAt)}</td>
                   <td className="px-5 py-3">
                     {u.isActive ? (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Активен
                       </span>
                     ) : (

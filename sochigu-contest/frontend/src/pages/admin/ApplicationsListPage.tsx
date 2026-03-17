@@ -69,7 +69,7 @@ export function ApplicationsListPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary-900">Заявки</h1>
-        <button onClick={handleExport} className="px-4 py-2 bg-accent-600 hover:bg-accent-500 text-white text-sm font-semibold rounded-lg transition-colors">Экспорт Excel</button>
+        <button onClick={handleExport} className="px-4 py-2 bg-primary hover:bg-primary-mid text-white text-sm font-semibold rounded-lg transition-colors">Экспорт Excel</button>
       </div>
       <div className="flex flex-wrap gap-3 mb-6">
         <select value={nominationId} onChange={e => { setNominationId(e.target.value); setPage(1); }} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">

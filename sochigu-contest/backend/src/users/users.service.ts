@@ -2,18 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { Role } from '../common/enums/role.enum';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectRepository(User) private repo: Repository<User>) {}
 
-  findAll(filters?: { role?: string; search?: string }) {
+  findAll(filters?: { role?: string; search?: string; name?: string }) {
     const qb = this.repo.createQueryBuilder('u');
     if (filters?.role) qb.andWhere('u.role = :role', { role: filters.role });
     if (filters?.search)
-      qb.andWhere('u.email ILIKE :s OR u.lastName ILIKE :s', {
-        s: `%${filters.search}%`,
-      });
+      qb.andWhere('u.email ILIKE :s', { s: `%${filters.search}%` });
+    if (filters?.name)
+      qb.andWhere(
+        '(u.lastName ILIKE :n OR u.firstName ILIKE :n OR u.middleName ILIKE :n)',
+        { n: `%${filters.name}%` },
+      );
     return qb.orderBy('u.createdAt', 'DESC').getMany();
   }
 
@@ -43,6 +47,16 @@ export class UsersService {
 
   updateRefreshToken(id: string, token: string | null) {
     return this.repo.update(id, { refreshToken: token });
+  }
+
+  async findPublicExperts() {
+    const experts = await this.repo.find({
+      where: { role: Role.EXPERT, isExpertVisible: true },
+      order: { lastName: 'ASC' },
+    });
+    return experts.map(({ id, firstName, lastName, middleName, avatarUrl, position, bio }) =>
+      ({ id, firstName, lastName, middleName, avatarUrl, position, bio })
+    );
   }
 
   sanitize(user: User) {

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import DOMPurify from 'dompurify';
 import { newsApi } from '@/api/news';
 import { News } from '@/types';
 import { formatDate } from '@/utils/formatDate';
@@ -59,7 +61,12 @@ export function NewsDetailPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 max-w-3xl py-10">
+      <motion.div
+        className="container mx-auto px-4 max-w-3xl py-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
         <nav className="text-sm text-gray-400 mb-6 flex items-center gap-1 flex-wrap">
           <Link to="/" className="hover:text-primary-700 transition-colors">Главная</Link>
           <span>/</span>
@@ -69,22 +76,40 @@ export function NewsDetailPage() {
         </nav>
 
         {news.coverImage && (
-          <img
+          <motion.img
             src={news.coverImage}
             alt={news.title}
             className="w-full max-h-96 object-cover rounded-xl mb-8"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
           />
         )}
 
-        <h1 className="text-3xl font-bold text-primary-900 mb-3 leading-tight">
+        <motion.h1
+          className="text-3xl font-bold text-primary-900 mb-3 leading-tight"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+        >
           {news.title}
-        </h1>
+        </motion.h1>
 
-        <time className="text-sm text-gray-400 block mb-8">{formatDate(date)}</time>
+        <motion.time
+          className="text-sm text-gray-400 block mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+        >
+          {formatDate(date)}
+        </motion.time>
 
-        <div
+        <motion.div
           className="text-gray-800 leading-relaxed [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-5 [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_li]:mb-1 [&_a]:text-primary-700 [&_a]:underline [&_img]:rounded-lg [&_img]:my-4 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-gray-600"
-          dangerouslySetInnerHTML={{ __html: news.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(news.content) }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
         />
 
         <div className="mt-12 pt-6 border-t border-gray-100">
@@ -95,7 +120,7 @@ export function NewsDetailPage() {
             ← Все новости
           </Link>
         </div>
-      </div>
+      </motion.div>
     </main>
   );
 }

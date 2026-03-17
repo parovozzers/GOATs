@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { applicationsApi } from '@/api/applications';
 import { nominationsApi } from '@/api/nominations';
 import { Nomination, AppFile, TeamMember, CreateApplicationDto } from '@/types';
@@ -54,9 +55,12 @@ export function ApplicationFormPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(isEdit);
   const [error, setError] = useState<string | null>(null);
+  const [memberEmailErrors, setMemberEmailErrors] = useState<(string | undefined)[]>([]);
+  const [supervisorEmailError, setSupervisorEmailError] = useState<string | undefined>();
+  const savingRef = useRef(false);
 
   useEffect(() => {
-    nominationsApi.getAll().then(setNominations);
+    nominationsApi.getAll().then(setNominations).catch(() => setError('Не удалось загрузить номинации'));
     if (isEdit && id) {
       applicationsApi.getById(id).then(app => {
         setNominationId(app.nominationId);
@@ -72,9 +76,11 @@ export function ApplicationFormPage() {
           email: app.supervisor?.email ?? '',
         });
         setUploadedFiles(app.files ?? []);
-      }).finally(() => setLoading(false));
+      }).catch(() => setError('Не удалось загрузить данные заявки')).finally(() => setLoading(false));
     }
   }, [id]);
+
+  const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleNext = async () => {
     if (step === 1) {
@@ -82,7 +88,13 @@ export function ApplicationFormPage() {
       setStep(2);
     } else if (step === 2) {
       const valid = await trigger(['projectTitle', 'projectDescription']);
-      if (!valid) return;
+      const emailErrs = teamMembers.map(m =>
+        m.email && !validateEmail(m.email) ? 'Некорректный email' : undefined
+      );
+      const supErr = supervisor.email && !validateEmail(supervisor.email) ? 'Некорректный email' : undefined;
+      setMemberEmailErrors(emailErrs);
+      setSupervisorEmailError(supErr);
+      if (!valid || emailErrs.some(Boolean) || supErr) return;
       setStep(3);
     } else if (step === 3) {
       setStep(4);
@@ -138,7 +150,12 @@ export function ApplicationFormPage() {
   const handleFileUpload = async (file: File, category: string) => {
     setError(null);
     try {
-      const targetId = appId ?? await saveApp();
+      let targetId = appId;
+      if (!targetId) {
+        if (savingRef.current) return; // предотвращаем race condition
+        savingRef.current = true;
+        try { targetId = await saveApp(); } finally { savingRef.current = false; }
+      }
       const uploaded = await applicationsApi.uploadFile(targetId, file, category);
       setUploadedFiles(prev => [...prev, uploaded]);
     } catch {
@@ -160,10 +177,24 @@ export function ApplicationFormPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-bold text-foreground">
-        {isEdit ? 'Редактировать заявку' : 'Подать заявку'}
-      </h1>
+    <motion.div
+      className="mx-auto max-w-3xl"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: 'easeOut' }}
+    >
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">
+          {isEdit ? 'Редактировать заявку' : 'Подать заявку'}
+        </h1>
+        <button
+          type="button"
+          onClick={() => navigate('/cabinet')}
+          className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-colors hover:opacity-90"
+        >
+          Отменить
+        </button>
+      </div>
 
       {/* Прогресс-бар */}
       <div className="mb-8 flex items-center">
@@ -196,11 +227,11 @@ export function ApplicationFormPage() {
       )}
 
       {/* Контент шагов */}
-      <div className="min-h-80 rounded-xl border border-border bg-card p-6 shadow-sm">
-
+      <div className="min-h-80 rounded-xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+        <AnimatePresence mode="wait">
         {/* Шаг 1 — Номинация */}
         {step === 1 && (
-          <div>
+          <motion.div key="step1" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25 }}>
             <h2 className="mb-4 text-lg font-semibold text-foreground">{STEP_TITLES[0]}</h2>
             {nominations.length === 0 ? (
               <div className="flex justify-center py-8"><Spinner /></div>
@@ -224,12 +255,12 @@ export function ApplicationFormPage() {
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Шаг 2 — Описание и команда */}
         {step === 2 && (
-          <div className="space-y-5">
+          <motion.div key="step2" className="space-y-5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25 }}>
             <h2 className="text-lg font-semibold text-foreground">{STEP_TITLES[1]}</h2>
 
             <div>
@@ -296,8 +327,12 @@ export function ApplicationFormPage() {
                     <input type="text" placeholder="Роль в проекте" value={m.role}
                       onChange={e => updateMember(i, 'role', e.target.value)} className={inputClass} />
                     <div className="flex gap-1">
-                      <input type="email" placeholder="Email (необязательно)" value={m.email ?? ''}
-                        onChange={e => updateMember(i, 'email', e.target.value)} className={inputClass} />
+                      <div className="flex-1">
+                        <input type="email" placeholder="Email (необязательно)" value={m.email ?? ''}
+                          onChange={e => { updateMember(i, 'email', e.target.value); setMemberEmailErrors(prev => prev.map((err, idx) => idx === i ? undefined : err)); }}
+                          className={`${inputClass}${memberEmailErrors[i] ? ' border-destructive' : ''}`} />
+                        {memberEmailErrors[i] && <p className="mt-1 text-xs text-destructive">{memberEmailErrors[i]}</p>}
+                      </div>
                       {teamMembers.length > 1 && (
                         <button type="button" onClick={() => removeMember(i)}
                           className="px-2 text-lg text-destructive hover:opacity-70">×</button>
@@ -315,16 +350,20 @@ export function ApplicationFormPage() {
                   onChange={e => setSupervisor(s => ({ ...s, name: e.target.value }))} className={inputClass} />
                 <input type="text" placeholder="Должность/звание" value={supervisor.title}
                   onChange={e => setSupervisor(s => ({ ...s, title: e.target.value }))} className={inputClass} />
-                <input type="email" placeholder="Email (необязательно)" value={supervisor.email}
-                  onChange={e => setSupervisor(s => ({ ...s, email: e.target.value }))} className={inputClass} />
+                <div>
+                  <input type="email" placeholder="Email (необязательно)" value={supervisor.email}
+                    onChange={e => { setSupervisor(s => ({ ...s, email: e.target.value })); setSupervisorEmailError(undefined); }}
+                    className={`${inputClass}${supervisorEmailError ? ' border-destructive' : ''}`} />
+                  {supervisorEmailError && <p className="mt-1 text-xs text-destructive">{supervisorEmailError}</p>}
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Шаг 3 — Файлы */}
         {step === 3 && (
-          <div className="space-y-5">
+          <motion.div key="step3" className="space-y-5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25 }}>
             <h2 className="text-lg font-semibold text-foreground">{STEP_TITLES[2]}</h2>
             <FileUploadZone
               label="Файлы проекта"
@@ -355,12 +394,12 @@ export function ApplicationFormPage() {
                 </div>
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Шаг 4 — Подтверждение */}
         {step === 4 && (
-          <div className="space-y-5">
+          <motion.div key="step4" className="space-y-5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25 }}>
             <h2 className="text-lg font-semibold text-foreground">{STEP_TITLES[3]}</h2>
             <div className="space-y-2 rounded-lg bg-muted p-4 text-sm">
               <p>
@@ -399,8 +438,9 @@ export function ApplicationFormPage() {
                 Подтверждаю корректность введённых данных
               </span>
             </label>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
 
       {/* Навигация */}
@@ -444,7 +484,7 @@ export function ApplicationFormPage() {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
