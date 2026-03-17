@@ -107,6 +107,14 @@ export function WinnersPage() {
             <option value="">Все номинации</option>
             {nominations.map((n) => <option key={n.id} value={n.id}>{n.name}</option>)}
           </select>
+          {(filterYear || filterNomination) && (
+            <button
+              onClick={() => { setFilterYear(''); setFilterNomination(''); }}
+              className="pl-3 py-2 pr-3 rounded-lg border border-gray-300 text-sm text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors"
+            >
+              Сбросить
+            </button>
+          )}
         </motion.div>
 
         {error ? (

@@ -10,6 +10,16 @@ async function bootstrap() {
 
   app.use(helmet());
   app.use(
+    '/api/contact-messages',
+    rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 5,
+      message: { message: 'Слишком много запросов. Попробуйте позже.' },
+      standardHeaders: true,
+      legacyHeaders: false,
+    }),
+  );
+  app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
       max: process.env.NODE_ENV === 'production' ? 200 : 2000,

@@ -393,7 +393,7 @@ export function AnalyticsPage() {
                           <span className="text-base leading-none" style={{ color: PALETTE[i % PALETTE.length] }}>●</span>
                           <span style={{ color: C_MAIN }}>{g.city}</span>
                         </td>
-                        <td className="py-2 text-right font-semibold" style={{ color: PALETTE[i % PALETTE.length] }}>{g.count}</td>
+                        <td className="py-2 text-right font-semibold" style={{ color: textColor(PALETTE[i % PALETTE.length]) === C_MAIN ? C_MAIN : PALETTE[i % PALETTE.length] }}>{g.count}</td>
                       </tr>
                     ))}
                   </tbody>

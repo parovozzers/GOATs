@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Nomination } from '../../nominations/entities/nomination.entity';
@@ -23,6 +24,7 @@ export class Application {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @Index()
   @Column({ name: 'user_id', nullable: true })
   userId: string;
 
@@ -30,6 +32,7 @@ export class Application {
   @JoinColumn({ name: 'nomination_id' })
   nomination: Nomination;
 
+  @Index()
   @Column({ name: 'nomination_id', nullable: true })
   nominationId: string;
 
@@ -56,6 +59,7 @@ export class Application {
     email?: string;
   };
 
+  @Index()
   @Column({
     type: 'enum',
     enum: ApplicationStatus,

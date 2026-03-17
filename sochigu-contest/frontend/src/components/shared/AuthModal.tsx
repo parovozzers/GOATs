@@ -75,8 +75,12 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-function formatPhone(raw: string): string {
+function formatPhone(raw: string, prev = ''): string {
   let digits = raw.replace(/\D/g, '');
+  // Если пользователь удалил разделитель (строка короче, но цифры те же) — удаляем ещё одну цифру
+  if (prev && raw.length < prev.length && digits === prev.replace(/\D/g, '') && digits.length > 0) {
+    digits = digits.slice(0, -1);
+  }
   if (digits.startsWith('8')) digits = '7' + digits.slice(1);
   else if (digits.length > 0 && !digits.startsWith('7')) digits = '7' + digits;
   digits = digits.slice(0, 11);
@@ -166,7 +170,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
             return (
               <>
                 <input type="tel" {...phoneReg}
-                  onChange={(e) => { e.target.value = formatPhone(e.target.value); phoneReg.onChange(e); }}
+                  onChange={(e) => { e.target.value = formatPhone(e.target.value, getValues('phone') ?? ''); phoneReg.onChange(e); }}
                   className={errors.phone ? `${field} border-red-400` : field}
                   placeholder="+7(999)123-45-67" />
                 {errors.phone && <p className="text-red-500 text-xs mt-0.5">{errors.phone.message}</p>}
@@ -284,6 +288,10 @@ export function AuthModal() {
       }, 500);
     }, 220);
   };
+
+  useEffect(() => {
+    return () => { clearTimeout(timerRef.current); };
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') closeAuthModal(); };

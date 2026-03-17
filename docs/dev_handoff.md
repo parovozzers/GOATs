@@ -615,6 +615,156 @@ Date: 2026-03-17
 Developer: DEV2 (parovozzers)
 
 PR / Change:
+feature/week6-ui-polish-contacts (продолжение) — фиксы по code review, UX-мелочи
+
+What was implemented:
+
+[Фиксы по code review — 2 реальных, 5 уже готовых]
+- main.ts: добавлен строгий rate limit на POST /contact-messages — 5 запросов / 15 мин с одного IP (отдельный middleware перед глобальным 200/15мин)
+- create-contact-message.dto.ts: @ValidateIf вместо @IsOptional — обязательно хотя бы email или phone; прямой POST без обоих полей теперь возвращает 400
+- Проверено как «уже готово»: jsonb_array_length корректен (entity jsonb), framer-motion есть в package.json, keywords — simple-array → STRING_TO_ARRAY верен, changedBy — @ManyToOne объявлен, @IsIn(['pending','done']) функционально эквивалентен @IsEnum
+
+[AnalyticsPage — читаемость чисел в географии]
+- Числа участников в таблице «География»: цвет определяется через textColor() — светлые цвета палитры (#B5D2CB, #CDA2AB) заменяются на C_MAIN (#6C464F), тёмные остаются как есть
+- Логика: `textColor(color) === C_MAIN ? C_MAIN : color` — при расширении палитры любой светлый цвет автоматически читаем
+
+[Форма обратной связи — исправление Backspace в телефоне]
+- formatPhone() расширена вторым аргументом prev (предыдущее значение): если строка стала короче, но количество цифр не изменилось — удалён разделитель → функция убирает ещё одну цифру
+- Исправлено в ContactsPage.tsx и AuthModal.tsx (обе копии formatPhone)
+- В AuthModal prev берётся из getValues('phone') — уже доступен через react-hook-form
+
+[ApplicationFormPage — валидация email участников]
+- Добавлены состояния memberEmailErrors[] и supervisorEmailError
+- handleNext (шаг 2): перед переходом на шаг 3 проверяет все email полей команды и руководителя через validateEmail()
+- Пустые поля пропускаются (необязательные), невалидные блокируют переход + подсвечивают поле красным + показывают сообщение
+- Ошибка сбрасывается в onChange при исправлении
+
+[BackToTopButton — перекрытие кнопки «Далее» на мобильном]
+- Позиция изменена с `fixed bottom-6 right-6` на `fixed bottom-20 right-4 sm:bottom-6 sm:right-6`
+- На мобильных (< 640px) кнопка поднята на 80px от низа — не перекрывает навигацию форм
+
+[WinnersPage — кнопка «Сбросить» фильтры]
+- Кнопка появляется только когда хотя бы один из двух фильтров (год / номинация) активен
+- Клик сбрасывает оба фильтра одновременно; кнопка исчезает при сбросе
+
+Files changed:
+- sochigu-contest/backend/src/main.ts
+- sochigu-contest/backend/src/contacts/dto/create-contact-message.dto.ts
+- sochigu-contest/frontend/src/pages/admin/AnalyticsPage.tsx
+- sochigu-contest/frontend/src/pages/public/ContactsPage.tsx
+- sochigu-contest/frontend/src/components/shared/AuthModal.tsx
+- sochigu-contest/frontend/src/components/shared/BackToTopButton.tsx
+- sochigu-contest/frontend/src/pages/cabinet/ApplicationFormPage.tsx
+- sochigu-contest/frontend/src/pages/public/WinnersPage.tsx
+
+Bug fixes:
+- Backspace в поле телефона удалял разделитель, который сразу появлялся снова — теперь при удалении разделителя убирается предшествующая цифра
+- Числа в таблице «География» были нечитаемы для светлых цветов палитры — заменяются на C_MAIN автоматически
+- BackToTopButton перекрывал кнопку «Далее» на мобильном — поднят выше
+- Email участников команды и научного руководителя не валидировался на фронте
+
+Important context for the next developer:
+- Rate limit /api/contact-messages: 5/15мин — отдельный middleware ДО глобального в main.ts. Порядок важен.
+- formatPhone(raw, prev): второй аргумент обязателен для корректного backspace. Без него поведение прежнее (только добавление).
+- textColor(c) === C_MAIN для определения светлых цветов — не менять без понимания textColor().
+- memberEmailErrors[] индексы совпадают с teamMembers[] — при removeMember массив ошибок обновляется автоматически через filter.
+
+Next steps / suggested work:
+- Реализовать экспорт Excel в ApplicationsListPage (кнопка-заглушка уже есть)
+- Финальное тестирование флоу: регистрация → заявка → смена статуса → аналитика
+- Проверить npm run build без ошибок перед merge в main
+
+Known issues / technical debt:
+- AnalyticsPage: облако ключевых слов без весов/размеров
+- SMTP отключён локально — email-уведомления не отправляются
+
+---
+
+Date: 2026-03-17
+Developer: DEV2 (parovozzers)
+
+PR / Change:
+feature/week6-ui-polish-contacts (продолжение) — полный аудит проекта, фиксы безопасности
+
+What was implemented:
+
+[Аудит: проверки сборок и типов]
+- tsc --noEmit frontend: 0 ошибок
+- tsc --noEmit backend: 0 ошибок
+- npm run build frontend: успешно (19.5s)
+- npm run build backend: успешно
+- npm audit: обнаружены уязвимости в dev и prod зависимостях (задокументированы ниже)
+
+[Безопасность — XSS]
+- NewsDetailPage.tsx: dangerouslySetInnerHTML без санитизации → установлен DOMPurify, теперь DOMPurify.sanitize(news.content)
+- Установлен пакет dompurify + @types/dompurify
+
+[Безопасность — мёртвые зависимости]
+- react-wordcloud: нигде не используется в коде, но числился в dependencies с CVE в d3-color (ReDoS) → удалён
+
+[Безопасность — backend DTO]
+- get-applications.dto.ts: добавлен @Max(100) на limit — ранее запрос ?limit=999999 мог вернуть всю таблицу
+- create-application.dto.ts: добавлены @MaxLength(200) на projectTitle и @MaxLength(5000) на projectDescription
+
+[Производительность — индексы БД]
+- application.entity.ts: добавлены @Index() декораторы на userId, nominationId, status — при synchronize:true (dev) создаются автоматически, в проде потребуется миграция
+
+[UX / валидация]
+- RegisterPage.tsx: добавлены maxLength на все текстовые поля (lastName/firstName/middleName: 50, university/faculty: 200, city: 100)
+- client.ts: добавлен timeout: 30000ms в axios — ранее запросы могли висеть бесконечно
+
+[Стабильность — фиксы найденных багов]
+- ApplicationFormPage.tsx: добавлен .catch() при загрузке номинаций и данных заявки — ранее ошибка API уходила молча
+- ApplicationFormPage.tsx: исправлен race condition при параллельной загрузке файлов до создания заявки — добавлен savingRef флаг
+- AuthModal.tsx: исправлен memory leak — вложенные setTimeout не очищались при unmount → добавлен useEffect cleanup
+
+Files changed:
+- sochigu-contest/frontend/package.json (react-wordcloud удалён, dompurify добавлен)
+- sochigu-contest/frontend/src/pages/public/NewsDetailPage.tsx
+- sochigu-contest/frontend/src/api/client.ts
+- sochigu-contest/frontend/src/pages/cabinet/ApplicationFormPage.tsx
+- sochigu-contest/frontend/src/components/shared/AuthModal.tsx
+- sochigu-contest/frontend/src/pages/auth/RegisterPage.tsx
+- sochigu-contest/backend/src/applications/dto/get-applications.dto.ts
+- sochigu-contest/backend/src/applications/dto/create-application.dto.ts
+- sochigu-contest/backend/src/applications/entities/application.entity.ts
+
+Bug fixes:
+- XSS через dangerouslySetInnerHTML в новостях устранён через DOMPurify
+- Молчаливые ошибки при загрузке формы заявки теперь показывают сообщение
+- Race condition при множественной загрузке файлов до создания заявки
+- Memory leak таймеров в AuthModal при unmount
+
+Important context for the next developer:
+- DOMPurify.sanitize() применяется только в NewsDetailPage — если добавляются новые места с dangerouslySetInnerHTML, обязательно применять там тоже
+- @Index() на application.entity.ts требует миграции в production (synchronize:false). Команда: npx typeorm migration:generate
+- JWT_SECRET и JWT_REFRESH_SECRET в .env должны быть заменены на криптографически стойкие значения перед деплоем: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+- react-wordcloud удалён полностью — не переустанавливать без нужды
+- axios timeout 30s глобальный — если нужен другой timeout для конкретного запроса, передавать { timeout: N } в config запроса
+
+Остаточные риски (задокументировано, не блокирует прод):
+- Backend npm audit: multer (HIGH DoS), nodemailer (HIGH), path-to-regexp (HIGH) — фиксы требуют npm audit fix --force с breaking changes NestJS. Делать только в тестовой ветке.
+- Токены в localStorage (Zustand persist) — допустимо для текущего масштаба; полное решение httpOnly cookie требует переработки auth-флоу
+- Старые фото не удаляются при замене в users/news/winners — утечка дискового пространства, не критично
+- Нет React Error Boundary — белый экран при runtime crash компонента
+
+Next steps / suggested work:
+- Реализовать экспорт Excel в ApplicationsListPage (кнопка-заглушка уже есть)
+- Финальное тестирование флоу: регистрация → заявка → смена статуса → аналитика
+- Проверить npm run build без ошибок перед merge в main (уже проверено ✓)
+- Заменить JWT секреты при деплое
+
+Known issues / technical debt:
+- AnalyticsPage: облако ключевых слов без весов/размеров
+- SMTP отключён локально — email-уведомления не отправляются
+- Backend npm audit: 14 уязвимостей в prod-зависимостях (multer, nodemailer, path-to-regexp, file-type, lodash)
+
+---
+
+Date: 2026-03-17
+Developer: DEV2 (parovozzers)
+
+PR / Change:
 feature/week6-ui-polish-contacts (продолжение) — полный редизайн палитры дашборда аналитики
 
 What was implemented:

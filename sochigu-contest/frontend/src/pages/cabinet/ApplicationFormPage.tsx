@@ -55,9 +55,12 @@ export function ApplicationFormPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(isEdit);
   const [error, setError] = useState<string | null>(null);
+  const [memberEmailErrors, setMemberEmailErrors] = useState<(string | undefined)[]>([]);
+  const [supervisorEmailError, setSupervisorEmailError] = useState<string | undefined>();
+  const savingRef = useRef(false);
 
   useEffect(() => {
-    nominationsApi.getAll().then(setNominations);
+    nominationsApi.getAll().then(setNominations).catch(() => setError('Не удалось загрузить номинации'));
     if (isEdit && id) {
       applicationsApi.getById(id).then(app => {
         setNominationId(app.nominationId);
@@ -73,9 +76,11 @@ export function ApplicationFormPage() {
           email: app.supervisor?.email ?? '',
         });
         setUploadedFiles(app.files ?? []);
-      }).finally(() => setLoading(false));
+      }).catch(() => setError('Не удалось загрузить данные заявки')).finally(() => setLoading(false));
     }
   }, [id]);
+
+  const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleNext = async () => {
     if (step === 1) {
@@ -83,7 +88,13 @@ export function ApplicationFormPage() {
       setStep(2);
     } else if (step === 2) {
       const valid = await trigger(['projectTitle', 'projectDescription']);
-      if (!valid) return;
+      const emailErrs = teamMembers.map(m =>
+        m.email && !validateEmail(m.email) ? 'Некорректный email' : undefined
+      );
+      const supErr = supervisor.email && !validateEmail(supervisor.email) ? 'Некорректный email' : undefined;
+      setMemberEmailErrors(emailErrs);
+      setSupervisorEmailError(supErr);
+      if (!valid || emailErrs.some(Boolean) || supErr) return;
       setStep(3);
     } else if (step === 3) {
       setStep(4);
@@ -139,7 +150,12 @@ export function ApplicationFormPage() {
   const handleFileUpload = async (file: File, category: string) => {
     setError(null);
     try {
-      const targetId = appId ?? await saveApp();
+      let targetId = appId;
+      if (!targetId) {
+        if (savingRef.current) return; // предотвращаем race condition
+        savingRef.current = true;
+        try { targetId = await saveApp(); } finally { savingRef.current = false; }
+      }
       const uploaded = await applicationsApi.uploadFile(targetId, file, category);
       setUploadedFiles(prev => [...prev, uploaded]);
     } catch {
@@ -311,8 +327,12 @@ export function ApplicationFormPage() {
                     <input type="text" placeholder="Роль в проекте" value={m.role}
                       onChange={e => updateMember(i, 'role', e.target.value)} className={inputClass} />
                     <div className="flex gap-1">
-                      <input type="email" placeholder="Email (необязательно)" value={m.email ?? ''}
-                        onChange={e => updateMember(i, 'email', e.target.value)} className={inputClass} />
+                      <div className="flex-1">
+                        <input type="email" placeholder="Email (необязательно)" value={m.email ?? ''}
+                          onChange={e => { updateMember(i, 'email', e.target.value); setMemberEmailErrors(prev => prev.map((err, idx) => idx === i ? undefined : err)); }}
+                          className={`${inputClass}${memberEmailErrors[i] ? ' border-destructive' : ''}`} />
+                        {memberEmailErrors[i] && <p className="mt-1 text-xs text-destructive">{memberEmailErrors[i]}</p>}
+                      </div>
                       {teamMembers.length > 1 && (
                         <button type="button" onClick={() => removeMember(i)}
                           className="px-2 text-lg text-destructive hover:opacity-70">×</button>
@@ -330,8 +350,12 @@ export function ApplicationFormPage() {
                   onChange={e => setSupervisor(s => ({ ...s, name: e.target.value }))} className={inputClass} />
                 <input type="text" placeholder="Должность/звание" value={supervisor.title}
                   onChange={e => setSupervisor(s => ({ ...s, title: e.target.value }))} className={inputClass} />
-                <input type="email" placeholder="Email (необязательно)" value={supervisor.email}
-                  onChange={e => setSupervisor(s => ({ ...s, email: e.target.value }))} className={inputClass} />
+                <div>
+                  <input type="email" placeholder="Email (необязательно)" value={supervisor.email}
+                    onChange={e => { setSupervisor(s => ({ ...s, email: e.target.value })); setSupervisorEmailError(undefined); }}
+                    className={`${inputClass}${supervisorEmailError ? ' border-destructive' : ''}`} />
+                  {supervisorEmailError && <p className="mt-1 text-xs text-destructive">{supervisorEmailError}</p>}
+                </div>
               </div>
             </div>
           </motion.div>
