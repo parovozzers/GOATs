@@ -1,18 +1,17 @@
-version: '3.9'
-
 # Продакшн-запуск.
-# На сервере: docker compose -f docker-compose.prod.yml up -d --build
+# На сервере:
+#   cp backend/.env.prod.example backend/.env  # заполнить реальными значениями
+#   docker compose -f docker-compose.prod.yml up -d --build
 
 services:
   postgres:
     image: postgres:16-alpine
     container_name: sochigu_db
     restart: unless-stopped
-    # POSTGRES_PASSWORD читается из backend/.env через env_file (переменная POSTGRES_PASSWORD)
-    env_file: ./backend/.env
     environment:
       POSTGRES_DB: sochigu_contest
       POSTGRES_USER: sochigu
+      POSTGRES_PASSWORD: ${DB_PASS}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

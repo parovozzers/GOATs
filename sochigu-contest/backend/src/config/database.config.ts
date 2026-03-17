@@ -20,7 +20,7 @@ export const databaseConfig = (
   password: configService.get('DB_PASS', 'sochigu_pass'),
   database: configService.get('DB_NAME', 'sochigu_contest'),
   entities: [User, Nomination, Application, ApplicationLog, AppFile, News, Document, Winner, ContactMessage],
-  synchronize: configService.get('DB_SYNCHRONIZE', 'true') !== 'false',
+  synchronize: configService.get('DB_SYNCHRONIZE', 'false') === 'true',
   logging: configService.get('NODE_ENV') === 'development',
   migrations: ['dist/database/migrations/*.js'],
 });
