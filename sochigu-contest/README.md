@@ -101,6 +101,29 @@ npm run migration:generate -- -n InitialMigration
 npm run migration:run
 ```
 
+---
+
+### Деплой на сервер (production)
+
+```bash
+git clone https://github.com/parovozzers/GOATs.git
+cd GOATs/sochigu-contest
+
+# 1. Создать .env из шаблона и заполнить реальными значениями
+cp backend/.env.prod.example backend/.env
+nano backend/.env
+
+# 2. Запустить все сервисы
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+> **Важно:** `docker-compose.prod.yml` читает переменную `${DB_PASS}` из файла `sochigu-contest/.env`.
+> Создай его рядом с `docker-compose.prod.yml`:
+> ```
+> echo "DB_PASS=ВАШ_ПАРОЛЬ" > .env
+> ```
+> Значение должно совпадать с `DB_PASS` в `backend/.env`.
+
 ## API эндпоинты
 
 | Метод | Путь | Описание | Доступ |
