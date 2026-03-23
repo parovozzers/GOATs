@@ -21,10 +21,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message =
+    const exRes =
       exception instanceof HttpException
         ? exception.getResponse()
         : 'Internal server error';
+    const message =
+      typeof exRes === 'string'
+        ? exRes
+        : (exRes as any)?.message ?? 'Internal server error';
 
     if (status >= 500) {
       this.logger.error(exception instanceof Error ? exception.stack : String(exception));
