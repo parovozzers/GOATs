@@ -15,7 +15,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>();
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({ mode: 'onBlur' });
 
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
@@ -107,7 +107,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { register, handleSubmit, getValues, formState: { errors } } = useForm<RegisterForm>();
+  const { register, handleSubmit, getValues, formState: { errors } } = useForm<RegisterForm>({ mode: 'onBlur' });
 
   const onSubmit = async (data: RegisterForm) => {
     setError(null);
@@ -300,18 +300,8 @@ export function AuthModal() {
   }, [closeAuthModal]);
 
   useEffect(() => {
-    if (authModal) {
-      const sw = window.innerWidth - document.documentElement.clientWidth;
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = `${sw}px`;
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    };
+    document.body.style.overflow = authModal ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
   }, [authModal]);
 
   return (

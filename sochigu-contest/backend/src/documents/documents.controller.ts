@@ -44,6 +44,15 @@ export class DocumentsController implements OnModuleInit {
         cb(null, `${uuid()}${extname(originalName)}`);
       },
     }),
+    limits: { fileSize: 50 * 1024 * 1024 },
+    fileFilter: (_, file, cb) => {
+      const allowed = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.txt', '.png', '.jpg', '.jpeg'];
+      const ext = extname(Buffer.from(file.originalname, 'latin1').toString('utf8')).toLowerCase();
+      if (!allowed.includes(ext)) {
+        return cb(new BadRequestException(`Тип файла не разрешён: ${ext}`), false);
+      }
+      cb(null, true);
+    },
   }))
   uploadDocument(@UploadedFile() file: Express.Multer.File, @Body() body: any) {
     if (!file) throw new BadRequestException('Файл не был загружен');

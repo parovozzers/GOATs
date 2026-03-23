@@ -63,7 +63,7 @@ export function ExpertsPage() {
             {experts.map(expert => (
               <motion.div
                 key={expert.id}
-                className="flex flex-col items-center rounded-xl bg-card p-6 text-center shadow-sm border border-border relative"
+                className="flex flex-col items-center rounded-xl bg-card p-8 text-center shadow-sm border border-border relative"
                 variants={cardItem}
                 {...hoverCardSm}
               >
@@ -71,10 +71,10 @@ export function ExpertsPage() {
                   <img
                     src={expert.avatarUrl}
                     alt={`${expert.firstName} ${expert.lastName}`}
-                    className="mb-4 h-24 w-24 rounded-full object-cover flex-shrink-0 border border-border"
+                    className="mb-4 h-40 w-40 rounded-full object-cover flex-shrink-0 border border-border"
                   />
                 ) : (
-                  <div className="mb-4 h-24 w-24 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-2xl font-bold text-muted-foreground">
+                  <div className="mb-4 h-40 w-40 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-2xl font-bold text-muted-foreground">
                     {expert.firstName[0]}{expert.lastName[0]}
                   </div>
                 )}

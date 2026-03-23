@@ -10,7 +10,7 @@ export class WinnersService {
   findAll(filters?: { year?: number; nominationId?: string }) {
     const qb = this.repo.createQueryBuilder('w').leftJoinAndSelect('w.nomination', 'n');
     if (filters?.year) qb.andWhere('w.year = :year', { year: filters.year });
-    if (filters?.nominationId) qb.andWhere('w.nominationId = :nid', { nid: filters.nominationId });
+    if (filters?.nominationId) qb.andWhere('n.id = :nid', { nid: filters.nominationId });
     return qb.orderBy('w.year', 'DESC').addOrderBy('w.place', 'ASC').getMany();
   }
 

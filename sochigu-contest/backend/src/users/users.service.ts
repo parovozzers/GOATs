@@ -12,7 +12,10 @@ export class UsersService {
     const qb = this.repo.createQueryBuilder('u');
     if (filters?.role) qb.andWhere('u.role = :role', { role: filters.role });
     if (filters?.search)
-      qb.andWhere('u.email ILIKE :s', { s: `%${filters.search}%` });
+      qb.andWhere(
+        '(u.email ILIKE :s OR u.lastName ILIKE :s OR u.firstName ILIKE :s OR u.middleName ILIKE :s)',
+        { s: `%${filters.search}%` },
+      );
     if (filters?.name)
       qb.andWhere(
         '(u.lastName ILIKE :n OR u.firstName ILIKE :n OR u.middleName ILIKE :n)',
@@ -43,6 +46,10 @@ export class UsersService {
 
   update(id: string, data: Partial<User>) {
     return this.repo.update(id, data);
+  }
+
+  remove(id: string) {
+    return this.repo.delete(id);
   }
 
   updateRefreshToken(id: string, token: string | null) {

@@ -105,7 +105,22 @@ export function DocumentsManagePage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Категория</label>
             <input type="text" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="input" placeholder="Например: Положение о конкурсе, Формы..." />
           </div>
-          {!editing && (
+          {editing ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Текущий файл</label>
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                <span className="text-sm text-gray-600 truncate flex-1">{editing.fileName}</span>
+                <a
+                  href={documentsApi.downloadUrl(editing.id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary-700 hover:underline whitespace-nowrap font-medium"
+                >
+                  Открыть
+                </a>
+              </div>
+            </div>
+          ) : (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Файл *</label>
               <div onClick={() => fileRef.current?.click()} className="border-2 border-dashed border-gray-300 hover:border-primary-400 rounded-xl p-4 text-center cursor-pointer transition-colors">

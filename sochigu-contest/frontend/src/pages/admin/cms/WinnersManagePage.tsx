@@ -108,7 +108,7 @@ export function WinnersManagePage() {
                   <td className="px-5 py-3 text-xl">{placeMedal(item.place)}</td>
                   <td className="px-5 py-3 font-medium text-gray-900 max-w-[180px] truncate">{item.projectTitle}</td>
                   <td className="px-5 py-3 text-gray-600">{item.teamName}</td>
-                  <td className="px-5 py-3 text-gray-500">{item.nomination?.shortName ?? item.nomination?.name ?? '—'}</td>
+                  <td className="px-5 py-3 text-gray-500">{(() => { const n = nominations.find(n => n.id === item.nominationId); return n?.shortName ?? n?.name ?? '—'; })()}</td>
                   <td className="px-5 py-3 text-gray-400">{item.year}</td>
                   <td className="px-5 py-3 flex gap-2">
                     <button onClick={() => openEdit(item)} className="text-primary-700 hover:underline text-xs font-medium">Редактировать</button>

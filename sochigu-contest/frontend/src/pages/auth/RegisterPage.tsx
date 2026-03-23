@@ -29,7 +29,7 @@ export function RegisterPage() {
     handleSubmit,
     getValues,
     formState: { errors },
-  } = useForm<RegisterForm>();
+  } = useForm<RegisterForm>({ mode: 'onBlur' });
 
   const onSubmit = async (data: RegisterForm) => {
     setError(null);

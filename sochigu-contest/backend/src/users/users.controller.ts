@@ -1,7 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const heicConvert = require('heic-convert');
 
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, Query, UseInterceptors, UploadedFile, BadRequestException, Res, OnModuleInit } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Query, UseInterceptors, UploadedFile, BadRequestException, ConflictException, Res, OnModuleInit } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { resolve, sep } from 'path';
@@ -24,6 +25,23 @@ export class UsersController implements OnModuleInit {
 
   onModuleInit() {
     fs.mkdirSync(PHOTO_DIR, { recursive: true });
+  }
+
+  @Post('create-expert')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async createExpert(@Body() body: any) {
+    const { email, password, firstName, lastName, middleName, phone,
+            university, faculty, department, city, position, bio } = body;
+    const existing = await this.usersService.findByEmail(email);
+    if (existing) throw new ConflictException('Email уже зарегистрирован');
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await this.usersService.create({
+      email, password: hashed, firstName, lastName, middleName,
+      phone, university, faculty, department, city, position, bio,
+      role: Role.EXPERT,
+    });
+    return this.usersService.sanitize(user);
   }
 
   /** Публичный эндпоинт — только видимые эксперты, только публичные поля */
@@ -69,6 +87,22 @@ export class UsersController implements OnModuleInit {
   updateExpertProfile(@Param('id') id: string, @Body() body: any) {
     const { avatarUrl, position, bio, isExpertVisible } = body;
     return this.usersService.update(id, { avatarUrl, position, bio, isExpertVisible });
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  removeUser(@Param('id') id: string, @CurrentUser('id') currentId: string) {
+    if (id === currentId) throw new BadRequestException('Нельзя удалить собственный аккаунт');
+    return this.usersService.remove(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
+  updateUser(@Param('id') id: string, @Body() body: any) {
+    const { firstName, lastName, middleName, phone, university, faculty, department, city, isActive } = body;
+    return this.usersService.update(id, { firstName, lastName, middleName, phone, university, faculty, department, city, isActive });
   }
 
   @Post('upload-photo')

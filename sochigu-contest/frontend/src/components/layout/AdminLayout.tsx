@@ -12,7 +12,7 @@ const sidebarLinks: { to: string; label: string; icon: React.ElementType; exact?
   { to: '/admin/analytics',     label: 'Аналитика',    icon: BarChart3,                     roles: ['admin', 'moderator'] },
   { to: '/admin/cms/news',      label: 'Новости',       icon: Newspaper,                    roles: ['admin', 'moderator'] },
   { to: '/admin/cms/documents', label: 'Документы',    icon: FolderOpen,                    roles: ['admin', 'moderator'] },
-  { to: '/admin/cms/winners',   label: 'Победители',   icon: Trophy,                        roles: ['admin', 'moderator', 'expert'] },
+  { to: '/admin/cms/winners',   label: 'Победители',   icon: Trophy,                        roles: ['admin', 'moderator'] },
   { to: '/admin/cms/nominations', label: 'Номинации',  icon: Tag,                           roles: ['admin', 'moderator'] },
   { to: '/admin/experts',       label: 'Эксперты',     icon: UserCog,                       roles: ['admin', 'moderator'] },
   { to: '/admin/contacts',      label: 'Обращения',    icon: MessageSquare,                 roles: ['admin', 'moderator'] },

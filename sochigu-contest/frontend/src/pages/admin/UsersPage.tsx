@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { usersApi } from '@/api/users';
 import { User } from '@/types';
+import { Modal } from '@/components/ui/Modal';
+import { useToast } from '@/hooks/useToast';
 
 const ROLE_LABELS: Record<string, string> = {
   participant: 'Участник',
@@ -25,7 +27,7 @@ function TableSkeleton() {
     <tbody>
       {Array.from({ length: 6 }).map((_, i) => (
         <tr key={i} className="border-b border-gray-50">
-          {Array.from({ length: 6 }).map((_, j) => (
+          {Array.from({ length: 7 }).map((_, j) => (
             <td key={j} className="px-5 py-3">
               <div className="h-4 bg-gray-200 rounded animate-pulse" />
             </td>
@@ -48,6 +50,20 @@ export function UsersPage() {
   const nameTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<User | null>(null);
+  const [form, setForm] = useState({ role: '', isActive: true });
+  const [saving, setSaving] = useState(false);
+  const { showToast } = useToast();
+
+  const load = () => {
+    setLoading(true);
+    usersApi
+      .getAll({ search: search || undefined, name: name || undefined, role: role || undefined })
+      .then(setUsers)
+      .finally(() => setLoading(false));
+  };
+
   const reset = () => {
     setNameInput(''); setName('');
     setSearchInput(''); setSearch('');
@@ -59,13 +75,35 @@ export function UsersPage() {
     clearTimeout(nameTimerRef.current);
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    usersApi
-      .getAll({ search: search || undefined, name: name || undefined, role: role || undefined })
-      .then(setUsers)
-      .finally(() => setLoading(false));
-  }, [search, name, role]);
+  useEffect(() => { load(); }, [search, name, role]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const openEdit = (user: User) => {
+    setEditing(user);
+    setForm({ role: user.role, isActive: user.isActive });
+    setModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      const promises: Promise<any>[] = [];
+      if (form.role !== editing.role) {
+        promises.push(usersApi.updateRole(editing.id, form.role));
+      }
+      if (form.isActive !== editing.isActive) {
+        promises.push(usersApi.updateUser(editing.id, { isActive: form.isActive }));
+      }
+      await Promise.all(promises);
+      showToast('Данные обновлены', 'success');
+      setModalOpen(false);
+      load();
+    } catch {
+      showToast('Ошибка при сохранении', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -118,7 +156,8 @@ export function UsersPage() {
               <th className="px-5 py-3 font-medium">Роль</th>
               <th className="px-5 py-3 font-medium">Вуз</th>
               <th className="px-5 py-3 font-medium">Дата регистрации</th>
-              <th className="px-5 py-3 font-medium">Статус</th>
+              <th className="px-5 py-3 font-medium" style={{ width: '130px', minWidth: '130px' }}>Статус</th>
+              <th className="px-5 py-3 font-medium">Действия</th>
             </tr>
           </thead>
           {loading ? (
@@ -126,7 +165,7 @@ export function UsersPage() {
           ) : users.length === 0 ? (
             <tbody>
               <tr>
-                <td colSpan={6} className="text-center py-12 text-gray-400">
+                <td colSpan={7} className="text-center py-12 text-gray-400">
                   Пользователей не найдено
                 </td>
               </tr>
@@ -146,7 +185,7 @@ export function UsersPage() {
                   </td>
                   <td className="px-5 py-3 text-gray-500">{u.university ?? '—'}</td>
                   <td className="px-5 py-3 text-gray-400">{formatDate(u.createdAt)}</td>
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-3 whitespace-nowrap">
                     {u.isActive ? (
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Активен
@@ -157,12 +196,49 @@ export function UsersPage() {
                       </span>
                     )}
                   </td>
+                  <td className="px-5 py-3">
+                    <button onClick={() => openEdit(u)} className="text-primary-700 hover:underline text-xs font-medium">
+                      Редактировать
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           )}
         </table>
       </div>
+
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={`Редактировать: ${editing?.lastName} ${editing?.firstName}`}>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Роль</label>
+            <select
+              value={form.role}
+              onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+              className="input select-custom"
+            >
+              {Object.entries(ROLE_LABELS).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
+            </select>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.isActive}
+              onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-700">Активен</span>
+          </label>
+          <div className="flex justify-end gap-3 pt-2">
+            <button onClick={() => setModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Отмена</button>
+            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-accent-foreground text-sm font-semibold rounded-lg transition-colors">
+              {saving ? 'Сохраняем...' : 'Сохранить'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
