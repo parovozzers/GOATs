@@ -164,6 +164,7 @@ export function ContactsPage() {
                     <div>
                       <label htmlFor="email" className="mb-1 block text-sm font-medium text-foreground">Email</label>
                       <input id="email" type="email" placeholder="email@example.com" value={email} onChange={e => setEmail(e.target.value)}
+                        onBlur={() => { if (email.trim() && !validateEmail(email)) setErrors(e => ({ ...e, email: 'Некорректный email' })); else setErrors(e => ({ ...e, email: undefined })); }}
                         className={`w-full rounded-lg border bg-background px-4 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring ${errors.email || errors.contact ? 'border-red-400' : 'border-input'}`} />
                       {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
                     </div>
@@ -171,6 +172,7 @@ export function ContactsPage() {
                       <label htmlFor="phone" className="mb-1 block text-sm font-medium text-foreground">Номер телефона</label>
                       <input id="phone" type="tel" placeholder="+7(999)123-45-67" value={phone}
                         onChange={e => setPhone(formatPhone(e.target.value, phone))}
+                        onBlur={() => { if (phone.trim() && !validatePhone(phone)) setErrors(e => ({ ...e, phone: 'Некорректный номер телефона' })); else setErrors(e => ({ ...e, phone: undefined })); }}
                         className={`w-full rounded-lg border bg-background px-4 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring ${errors.phone || errors.contact ? 'border-red-400' : 'border-input'}`} />
                       {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
                     </div>

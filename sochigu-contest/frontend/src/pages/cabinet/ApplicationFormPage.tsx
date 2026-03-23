@@ -39,6 +39,7 @@ export function ApplicationFormPage() {
     watch,
     formState: { errors: step2Errors },
   } = useForm<Step2Fields>({
+    mode: 'onBlur',
     defaultValues: { projectTitle: '', projectDescription: '', keywords: '' },
   });
 
@@ -330,6 +331,7 @@ export function ApplicationFormPage() {
                       <div className="flex-1">
                         <input type="email" placeholder="Email (необязательно)" value={m.email ?? ''}
                           onChange={e => { updateMember(i, 'email', e.target.value); setMemberEmailErrors(prev => prev.map((err, idx) => idx === i ? undefined : err)); }}
+                          onBlur={() => { if (m.email && !validateEmail(m.email)) setMemberEmailErrors(prev => { const next = [...prev]; next[i] = 'Некорректный email'; return next; }); }}
                           className={`${inputClass}${memberEmailErrors[i] ? ' border-destructive' : ''}`} />
                         {memberEmailErrors[i] && <p className="mt-1 text-xs text-destructive">{memberEmailErrors[i]}</p>}
                       </div>
@@ -353,6 +355,7 @@ export function ApplicationFormPage() {
                 <div>
                   <input type="email" placeholder="Email (необязательно)" value={supervisor.email}
                     onChange={e => { setSupervisor(s => ({ ...s, email: e.target.value })); setSupervisorEmailError(undefined); }}
+                    onBlur={() => { if (supervisor.email && !validateEmail(supervisor.email)) setSupervisorEmailError('Некорректный email'); }}
                     className={`${inputClass}${supervisorEmailError ? ' border-destructive' : ''}`} />
                   {supervisorEmailError && <p className="mt-1 text-xs text-destructive">{supervisorEmailError}</p>}
                 </div>
