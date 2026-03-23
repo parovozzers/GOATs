@@ -10,14 +10,37 @@ async function bootstrap() {
 
   app.use(helmet());
   app.use(
-    '/api/contact-messages',
+    '/api/auth/login',
     rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 5,
-      message: { message: 'Слишком много запросов. Попробуйте позже.' },
+      max: 10,
+      message: { message: 'Слишком много попыток входа. Попробуйте через 15 минут.' },
       standardHeaders: true,
       legacyHeaders: false,
     }),
+  );
+  app.use(
+    '/api/auth/register',
+    rateLimit({
+      windowMs: 60 * 60 * 1000,
+      max: 5,
+      message: { message: 'Слишком много регистраций. Попробуйте через час.' },
+      standardHeaders: true,
+      legacyHeaders: false,
+    }),
+  );
+  app.use(
+    '/api/contact-messages',
+    (req: any, res: any, next: any) => {
+      if (req.method !== 'POST') return next();
+      return rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 5,
+        message: { message: 'Слишком много запросов. Попробуйте позже.' },
+        standardHeaders: true,
+        legacyHeaders: false,
+      })(req, res, next);
+    },
   );
   app.use(
     rateLimit({

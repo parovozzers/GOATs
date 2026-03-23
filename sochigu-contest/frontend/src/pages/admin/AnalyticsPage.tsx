@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { analyticsApi } from '@/api/analytics';
+import { contactsApi } from '@/api/contacts';
 import {
   AnalyticsSummary, AnalyticsByNomination, AnalyticsTimeline,
   AnalyticsGeography, AnalyticsByStatus, AnalyticsActivityItem,
@@ -65,16 +66,17 @@ function safe(a: number, b: number): number {
 }
 
 // ─── Тултип ───────────────────────────────────────────────────────────────────
-function Tip({ children, content }: { children: React.ReactNode; content: string }) {
+function Tip({ children, content, color }: { children: React.ReactNode; content: string; color?: string }) {
   const [show, setShow] = useState(false);
+  const bg = color ?? C_MAIN;
   return (
-    <div className="relative w-full" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+    <div className="relative w-full h-full" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
       {children}
       {show && (
         <div className="absolute z-20 bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 text-xs rounded-lg shadow-lg whitespace-nowrap pointer-events-none"
-          style={{ background: C_MAIN, color: '#fff' }}>
+          style={{ background: bg, color: '#fff' }}>
           {content}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: C_MAIN }} />
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: bg }} />
         </div>
       )}
     </div>
@@ -121,7 +123,8 @@ export function AnalyticsPage() {
   const [loading,      setLoading]     = useState(true);
   const [error,        setError]       = useState<string | null>(null);
   const [retryKey,     setRetryKey]    = useState(0);
-  const [showAll,      setShowAll]     = useState(false);
+  const [showAll,         setShowAll]        = useState(false);
+  const [pendingContacts, setPendingContacts] = useState(0);
 
   const fetchAll = () => Promise.all([
     analyticsApi.getSummary(),
@@ -130,9 +133,11 @@ export function AnalyticsPage() {
     analyticsApi.getGeography(),
     analyticsApi.getByStatus(),
     analyticsApi.getActivity(),
-  ]).then(([s, n, t, g, bs, a]) => {
+    contactsApi.getAll('pending'),
+  ]).then(([s, n, t, g, bs, a, contacts]) => {
     setSummary(s); setByNomination(n); setTimeline(t);
     setGeography(g); setByStatus(bs); setActivity(a);
+    setPendingContacts(contacts.length);
   });
 
   useEffect(() => {
@@ -245,8 +250,8 @@ export function AnalyticsPage() {
           <KpiCard label="Команд"        value={summary.teamApplications}  sub={`ср. ${summary.avgTeamSize} чел.`} />
           <KpiCard label="Вузов"         value={summary.totalUniversities} sub={`городов: ${geography.length}`} />
           <KpiCard
-            label="На проверке"
-            value={summary.underReview}
+            label="Обращения"
+            value={pendingContacts}
             sub="ожидают ответа"
             bg="rgba(205,162,171,0.20)"
             labelColor={C_MAIN}
@@ -269,7 +274,7 @@ export function AnalyticsPage() {
                   return (
                     <div key={i} className="flex items-center gap-2">
                       <span className="text-xs text-right shrink-0" style={{ width: 130, color: C_MAIN }}>{step.label}</span>
-                      <Tip content={`${step.label}: ${step.count} заявок (${pct}%)`}>
+                      <Tip content={`${step.label}: ${step.count} заявок (${pct}%)`} color={step.color}>
                         <div className="relative rounded analytics-track" style={{ height: 34, background: C_TRACK }}>
                           <div
                             className="absolute left-0 top-0 h-full rounded flex items-center transition-all duration-500 analytics-bar"
@@ -325,40 +330,42 @@ export function AnalyticsPage() {
           {byNomination.length === 0
             ? <p className="text-sm text-center py-6" style={{ color: C_SUB }}>Данных пока нет</p>
             : (() => {
-              const maxCount = Math.max(...byNomination.map(n => n.count));
               const top = byNomination.slice(0, 10);
+              const maxCount = Math.max(...top.map(n => n.count));
               const others = byNomination.slice(10).reduce((acc, n) => acc + n.count, 0);
               return (
-                <div className="space-y-2">
+                <div className="flex flex-col flex-1 gap-2" style={{ minHeight: 0 }}>
                   {top.map((item, i) => {
                     const barPct = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
                     const pct = safe(item.count, total);
                     const barColor = PALETTE[i % PALETTE.length];
                     return (
-                      <div key={i} className="flex items-center gap-2">
+                      <div key={i} className="flex items-center gap-2 flex-1 min-h-0">
                         <div className="text-xs text-right shrink-0"
                           style={{ width: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: C_MAIN }}
                           title={item.nomination}>
                           {item.nomination}
                         </div>
-                        <Tip content={`${item.nomination}: ${item.count} заявок (${pct}%)`}>
-                          <div className="relative rounded analytics-track" style={{ height: 26, background: C_TRACK }}>
-                            <div
-                              className="absolute left-0 top-0 h-full rounded transition-all duration-500 flex items-center analytics-bar"
-                              style={{ width: `${barPct}%`, background: barColor, minWidth: item.count > 0 ? 4 : 0 }}
-                            >
-                              {barPct >= 16 && (
-                                <span className="pl-2 text-xs font-semibold" style={{ color: textColor(barColor) }}>{item.count}</span>
+                        <div style={{ flex: 1, minWidth: 0, height: '100%' }}>
+                          <Tip content={`${item.nomination}: ${item.count} заявок (${pct}%)`} color={barColor}>
+                            <div className="relative rounded analytics-track" style={{ height: '100%', background: C_TRACK, width: '100%' }}>
+                              <div
+                                className="absolute left-0 top-0 h-full rounded transition-all duration-500 flex items-center analytics-bar"
+                                style={{ width: `${barPct}%`, background: barColor, minWidth: item.count > 0 ? 4 : 0 }}
+                              >
+                                {barPct >= 16 && (
+                                  <span className="pl-2 text-xs font-semibold" style={{ color: textColor(barColor) }}>{item.count}</span>
+                                )}
+                              </div>
+                              {barPct < 16 && item.count > 0 && (
+                                <span className="absolute text-xs font-semibold"
+                                  style={{ left: `calc(${barPct}% + 6px)`, top: '50%', transform: 'translateY(-50%)', color: C_MAIN }}>
+                                  {item.count}
+                                </span>
                               )}
                             </div>
-                            {barPct < 16 && item.count > 0 && (
-                              <span className="absolute text-xs font-semibold"
-                                style={{ left: `calc(${barPct}% + 6px)`, top: '50%', transform: 'translateY(-50%)', color: C_MAIN }}>
-                                {item.count}
-                              </span>
-                            )}
-                          </div>
-                        </Tip>
+                          </Tip>
+                        </div>
                         <span className="text-xs shrink-0 w-9 text-right font-medium" style={{ color: C_SUB }}>{pct}%</span>
                       </div>
                     );

@@ -32,7 +32,7 @@ export class Winner {
   @JoinColumn({ name: 'nomination_id' })
   nomination: Nomination;
 
-  @Column()
+  @Column({ name: 'nomination_id', nullable: true })
   nominationId: string;
 
   @Column({ nullable: true })

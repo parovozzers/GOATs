@@ -73,8 +73,7 @@ function DocumentRow({ doc }: { doc: Document }) {
       </span>
       <a
         href={`/api/documents/${doc.id}/download`}
-        target="_blank"
-        rel="noopener noreferrer"
+        download
         className="flex-shrink-0 px-3 py-1.5 rounded-lg border border-primary-700 text-primary-700 text-sm font-medium hover:bg-primary-700 hover:text-white transition-colors"
       >
         Скачать

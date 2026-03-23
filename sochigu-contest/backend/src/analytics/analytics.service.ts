@@ -38,9 +38,10 @@ export class AnalyticsService {
 
     const teamStats = await this.appRepo.manager.query(`
       SELECT
-        COUNT(*) FILTER (WHERE jsonb_array_length(COALESCE("teamMembers", '[]'::jsonb)) >= 1)::int AS team_applications,
+        COUNT(DISTINCT user_id)::int AS team_applications,
         COALESCE(ROUND(AVG(jsonb_array_length("teamMembers")) FILTER (WHERE jsonb_array_length(COALESCE("teamMembers", '[]'::jsonb)) >= 1)::numeric, 1), 0)::float AS avg_team_size
       FROM applications
+      WHERE "teamMembers" IS NOT NULL AND jsonb_array_length("teamMembers") >= 1
     `);
 
     return {

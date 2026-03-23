@@ -28,7 +28,7 @@ export class Application {
   @Column({ name: 'user_id', nullable: true })
   userId: string;
 
-  @ManyToOne(() => Nomination)
+  @ManyToOne(() => Nomination, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'nomination_id' })
   nomination: Nomination;
 

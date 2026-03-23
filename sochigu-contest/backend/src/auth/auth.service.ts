@@ -41,6 +41,8 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Неверный email или пароль');
 
+    if (!user.isActive) throw new UnauthorizedException('Аккаунт заблокирован');
+
     return this.generateTokens(user);
   }
 
@@ -50,6 +52,8 @@ export class AuthService {
 
     const valid = await bcrypt.compare(refreshToken, user.refreshToken);
     if (!valid) throw new UnauthorizedException();
+
+    if (!user.isActive) throw new UnauthorizedException('Аккаунт заблокирован');
 
     return this.generateTokens(user);
   }

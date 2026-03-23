@@ -5,17 +5,29 @@ import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
 
+const EMPTY_CREATE = {
+  email: '', password: '', firstName: '', lastName: '', middleName: '',
+  phone: '', university: '', faculty: '', department: '', city: '',
+  position: '', bio: '',
+};
+
 export function ExpertsPage() {
   useEffect(() => { document.title = 'Эксперты — Конкурс СочиГУ'; }, []);
   const [experts, setExperts] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignOpen, setAssignOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [profileForm, setProfileForm] = useState({ avatarUrl: '', position: '', bio: '', isExpertVisible: false });
+  const [profileBasic, setProfileBasic] = useState({ firstName: '', lastName: '', middleName: '', university: '', faculty: '', department: '', city: '' });
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [createForm, setCreateForm] = useState(EMPTY_CREATE);
+  const [creating, setCreating] = useState(false);
   const [searchEmail, setSearchEmail] = useState('');
   const [results, setResults] = useState<User[]>([]);
   const [found, setFound] = useState<User | null>(null);
@@ -32,9 +44,19 @@ export function ExpertsPage() {
   useEffect(() => { load(); }, []);
 
   const openAssign = () => { setSearchEmail(''); setFound(null); setResults([]); setAssignOpen(true); };
+  const openCreate = () => { setCreateForm(EMPTY_CREATE); setCreateOpen(true); };
 
   const openProfile = (user: User) => {
     setEditingUser(user);
+    setProfileBasic({
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
+      middleName: user.middleName ?? '',
+      university: user.university ?? '',
+      faculty: user.faculty ?? '',
+      department: user.department ?? '',
+      city: user.city ?? '',
+    });
     setProfileForm({
       avatarUrl: user.avatarUrl ?? '',
       position: user.position ?? '',
@@ -69,12 +91,36 @@ export function ExpertsPage() {
     if (!editingUser) return;
     setSaving(true);
     try {
-      await usersApi.updateExpertProfile(editingUser.id, profileForm);
+      await Promise.all([
+        usersApi.updateUser(editingUser.id, profileBasic),
+        usersApi.updateExpertProfile(editingUser.id, profileForm),
+      ]);
       showToast('Профиль обновлён', 'success');
       setProfileOpen(false);
       load();
     } catch { showToast('Ошибка при сохранении', 'error'); }
     finally { setSaving(false); }
+  };
+
+  const handleCreate = async () => {
+    if (!createForm.email || !createForm.password || !createForm.firstName || !createForm.lastName) {
+      showToast('Заполните обязательные поля', 'error');
+      return;
+    }
+    if (createForm.password.length < 8) {
+      showToast('Пароль должен содержать не менее 8 символов', 'error');
+      return;
+    }
+    setCreating(true);
+    try {
+      await usersApi.createExpert(createForm);
+      showToast('Эксперт зарегистрирован', 'success');
+      setCreateOpen(false);
+      load();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message;
+      showToast(typeof msg === 'string' ? msg : 'Ошибка при создании', 'error');
+    } finally { setCreating(false); }
   };
 
   const handleSearchInput = (value: string) => {
@@ -114,11 +160,26 @@ export function ExpertsPage() {
     } catch { showToast('Ошибка', 'error'); }
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await usersApi.deleteUser(deleteTarget.id);
+      showToast('Аккаунт удалён', 'success');
+      setDeleteTarget(null);
+      load();
+    } catch { showToast('Ошибка при удалении', 'error'); }
+    finally { setDeleting(false); }
+  };
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary-900">Управление экспертами</h1>
-        <button onClick={openAssign} className="px-4 py-2 bg-primary hover:bg-primary-mid text-white text-sm font-semibold rounded-lg transition-colors">+ Назначить эксперта</button>
+        <div className="flex gap-2">
+          <button onClick={openCreate} className="px-4 py-2 border border-primary bg-white hover:bg-gray-50 text-primary text-sm font-semibold rounded-lg transition-colors">Зарегистрировать эксперта</button>
+          <button onClick={openAssign} className="px-4 py-2 bg-primary hover:bg-primary-mid text-white text-sm font-semibold rounded-lg transition-colors">+ Назначить эксперта</button>
+        </div>
       </div>
 
       {loading ? <div className="flex justify-center py-12"><Spinner size="lg" /></div> : experts.length === 0 ? (
@@ -149,7 +210,8 @@ export function ExpertsPage() {
                   </td>
                   <td className="px-5 py-3 flex gap-3">
                     <button onClick={() => openProfile(user)} className="text-primary-700 hover:underline text-xs font-medium">Профиль</button>
-                    <button onClick={() => handleRevoke(user)} className="text-red-500 hover:underline text-xs font-medium">Снять с роли</button>
+                    <button onClick={() => handleRevoke(user)} className="text-orange-500 hover:underline text-xs font-medium">Снять с роли</button>
+                    <button onClick={() => setDeleteTarget(user)} className="text-red-500 hover:underline text-xs font-medium">Удалить</button>
                   </td>
                 </tr>
               ))}
@@ -161,7 +223,32 @@ export function ExpertsPage() {
       {/* Модал: профиль эксперта */}
       <Modal isOpen={profileOpen} onClose={() => setProfileOpen(false)} title={`Профиль: ${editingUser?.lastName} ${editingUser?.firstName}`}>
         <div className="space-y-4">
+          {/* ФИО */}
           <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Личные данные</p>
+            <div className="grid grid-cols-3 gap-3">
+              {([['lastName', 'Фамилия'], ['firstName', 'Имя'], ['middleName', 'Отчество']] as [keyof typeof profileBasic, string][]).map(([key, label]) => (
+                <div key={key}>
+                  <label className="block text-xs text-gray-500 mb-1">{label}</label>
+                  <input type="text" value={profileBasic[key]} onChange={e => setProfileBasic(f => ({ ...f, [key]: e.target.value }))} className="input" />
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* ВУЗ и пр. */}
+          <div>
+            <div className="grid grid-cols-2 gap-3">
+              {([['university', 'ВУЗ'], ['faculty', 'Факультет'], ['department', 'Кафедра'], ['city', 'Город']] as [keyof typeof profileBasic, string][]).map(([key, label]) => (
+                <div key={key}>
+                  <label className="block text-xs text-gray-500 mb-1">{label}</label>
+                  <input type="text" value={profileBasic[key]} onChange={e => setProfileBasic(f => ({ ...f, [key]: e.target.value }))} className="input" />
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Фото */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Профиль эксперта</p>
             <label className="block text-sm font-medium text-gray-700 mb-1">Фото</label>
             <div className="flex gap-2 items-start">
               {profileForm.avatarUrl && (
@@ -193,6 +280,71 @@ export function ExpertsPage() {
             <button onClick={() => setProfileOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Отмена</button>
             <button onClick={handleSaveProfile} disabled={saving} className="px-4 py-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-accent-foreground text-sm font-semibold rounded-lg transition-colors">
               {saving ? 'Сохраняем...' : 'Сохранить'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Модал: создать эксперта */}
+      <Modal isOpen={createOpen} onClose={() => setCreateOpen(false)} title="Зарегистрировать эксперта">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+              <input type="email" value={createForm.email} onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))} className="input" placeholder="expert@university.ru" autoComplete="off" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Пароль * (мин. 8 символов)</label>
+              <input type="password" value={createForm.password} onChange={e => setCreateForm(f => ({ ...f, password: e.target.value }))} className="input" autoComplete="new-password" />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {([['lastName', 'Фамилия *'], ['firstName', 'Имя *'], ['middleName', 'Отчество']] as [keyof typeof createForm, string][]).map(([key, label]) => (
+              <div key={key}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                <input type="text" value={createForm[key]} onChange={e => setCreateForm(f => ({ ...f, [key]: e.target.value }))} className="input" />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {([['university', 'ВУЗ'], ['faculty', 'Факультет'], ['department', 'Кафедра'], ['city', 'Город'], ['phone', 'Телефон']] as [keyof typeof createForm, string][]).map(([key, label]) => (
+              <div key={key}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                <input type="text" value={createForm[key]} onChange={e => setCreateForm(f => ({ ...f, [key]: e.target.value }))} className="input" />
+              </div>
+            ))}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Должность / звание</label>
+            <input type="text" value={createForm.position} onChange={e => setCreateForm(f => ({ ...f, position: e.target.value }))} className="input" placeholder="Например: к.э.н., доцент кафедры менеджмента" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Биография</label>
+            <textarea rows={2} value={createForm.bio} onChange={e => setCreateForm(f => ({ ...f, bio: e.target.value }))} className="input" placeholder="Краткая биография (необязательно)" />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button onClick={() => setCreateOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Отмена</button>
+            <button onClick={handleCreate} disabled={creating} className="px-4 py-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-accent-foreground text-sm font-semibold rounded-lg transition-colors">
+              {creating ? 'Создаём...' : 'Зарегистрировать'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Модал: подтверждение удаления */}
+      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Удалить аккаунт эксперта">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-700">
+            Вы уверены, что хотите удалить аккаунт эксперта{' '}
+            <span className="font-semibold">{deleteTarget?.lastName} {deleteTarget?.firstName} {deleteTarget?.middleName ?? ''}</span>?
+          </p>
+          <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+            Это действие необратимо. Все данные аккаунта будут удалены.
+          </p>
+          <div className="flex justify-end gap-3 pt-1">
+            <button onClick={() => setDeleteTarget(null)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Отмена</button>
+            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors">
+              {deleting ? 'Удаляем...' : 'Удалить'}
             </button>
           </div>
         </div>

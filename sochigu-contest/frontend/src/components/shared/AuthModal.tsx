@@ -300,18 +300,8 @@ export function AuthModal() {
   }, [closeAuthModal]);
 
   useEffect(() => {
-    if (authModal) {
-      const sw = window.innerWidth - document.documentElement.clientWidth;
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = `${sw}px`;
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    };
+    document.body.style.overflow = authModal ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
   }, [authModal]);
 
   return (

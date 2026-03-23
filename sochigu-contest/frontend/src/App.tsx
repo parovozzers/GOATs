@@ -85,7 +85,9 @@ export default function App() {
           <Route path="/admin/cms/documents" element={
             <RoleGuard roles={['admin', 'moderator']}><DocumentsManagePage /></RoleGuard>
           } />
-          <Route path="/admin/cms/winners" element={<WinnersManagePage />} />
+          <Route path="/admin/cms/winners" element={
+            <RoleGuard roles={['admin', 'moderator']}><WinnersManagePage /></RoleGuard>
+          } />
           <Route path="/admin/cms/nominations" element={
             <RoleGuard roles={['admin', 'moderator']}><NominationsManagePage /></RoleGuard>
           } />
