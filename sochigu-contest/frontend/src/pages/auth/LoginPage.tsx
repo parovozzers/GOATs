@@ -101,6 +101,11 @@ export function LoginPage() {
               Зарегистрироваться
             </Link>
           </p>
+          <p className="text-center mt-3">
+            <Link to="/" className="text-sm text-gray-400 hover:text-gray-600 hover:underline">
+              ← На главную
+            </Link>
+          </p>
         </div>
       </div>
     </main>

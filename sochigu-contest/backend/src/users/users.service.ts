@@ -40,6 +40,14 @@ export class UsersService {
       .getOne();
   }
 
+  findByVerificationToken(token: string) {
+    return this.repo
+      .createQueryBuilder('u')
+      .addSelect('u.emailVerificationToken')
+      .where('u.emailVerificationToken = :token', { token })
+      .getOne();
+  }
+
   create(data: Partial<User>) {
     return this.repo.save(this.repo.create(data));
   }

@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Nomination } from '../../nominations/entities/nomination.entity';
+import { Contest } from '../../contests/entities/contest.entity';
 
 @Entity('winners')
 export class Winner {
@@ -22,11 +23,18 @@ export class Winner {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column()
+  @Column({ nullable: true })
   year: number;
 
   @Column()
   place: number;
+
+  @ManyToOne(() => Contest, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'contest_id' })
+  contest: Contest;
+
+  @Column({ name: 'contest_id', nullable: true })
+  contestId: string;
 
   @ManyToOne(() => Nomination)
   @JoinColumn({ name: 'nomination_id' })

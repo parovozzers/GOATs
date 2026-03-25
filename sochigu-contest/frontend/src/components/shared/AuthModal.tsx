@@ -103,10 +103,9 @@ type RegisterForm = {
   consent: boolean;
 };
 
-function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
+function RegisterForm({ onSuccess, onRegistered }: { onSuccess: () => void; onRegistered: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
   const { register, handleSubmit, getValues, formState: { errors } } = useForm<RegisterForm>({ mode: 'onBlur' });
 
   const onSubmit = async (data: RegisterForm) => {
@@ -115,8 +114,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
     try {
       const { consent: _, course, confirmPassword: __, ...rest } = data;
       await authApi.register({ ...rest, course: course ? Number(course) : undefined });
-      onSuccess();
-      navigate('/cabinet', { replace: true });
+      onRegistered();
     } catch (err: any) {
       const raw = err?.response?.data?.message;
       const msg = Array.isArray(raw) ? raw[0] : typeof raw === 'string' ? raw : null;
@@ -254,6 +252,7 @@ export function AuthModal() {
   const { authModal, closeAuthModal, openAuthModal } = useUiStore();
   const [activeMode, setActiveMode] = useState<'login' | 'register'>('login');
   const [visible, setVisible] = useState(true);
+  const [justRegistered, setJustRegistered] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const prevAuthModal = useRef<typeof authModal>(null);
 
@@ -272,7 +271,7 @@ export function AuthModal() {
       // Модалка уже открыта — анимированный переход
       switchMode(authModal);
     }
-    if (!authModal) prevAuthModal.current = null;
+    if (!authModal) { prevAuthModal.current = null; setJustRegistered(false); }
     else prevAuthModal.current = authModal;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authModal]);
@@ -364,8 +363,22 @@ export function AuthModal() {
               transition={{ duration: 0.2 }}
             >
               {displayMode === 'login'
-                ? <LoginForm onSuccess={closeAuthModal} />
-                : <RegisterForm onSuccess={closeAuthModal} />
+                ? <>
+                    {justRegistered && (
+                      <div className="mx-6 mt-4 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
+                        Регистрация успешна! Войдите в систему.
+                      </div>
+                    )}
+                    <LoginForm onSuccess={() => { setJustRegistered(false); closeAuthModal(); }} />
+                  </>
+                : <RegisterForm
+                    onSuccess={closeAuthModal}
+                    onRegistered={() => {
+                      setJustRegistered(true);
+                      switchMode('login');
+                      openAuthModal('login');
+                    }}
+                  />
               }
             </motion.div>
           </motion.div>

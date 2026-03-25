@@ -3,7 +3,9 @@ import {
   Logger,
   UnauthorizedException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -28,10 +30,34 @@ export class AuthService {
     if (existing) throw new ConflictException('Email уже зарегистрирован');
 
     const hashed = await bcrypt.hash(dto.password, 10);
-    const user = await this.usersService.create({ ...dto, password: hashed });
-    this.mailService.sendWelcome({ email: user.email, firstName: user.firstName })
-      .catch(err => this.logger.warn(`Welcome email failed: ${err.message}`));
-    return this.generateTokens(user);
+
+    if (!this.mailService.isReady) {
+      await this.usersService.create({
+        ...dto,
+        password: hashed,
+        isEmailVerified: true,
+        emailVerificationToken: null,
+      });
+      return { message: 'Регистрация успешна. Войдите в систему.' };
+    }
+
+    const token = randomBytes(32).toString('hex');
+    const user = await this.usersService.create({
+      ...dto,
+      password: hashed,
+      isEmailVerified: false,
+      emailVerificationToken: token,
+    });
+    this.mailService.sendEmailVerification({ email: user.email, firstName: user.firstName }, token)
+      .catch(err => this.logger.warn(`Verification email failed: ${err.message}`));
+    return { message: 'Письмо с подтверждением отправлено на ваш email' };
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.usersService.findByVerificationToken(token);
+    if (!user) throw new BadRequestException('Неверная или устаревшая ссылка подтверждения');
+    await this.usersService.update(user.id, { isEmailVerified: true, emailVerificationToken: null });
+    return { message: 'Email подтверждён. Теперь вы можете войти в систему.' };
   }
 
   async login(dto: LoginDto) {
@@ -42,6 +68,7 @@ export class AuthService {
     if (!valid) throw new UnauthorizedException('Неверный email или пароль');
 
     if (!user.isActive) throw new UnauthorizedException('Аккаунт заблокирован');
+    if (!user.isEmailVerified) throw new UnauthorizedException('Подтвердите email. Письмо было отправлено при регистрации.');
 
     return this.generateTokens(user);
   }

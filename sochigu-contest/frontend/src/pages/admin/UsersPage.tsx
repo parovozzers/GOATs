@@ -19,7 +19,7 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 function formatDate(str: string) {
-  return new Date(str).toLocaleDateString('ru-RU');
+  return new Date(str).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' });
 }
 
 function TableSkeleton() {

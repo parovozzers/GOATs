@@ -6,7 +6,7 @@ import { Application, AnalyticsSummary } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 
 function formatDate(str: string) {
-  return new Date(str).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(str).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Moscow' });
 }
 
 export function AdminDashboardPage() {

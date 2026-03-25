@@ -6,9 +6,10 @@ import { Application } from './entities/application.entity';
 import { ApplicationLog } from './entities/application-log.entity';
 import { MailModule } from '../mail/mail.module';
 import { FilesModule } from '../files/files.module';
+import { ContestsModule } from '../contests/contests.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Application, ApplicationLog]), MailModule, FilesModule],
+  imports: [TypeOrmModule.forFeature([Application, ApplicationLog]), MailModule, FilesModule, ContestsModule],
   controllers: [ApplicationsController],
   providers: [ApplicationsService],
   exports: [ApplicationsService],

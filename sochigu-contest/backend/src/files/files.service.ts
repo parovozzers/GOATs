@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppFile } from './entities/file.entity';
@@ -18,6 +18,11 @@ export class FilesService {
     file: Express.Multer.File,
     category: FileCategory,
   ) {
+    const MAX_FILES_TOTAL = 6;
+    const existing = await this.repo.count({ where: { applicationId } });
+    if (existing >= MAX_FILES_TOTAL) {
+      throw new BadRequestException(`Максимум ${MAX_FILES_TOTAL} файлов на одну заявку`);
+    }
     const entity = this.repo.create({
       applicationId,
       originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),

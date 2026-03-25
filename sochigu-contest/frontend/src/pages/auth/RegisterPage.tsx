@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { authApi } from '@/api/auth';
 
@@ -22,7 +22,10 @@ export function RegisterPage() {
   useEffect(() => { document.title = 'Регистрация — Конкурс СочиГУ'; }, []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [registered, setRegistered] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [requiresEmailVerification, setRequiresEmailVerification] = useState(true);
+
 
   const {
     register,
@@ -36,8 +39,10 @@ export function RegisterPage() {
     setLoading(true);
     try {
       const { consent, course, confirmPassword: _, ...rest } = data;
-      await authApi.register({ ...rest, course: course ? Number(course) : undefined });
-      navigate('/cabinet', { replace: true });
+      const res = await authApi.register({ ...rest, course: course ? Number(course) : undefined });
+      setRequiresEmailVerification(!res.message?.includes('Войдите'));
+      setRegisteredEmail(data.email);
+      setRegistered(true);
     } catch (err: any) {
       const raw = err?.response?.data?.message;
       const msg = Array.isArray(raw) ? raw[0] : typeof raw === 'string' ? raw : null;
@@ -46,6 +51,46 @@ export function RegisterPage() {
       setLoading(false);
     }
   };
+
+  if (registered) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+            {requiresEmailVerification ? (
+              <>
+                <div className="text-5xl mb-4">📬</div>
+                <h1 className="text-2xl font-bold text-primary-900 mb-3">Проверьте почту</h1>
+                <p className="text-gray-600 mb-2">
+                  Письмо с ссылкой подтверждения отправлено на:
+                </p>
+                <p className="font-semibold text-primary-800 mb-6 break-all">{registeredEmail}</p>
+                <p className="text-gray-500 text-sm mb-6">
+                  Перейдите по ссылке в письме, чтобы завершить регистрацию и войти в систему.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-5xl mb-4">✅</div>
+                <h1 className="text-2xl font-bold text-primary-900 mb-3">Регистрация успешна!</h1>
+                <p className="text-gray-600 mb-6">
+                  Вы зарегистрированы как <span className="font-semibold">{registeredEmail}</span>. Войдите в систему.
+                </p>
+              </>
+            )}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link to="/login" className="inline-block px-6 py-2 bg-primary hover:bg-primary-mid text-white font-semibold rounded-lg transition-colors text-sm">
+                Войти
+              </Link>
+              <Link to="/" className="inline-block px-6 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-colors text-sm">
+                На главную
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
@@ -278,6 +323,11 @@ export function RegisterPage() {
             Уже есть аккаунт?{' '}
             <Link to="/login" className="text-primary-600 hover:underline font-medium">
               Войти
+            </Link>
+          </p>
+          <p className="text-center mt-3">
+            <Link to="/" className="text-sm text-gray-400 hover:text-gray-600 hover:underline">
+              ← На главную
             </Link>
           </p>
         </div>

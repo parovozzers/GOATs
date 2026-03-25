@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -12,37 +12,37 @@ export class AnalyticsController {
   constructor(private analyticsService: AnalyticsService) {}
 
   @Get('summary')
-  getSummary() {
-    return this.analyticsService.getSummary();
+  getSummary(@Query('contestId') contestId?: string) {
+    return this.analyticsService.getSummary(contestId);
   }
 
   @Get('by-nomination')
-  getByNomination() {
-    return this.analyticsService.getByNomination();
+  getByNomination(@Query('contestId') contestId?: string) {
+    return this.analyticsService.getByNomination(contestId);
   }
 
   @Get('timeline')
-  getTimeline() {
-    return this.analyticsService.getTimeline();
+  getTimeline(@Query('contestId') contestId?: string) {
+    return this.analyticsService.getTimeline(contestId);
   }
 
   @Get('geography')
-  getGeography() {
-    return this.analyticsService.getGeography();
+  getGeography(@Query('contestId') contestId?: string) {
+    return this.analyticsService.getGeography(contestId);
   }
 
   @Get('keywords')
-  getKeywords() {
-    return this.analyticsService.getKeywords();
+  getKeywords(@Query('contestId') contestId?: string) {
+    return this.analyticsService.getKeywords(contestId);
   }
 
   @Get('by-status')
-  getByStatus() {
-    return this.analyticsService.getByStatus();
+  getByStatus(@Query('contestId') contestId?: string) {
+    return this.analyticsService.getByStatus(contestId);
   }
 
   @Get('activity')
-  getActivity() {
-    return this.analyticsService.getActivity();
+  getActivity(@Query('contestId') contestId?: string) {
+    return this.analyticsService.getActivity(contestId);
   }
 }

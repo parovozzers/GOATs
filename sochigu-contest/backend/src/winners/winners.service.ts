@@ -7,11 +7,15 @@ import { Winner } from './entities/winner.entity';
 export class WinnersService {
   constructor(@InjectRepository(Winner) private repo: Repository<Winner>) {}
 
-  findAll(filters?: { year?: number; nominationId?: string }) {
-    const qb = this.repo.createQueryBuilder('w').leftJoinAndSelect('w.nomination', 'n');
-    if (filters?.year) qb.andWhere('w.year = :year', { year: filters.year });
+  findAll(filters?: { year?: number; nominationId?: string; contestId?: string }) {
+    const qb = this.repo
+      .createQueryBuilder('w')
+      .leftJoinAndSelect('w.nomination', 'n')
+      .leftJoinAndSelect('w.contest', 'c');
+    if (filters?.contestId) qb.andWhere('w.contestId = :cid', { cid: filters.contestId });
+    else if (filters?.year) qb.andWhere('w.year = :year', { year: filters.year });
     if (filters?.nominationId) qb.andWhere('n.id = :nid', { nid: filters.nominationId });
-    return qb.orderBy('w.year', 'DESC').addOrderBy('w.place', 'ASC').getMany();
+    return qb.orderBy('w.place', 'ASC').getMany();
   }
 
   getYears() {
@@ -19,6 +23,19 @@ export class WinnersService {
       .createQueryBuilder('w')
       .select('DISTINCT w.year', 'year')
       .orderBy('w.year', 'DESC')
+      .getRawMany();
+  }
+
+  getContests() {
+    return this.repo
+      .createQueryBuilder('w')
+      .select('DISTINCT c.id', 'id')
+      .addSelect('c.name', 'name')
+      .addSelect('c.startDate', 'startDate')
+      .addSelect('c.endDate', 'endDate')
+      .leftJoin('w.contest', 'c')
+      .where('c.id IS NOT NULL')
+      .orderBy('c.startDate', 'DESC')
       .getRawMany();
   }
 

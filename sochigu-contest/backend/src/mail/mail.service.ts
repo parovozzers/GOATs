@@ -24,6 +24,10 @@ export class MailService {
     }
   }
 
+  get isReady(): boolean {
+    return this.transporter !== null;
+  }
+
   async sendWelcome(user: { email: string; firstName: string }) {
     if (!this.transporter) return;
     await this.transporter.sendMail({
@@ -36,6 +40,26 @@ export class MailService {
         <p>Теперь вы можете подать заявку на участие в конкурсе.</p>
         <p><a href="${this.configService.get('FRONTEND_URL')}/cabinet">Перейти в личный кабинет</a></p>
         <p>Организатор — Стартап-студия СочиГУ</p>
+      `,
+    });
+  }
+
+  async sendEmailVerification(user: { email: string; firstName: string }, token: string) {
+    if (!this.transporter) return;
+    const url = `${this.configService.get('FRONTEND_URL')}/verify-email?token=${token}`;
+    await this.transporter.sendMail({
+      from: `"Конкурс СочиГУ" <${this.configService.get('SMTP_USER')}>`,
+      to: user.email,
+      subject: 'Подтвердите ваш email — Конкурс СочиГУ',
+      html: `
+        <h2>Здравствуйте, ${user.firstName}!</h2>
+        <p>Для завершения регистрации подтвердите ваш email:</p>
+        <p>
+          <a href="${url}" style="display:inline-block;padding:12px 24px;background:#6C464F;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">
+            Подтвердить email
+          </a>
+        </p>
+        <p style="color:#999;font-size:12px;">Ссылка действительна 24 часа. Если вы не регистрировались — проигнорируйте это письмо.</p>
       `,
     });
   }

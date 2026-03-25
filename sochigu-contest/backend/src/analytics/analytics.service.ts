@@ -14,21 +14,22 @@ export class AnalyticsService {
     @InjectRepository(ApplicationLog) private logRepo: Repository<ApplicationLog>,
   ) {}
 
-  async getSummary() {
+  async getSummary(contestId?: string) {
     const weekAgo = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
 
-    const [totalApplications, totalUsers, newThisWeek, underReview] = await Promise.all([
-      this.appRepo.count(),
-      this.userRepo.count({ where: { role: Role.PARTICIPANT } }),
-      this.appRepo
-        .createQueryBuilder('a')
-        .where('a.submittedAt >= :since', { since: weekAgo })
-        .getCount(),
-      this.appRepo
-        .createQueryBuilder('a')
-        .where('a.status = :status', { status: 'submitted' })
-        .getCount(),
+    const baseQb = () => {
+      const qb = this.appRepo.createQueryBuilder('a');
+      if (contestId) qb.where('a.contestId = :cid', { cid: contestId });
+      return qb;
+    };
+
+    const [totalApplications, newThisWeek, underReview] = await Promise.all([
+      baseQb().getCount(),
+      baseQb().andWhere('a.submittedAt >= :since', { since: weekAgo }).getCount(),
+      baseQb().andWhere('a.status = :status', { status: 'submitted' }).getCount(),
     ]);
+
+    const totalUsers = await this.userRepo.count({ where: { role: Role.PARTICIPANT } });
 
     const universities = await this.userRepo
       .createQueryBuilder('u')
@@ -36,12 +37,16 @@ export class AnalyticsService {
       .where("u.university IS NOT NULL AND u.university != '' AND u.role = :role", { role: Role.PARTICIPANT })
       .getRawOne();
 
+    const teamStatsQb = contestId
+      ? `WHERE "teamMembers" IS NOT NULL AND jsonb_array_length("teamMembers") >= 1 AND contest_id = '${contestId}'`
+      : `WHERE "teamMembers" IS NOT NULL AND jsonb_array_length("teamMembers") >= 1`;
+
     const teamStats = await this.appRepo.manager.query(`
       SELECT
         COUNT(DISTINCT user_id)::int AS team_applications,
         COALESCE(ROUND(AVG(jsonb_array_length("teamMembers")) FILTER (WHERE jsonb_array_length(COALESCE("teamMembers", '[]'::jsonb)) >= 1)::numeric, 1), 0)::float AS avg_team_size
       FROM applications
-      WHERE "teamMembers" IS NOT NULL AND jsonb_array_length("teamMembers") >= 1
+      ${teamStatsQb}
     `);
 
     return {
@@ -55,18 +60,19 @@ export class AnalyticsService {
     };
   }
 
-  async getByStatus() {
-    const rows = await this.appRepo
+  async getByStatus(contestId?: string) {
+    const qb = this.appRepo
       .createQueryBuilder('a')
       .select('a.status', 'status')
       .addSelect('COUNT(a.id)', 'count')
-      .groupBy('a.status')
-      .getRawMany();
+      .groupBy('a.status');
+    if (contestId) qb.where('a.contestId = :cid', { cid: contestId });
+    const rows = await qb.getRawMany();
     return rows.map(r => ({ status: r.status, count: Number(r.count) }));
   }
 
-  async getActivity() {
-    const rows = await this.logRepo
+  async getActivity(contestId?: string) {
+    const qb = this.logRepo
       .createQueryBuilder('al')
       .leftJoin('al.application', 'a')
       .leftJoin('al.changedBy', 'u')
@@ -80,8 +86,9 @@ export class AnalyticsService {
       .addSelect('u.lastName', 'lastName')
       .addSelect('n.name', 'nominationName')
       .orderBy('al.createdAt', 'DESC')
-      .limit(20)
-      .getRawMany();
+      .limit(20);
+    if (contestId) qb.where('a.contestId = :cid', { cid: contestId });
+    const rows = await qb.getRawMany();
 
     return rows.map(r => ({
       id: r.id,
@@ -94,49 +101,59 @@ export class AnalyticsService {
     }));
   }
 
-  async getByNomination() {
-    const rows = await this.appRepo
+  async getByNomination(contestId?: string) {
+    const qb = this.appRepo
       .createQueryBuilder('a')
       .leftJoin('a.nomination', 'n')
       .select('n.name', 'nomination')
       .addSelect('COUNT(a.id)', 'count')
       .where('a.nominationId IS NOT NULL')
       .groupBy('n.name')
-      .orderBy('count', 'DESC')
-      .getRawMany();
+      .orderBy('count', 'DESC');
+    if (contestId) qb.andWhere('a.contestId = :cid', { cid: contestId });
+    const rows = await qb.getRawMany();
     return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
 
-  async getTimeline() {
-    const rows = await this.appRepo
+  async getTimeline(contestId?: string) {
+    const qb = this.appRepo
       .createQueryBuilder('a')
       .select("DATE_TRUNC('day', a.submittedAt)", 'date')
       .addSelect('COUNT(a.id)', 'count')
       .where('a.submittedAt IS NOT NULL')
       .groupBy("DATE_TRUNC('day', a.submittedAt)")
-      .orderBy('date', 'ASC')
-      .getRawMany();
+      .orderBy('date', 'ASC');
+    if (contestId) qb.andWhere('a.contestId = :cid', { cid: contestId });
+    const rows = await qb.getRawMany();
     return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
 
-  async getGeography() {
-    const rows = await this.userRepo
+  async getGeography(contestId?: string) {
+    const qb = this.userRepo
       .createQueryBuilder('u')
       .select('u.city', 'city')
       .addSelect('COUNT(u.id)', 'count')
       .where('u.city IS NOT NULL AND u.role = :role', { role: Role.PARTICIPANT })
       .groupBy('u.city')
-      .orderBy('count', 'DESC')
-      .getRawMany();
+      .orderBy('count', 'DESC');
+    if (contestId) {
+      qb.andWhere(
+        `u.id IN (SELECT a.user_id FROM applications a WHERE a.contest_id = :cid)`,
+        { cid: contestId },
+      );
+    }
+    const rows = await qb.getRawMany();
     return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
 
-  async getKeywords() {
+  async getKeywords(contestId?: string) {
+    const contestFilter = contestId ? `AND a.contest_id = '${contestId}'` : '';
     const rows = await this.appRepo.manager.query(`
       SELECT TRIM(keyword) AS keyword, COUNT(*) AS count
       FROM applications a,
       UNNEST(STRING_TO_ARRAY(a.keywords, ',')) AS keyword
       WHERE a.keywords IS NOT NULL AND a.keywords != '' AND TRIM(keyword) != ''
+      ${contestFilter}
       GROUP BY TRIM(keyword)
       ORDER BY count DESC
       LIMIT 50

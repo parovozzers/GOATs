@@ -19,7 +19,7 @@ import { Application } from '../applications/entities/application.entity';
           cb(null, `${uuid()}${extname(file.originalname)}`);
         },
       }),
-      limits: { fileSize: 50 * 1024 * 1024 },
+      limits: { fileSize: 6 * 1024 * 1024 },
       fileFilter: (_, file, cb) => {
         const allowedExts = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.zip', '.rar', '.jpg', '.jpeg', '.png'];
         const allowedMimes = [

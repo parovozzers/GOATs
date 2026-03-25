@@ -67,6 +67,12 @@ export class User {
   @Column({ default: false })
   isExpertVisible: boolean;
 
+  @Column({ default: false })
+  isEmailVerified: boolean;
+
+  @Column({ nullable: true, select: false })
+  emailVerificationToken: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

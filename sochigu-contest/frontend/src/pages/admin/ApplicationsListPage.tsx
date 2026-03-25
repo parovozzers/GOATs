@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { applicationsApi } from '@/api/applications';
 import { nominationsApi } from '@/api/nominations';
-import { Application, Nomination, ApplicationStatus, APPLICATION_STATUS_LABELS } from '@/types';
+import { contestsApi } from '@/api/contests';
+import { Application, Nomination, Contest, ApplicationStatus, APPLICATION_STATUS_LABELS } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 
 const LIMIT = 20;
 const STATUSES: ApplicationStatus[] = ['draft','submitted','accepted','rejected','admitted','winner','runner_up'];
 
-function formatDate(str: string) { return new Date(str).toLocaleDateString('ru-RU'); }
+function formatDate(str: string) { return new Date(str).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' }); }
 
 function TableSkeleton() {
   return (
@@ -31,7 +32,9 @@ export function ApplicationsListPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [nominations, setNominations] = useState<Nomination[]>([]);
+  const [contests, setContests] = useState<Contest[]>([]);
   const [nominationId, setNominationId] = useState('');
+  const [contestId, setContestId] = useState('');
   const [status, setStatus] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
@@ -40,19 +43,22 @@ export function ApplicationsListPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const uniTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  useEffect(() => { nominationsApi.getAll().then(setNominations); }, []);
+  useEffect(() => {
+    nominationsApi.getAll().then(setNominations);
+    contestsApi.getAll().then(setContests);
+  }, []);
   useEffect(() => () => { clearTimeout(timerRef.current); clearTimeout(uniTimerRef.current); }, []);
 
   useEffect(() => {
     setLoading(true);
-    applicationsApi.getAll({ nominationId: nominationId||undefined, status: status||undefined, search: search||undefined, university: university||undefined, page, limit: LIMIT })
+    applicationsApi.getAll({ nominationId: nominationId||undefined, status: status||undefined, search: search||undefined, university: university||undefined, contestId: contestId||undefined, page, limit: LIMIT })
       .then(data => {
         setApps(data.data);
         setTotal(data.total);
       }).finally(() => setLoading(false));
-  }, [nominationId, status, search, university, page]);
+  }, [nominationId, status, search, university, contestId, page]);
 
-  const reset = () => { setNominationId(''); setStatus(''); setSearchInput(''); setSearch(''); setUniversityInput(''); setUniversity(''); setPage(1); };
+  const reset = () => { setNominationId(''); setContestId(''); setStatus(''); setSearchInput(''); setSearch(''); setUniversityInput(''); setUniversity(''); setPage(1); };
 
   const handleExport = () => {
     applicationsApi.exportExcel({
@@ -72,6 +78,12 @@ export function ApplicationsListPage() {
         <button onClick={handleExport} className="px-4 py-2 bg-primary hover:bg-primary-mid text-white text-sm font-semibold rounded-lg transition-colors">Экспорт Excel</button>
       </div>
       <div className="flex flex-wrap gap-3 mb-6">
+        {contests.length > 0 && (
+          <select value={contestId} onChange={e => { setContestId(e.target.value); setPage(1); }} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+            <option value="">Все конкурсы</option>
+            {contests.map(c => <option key={c.id} value={c.id}>{c.name}{c.isActive ? ' ★' : ''}</option>)}
+          </select>
+        )}
         <select value={nominationId} onChange={e => { setNominationId(e.target.value); setPage(1); }} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
           <option value="">Все номинации</option>
           {nominations.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}

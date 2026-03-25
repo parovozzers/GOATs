@@ -25,13 +25,22 @@ export class WinnersController implements OnModuleInit {
   }
 
   @Get()
-  findAll(@Query('year') year?: number, @Query('nominationId') nominationId?: string) {
-    return this.winnersService.findAll({ year: year ? +year : undefined, nominationId });
+  findAll(
+    @Query('year') year?: number,
+    @Query('nominationId') nominationId?: string,
+    @Query('contestId') contestId?: string,
+  ) {
+    return this.winnersService.findAll({ year: year ? +year : undefined, nominationId, contestId });
   }
 
   @Get('years')
   getYears() {
     return this.winnersService.getYears();
+  }
+
+  @Get('contests')
+  getContests() {
+    return this.winnersService.getContests();
   }
 
   @Post('upload-photo')

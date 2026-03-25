@@ -15,6 +15,7 @@ import { WinnersModule } from './winners/winners.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { MailModule } from './mail/mail.module';
 import { ContactsModule } from './contacts/contacts.module';
+import { ContestsModule } from './contests/contests.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ContactsModule } from './contacts/contacts.module';
     AnalyticsModule,
     MailModule,
     ContactsModule,
+    ContestsModule,
   ],
 })
 export class AppModule {}

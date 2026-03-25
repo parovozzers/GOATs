@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { documentsApi } from '@/api/documents';
-import { Document } from '@/types';
+import { contestsApi } from '@/api/contests';
+import { Document, Contest } from '@/types';
 import { formatSize } from '@/utils/format';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
 
-const EMPTY_FORM = { title: '', category: '', isPublished: true };
+const EMPTY_FORM = { title: '', category: '', isPublished: true, contestId: '' };
 
 export function DocumentsManagePage() {
   useEffect(() => { document.title = 'Управление документами — Конкурс СочиГУ'; }, []);
   const [items, setItems] = useState<Document[]>([]);
+  const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Document | null>(null);
@@ -21,12 +23,15 @@ export function DocumentsManagePage() {
   const { showToast } = useToast();
 
   const load = () => { setLoading(true); documentsApi.getAllAdmin().then(setItems).finally(() => setLoading(false)); };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    contestsApi.getAll().then(setContests).catch(() => {});
+  }, []);
 
   const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setFile(null); setModalOpen(true); };
   const openEdit = (item: Document) => {
     setEditing(item);
-    setForm({ title: item.title, category: item.category ?? '', isPublished: item.isPublished });
+    setForm({ title: item.title, category: item.category ?? '', isPublished: item.isPublished, contestId: item.contestId ?? '' });
     setFile(null);
     setModalOpen(true);
   };
@@ -35,7 +40,7 @@ export function DocumentsManagePage() {
     setSaving(true);
     try {
       if (editing) {
-        await documentsApi.update(editing.id, { title: form.title, category: form.category, isPublished: form.isPublished });
+        await documentsApi.update(editing.id, { title: form.title, category: form.category, isPublished: form.isPublished, contestId: form.contestId || undefined });
         showToast('Обновлено', 'success');
       } else {
         if (!file) { showToast('Выберите файл', 'error'); setSaving(false); return; }
@@ -44,6 +49,7 @@ export function DocumentsManagePage() {
         fd.append('title', form.title);
         if (form.category) fd.append('category', form.category);
         fd.append('isPublished', String(form.isPublished));
+        if (form.contestId) fd.append('contestId', form.contestId);
         await documentsApi.create(fd);
         showToast('Документ загружен', 'success');
       }
@@ -133,6 +139,15 @@ export function DocumentsManagePage() {
             <input type="checkbox" checked={form.isPublished} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
             <span className="text-sm text-gray-700">Опубликовать</span>
           </label>
+          {contests.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Конкурс</label>
+              <select value={form.contestId} onChange={e => setForm(f => ({ ...f, contestId: e.target.value }))} className="w-full select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                <option value="">Не привязан</option>
+                {contests.map(c => <option key={c.id} value={c.id}>{c.name}{c.isActive ? ' ★' : ''}</option>)}
+              </select>
+            </div>
+          )}
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Отмена</button>
             <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-accent-foreground text-sm font-semibold rounded-lg transition-colors">

@@ -10,7 +10,7 @@
 
 import { execSync } from 'child_process';
 
-const BASE = 'http://localhost:3000/api';
+const BASE = 'http://localhost:3002/api';
 
 // ─── Хелперы ────────────────────────────────────────────────────────────────
 
