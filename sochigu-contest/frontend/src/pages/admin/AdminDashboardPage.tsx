@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { analyticsApi } from '@/api/analytics';
 import { applicationsApi } from '@/api/applications';
-import { Application, AnalyticsSummary } from '@/types';
+import { contestsApi } from '@/api/contests';
+import { Application, AnalyticsSummary, Contest } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 
 function formatDate(str: string) {
@@ -14,16 +15,27 @@ export function AdminDashboardPage() {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [recentApps, setRecentApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [contests, setContests] = useState<Contest[]>([]);
+  const [contestId, setContestId] = useState('');
 
   useEffect(() => {
+    contestsApi.getAll().then(list => {
+      setContests(list);
+      const active = list.find(c => c.isActive);
+      if (active) setContestId(active.id);
+    });
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
     Promise.all([
-      analyticsApi.getSummary(),
-      applicationsApi.getAll({ limit: 5, page: 1 }),
+      analyticsApi.getSummary(contestId || undefined),
+      applicationsApi.getAll({ limit: 5, page: 1, contestId: contestId || undefined }),
     ]).then(([s, apps]) => {
       setSummary(s);
       setRecentApps(apps.data);
     }).finally(() => setLoading(false));
-  }, []);
+  }, [contestId]);
 
   const kpi = summary
     ? [
@@ -41,7 +53,15 @@ export function AdminDashboardPage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-primary-900">Панель управления</h1>
+      <div className="flex items-center gap-4">
+        <h1 className="text-2xl font-bold text-primary-900">Панель управления</h1>
+        {contests.length > 0 && (
+          <select value={contestId} onChange={e => setContestId(e.target.value)} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+            <option value="">Все конкурсы</option>
+            {contests.map(c => <option key={c.id} value={c.id}>{c.name}{c.isActive ? ' ★' : ''}</option>)}
+          </select>
+        )}
+      </div>
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
