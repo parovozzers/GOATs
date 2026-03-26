@@ -29,12 +29,16 @@ export class WinnersService {
   getContests() {
     return this.repo
       .createQueryBuilder('w')
-      .select('DISTINCT c.id', 'id')
+      .select('c.id', 'id')
       .addSelect('c.name', 'name')
       .addSelect('c.startDate', 'startDate')
       .addSelect('c.endDate', 'endDate')
       .leftJoin('w.contest', 'c')
       .where('c.id IS NOT NULL')
+      .groupBy('c.id')
+      .addGroupBy('c.name')
+      .addGroupBy('c.startDate')
+      .addGroupBy('c.endDate')
       .orderBy('c.startDate', 'DESC')
       .getRawMany();
   }
