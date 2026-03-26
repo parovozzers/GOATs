@@ -40,6 +40,14 @@ export class UsersService {
       .getOne();
   }
 
+  findByIdWithRefreshToken(id: string) {
+    return this.repo
+      .createQueryBuilder('u')
+      .addSelect('u.refreshToken')
+      .where('u.id = :id', { id })
+      .getOne();
+  }
+
   findByVerificationToken(token: string) {
     return this.repo
       .createQueryBuilder('u')

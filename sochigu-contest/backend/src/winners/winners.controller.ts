@@ -78,7 +78,7 @@ export class WinnersController implements OnModuleInit {
     if (!safePath.startsWith(PHOTO_DIR + sep)) {
       throw new BadRequestException('Invalid filename');
     }
-    res.sendFile(safePath);
+    res.sendFile(safePath, err => { if (err) res.status(404).json({ statusCode: 404, message: 'Not found' }); });
   }
 
   @Post()
