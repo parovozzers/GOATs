@@ -1,18 +1,17 @@
-version: '3.9'
-
-# Полный Docker-запуск (prod-like).
-# Для локальной разработки используй: npm run dev (в sochigu-contest/)
+# Продакшн-запуск.
+# На сервере:
+#   cp backend/.env.prod.example backend/.env  # заполнить реальными значениями
+#   docker compose -f docker-compose.prod.yml up -d --build
 
 services:
   postgres:
     image: postgres:16-alpine
     container_name: sochigu_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: sochigu_contest
       POSTGRES_USER: sochigu
-      POSTGRES_PASSWORD: sochigu_pass
-    ports:
-      - '5432:5432'
+      POSTGRES_PASSWORD: ${DB_PASS}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -20,36 +19,35 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    # Postgres не светим наружу — только внутри docker-сети
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: sochigu_backend
+    restart: unless-stopped
     env_file: ./backend/.env
-    ports:
-      - '3000:3000'
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
-      - ./backend:/app
-      - /app/node_modules
       - uploads:/app/uploads
+    # Backend не светим наружу — nginx проксирует /api/
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: sochigu_frontend
+    restart: unless-stopped
     ports:
-      - '5173:5173'
+      - '8890:80'
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
 
 volumes:
   pgdata:
+    name: sochigu_pgdata
   uploads:
+    name: sochigu_uploads
