@@ -1,21 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { winnersApi } from '@/api/winners';
 import { nominationsApi } from '@/api/nominations';
-import { Winner, Nomination } from '@/types';
+import { contestsApi } from '@/api/contests';
+import { Winner, Nomination, Contest } from '@/types';
 import { placeMedal } from '@/utils/placeMedal';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
 
-const EMPTY = { projectTitle: '', teamName: '', description: '', year: new Date().getFullYear(), place: 1, nominationId: '', university: '', photoUrl: '' };
+const EMPTY = { projectTitle: '', teamName: '', description: '', year: new Date().getFullYear(), place: 1, nominationId: '', university: '', photoUrl: '', contestId: '' };
 
 export function WinnersManagePage() {
   useEffect(() => { document.title = 'Управление победителями — Конкурс СочиГУ'; }, []);
   const [items, setItems] = useState<Winner[]>([]);
   const [nominations, setNominations] = useState<Nomination[]>([]);
+  const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [yearFilter, setYearFilter] = useState('');
-  const [years, setYears] = useState<number[]>([]);
+  const [contestFilter, setContestFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Winner | null>(null);
   const [form, setForm] = useState(EMPTY);
@@ -46,19 +47,39 @@ export function WinnersManagePage() {
 
   useEffect(() => {
     nominationsApi.getAll().then(setNominations);
-    winnersApi.getYears().then(y => setYears(y.map(x => x.year)));
+    contestsApi.getAll().then(list => {
+      setContests(list);
+      const active = list.find(c => c.isActive);
+      if (active) setContestFilter(active.id);
+    });
   }, []);
 
   const load = useCallback(() => {
     setLoading(true);
-    winnersApi.getAll({ year: yearFilter ? Number(yearFilter) : undefined }).then(setItems).finally(() => setLoading(false));
-  }, [yearFilter]);
+    winnersApi.getAll({ contestId: contestFilter || undefined }).then(setItems).finally(() => setLoading(false));
+  }, [contestFilter]);
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => { setEditing(null); setForm(EMPTY); setPhotoError(''); setModalOpen(true); };
+  const openCreate = () => {
+    setEditing(null);
+    const active = contests.find(c => c.isActive);
+    setForm({ ...EMPTY, contestId: active?.id ?? '' });
+    setPhotoError('');
+    setModalOpen(true);
+  };
   const openEdit = (item: Winner) => {
     setEditing(item);
-    setForm({ projectTitle: item.projectTitle, teamName: item.teamName, description: item.description ?? '', year: item.year, place: item.place, nominationId: item.nominationId ?? '', university: item.university ?? '', photoUrl: item.photoUrl ?? '' });
+    setForm({
+      projectTitle: item.projectTitle,
+      teamName: item.teamName,
+      description: item.description ?? '',
+      year: item.year ?? new Date().getFullYear(),
+      place: item.place,
+      nominationId: item.nominationId ?? '',
+      university: item.university ?? '',
+      photoUrl: item.photoUrl ?? '',
+      contestId: item.contestId ?? '',
+    });
     setPhotoError('');
     setModalOpen(true);
   };
@@ -87,12 +108,14 @@ export function WinnersManagePage() {
         <button onClick={openCreate} className="px-4 py-2 bg-primary hover:bg-primary-mid text-white text-sm font-semibold rounded-lg transition-colors">+ Создать</button>
       </div>
 
-      <div className="mb-5">
-        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
-          <option value="">Все годы</option>
-          {years.map(y => <option key={y} value={y}>{y}</option>)}
-        </select>
-      </div>
+      {contests.length > 0 && (
+        <div className="mb-5">
+          <select value={contestFilter} onChange={e => setContestFilter(e.target.value)} className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+            <option value="">Все конкурсы</option>
+            {contests.map(c => <option key={c.id} value={c.id}>{c.name}{c.isActive ? ' (активный)' : ''}</option>)}
+          </select>
+        </div>
+      )}
 
       {loading ? <div className="flex justify-center py-12"><Spinner size="lg" /></div> : items.length === 0 ? (
         <p className="text-gray-500 text-center py-12">Победителей нет</p>
@@ -100,7 +123,7 @@ export function WinnersManagePage() {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-gray-400 text-xs uppercase border-b border-gray-100">
-              {['Место', 'Проект', 'Команда', 'Номинация', 'Год', 'Действия'].map(h => <th key={h} className="px-5 py-3 font-medium">{h}</th>)}
+              {['Место', 'Проект', 'Команда', 'Номинация', 'Конкурс', 'Действия'].map(h => <th key={h} className="px-5 py-3 font-medium">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-gray-50">
               {items.map(item => (
@@ -109,7 +132,7 @@ export function WinnersManagePage() {
                   <td className="px-5 py-3 font-medium text-gray-900 max-w-[180px] truncate">{item.projectTitle}</td>
                   <td className="px-5 py-3 text-gray-600">{item.teamName}</td>
                   <td className="px-5 py-3 text-gray-500">{(() => { const n = nominations.find(n => n.id === item.nominationId); return n?.shortName ?? n?.name ?? '—'; })()}</td>
-                  <td className="px-5 py-3 text-gray-400">{item.year}</td>
+                  <td className="px-5 py-3 text-gray-400 max-w-[150px] truncate">{item.contest?.name ?? (item.year ? String(item.year) : '—')}</td>
                   <td className="px-5 py-3 flex gap-2">
                     <button onClick={() => openEdit(item)} className="text-primary-700 hover:underline text-xs font-medium">Редактировать</button>
                     <button onClick={() => handleDelete(item)} className="text-red-500 hover:underline text-xs font-medium">Удалить</button>
@@ -131,8 +154,11 @@ export function WinnersManagePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Год *</label>
-              <input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: Number(e.target.value) }))} className="input" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Конкурс</label>
+              <select value={form.contestId} onChange={e => setForm(f => ({ ...f, contestId: e.target.value }))} className={selectIc}>
+                <option value="">Не привязан</option>
+                {contests.map(c => <option key={c.id} value={c.id}>{c.name}{c.isActive ? ' ★' : ''}</option>)}
+              </select>
             </div>
           </div>
           <div>

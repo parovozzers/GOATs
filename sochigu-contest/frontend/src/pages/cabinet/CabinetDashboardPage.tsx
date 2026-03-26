@@ -9,7 +9,7 @@ import { stagger, cardItem } from '@/utils/animations';
 import { usersApi } from '@/api/users';
 
 function formatDate(str: string) {
-  return new Date(str).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(str).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Moscow' });
 }
 
 export function CabinetDashboardPage() {

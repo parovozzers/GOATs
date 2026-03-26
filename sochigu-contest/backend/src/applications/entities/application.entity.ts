@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Nomination } from '../../nominations/entities/nomination.entity';
+import { Contest } from '../../contests/entities/contest.entity';
 import { ApplicationStatus } from '../../common/enums/application-status.enum';
 import { ApplicationLog } from './application-log.entity';
 import { AppFile } from '../../files/entities/file.entity';
@@ -72,6 +73,13 @@ export class Application {
 
   @Column({ nullable: true })
   submittedAt: Date | null;
+
+  @ManyToOne(() => Contest, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'contest_id' })
+  contest: Contest;
+
+  @Column({ name: 'contest_id', nullable: true })
+  contestId: string;
 
   @OneToMany(() => ApplicationLog, (log) => log.application)
   logs: ApplicationLog[];

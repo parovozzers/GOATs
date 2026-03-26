@@ -31,4 +31,8 @@ export class GetApplicationsDto {
   @Min(1)
   @Max(100)
   limit?: number;
+
+  @IsOptional()
+  @IsUUID()
+  contestId?: string;
 }

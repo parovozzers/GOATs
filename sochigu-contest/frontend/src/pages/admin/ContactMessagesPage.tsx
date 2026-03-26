@@ -11,7 +11,7 @@ function StatusBadge({ status }: { status: 'pending' | 'done' }) {
 }
 
 function formatDate(str: string) {
-  return new Date(str).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return new Date(str).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Moscow' });
 }
 
 export function ContactMessagesPage() {

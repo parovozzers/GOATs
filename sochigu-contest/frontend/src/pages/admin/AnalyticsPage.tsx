@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { analyticsApi } from '@/api/analytics';
+import { contestsApi } from '@/api/contests';
 import { contactsApi } from '@/api/contacts';
+import { Contest } from '@/types';
 import {
   AnalyticsSummary, AnalyticsByNomination, AnalyticsTimeline,
   AnalyticsGeography, AnalyticsByStatus, AnalyticsActivityItem,
@@ -58,7 +60,7 @@ function relativeTime(iso: string): string {
   if (min < 60) return `${min} мин назад`;
   const hours = Math.floor(min / 60);
   if (hours < 24) return `${hours} ч назад`;
-  return new Date(normalized).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+  return new Date(normalized).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', timeZone: 'Europe/Moscow' });
 }
 
 function safe(a: number, b: number): number {
@@ -125,14 +127,24 @@ export function AnalyticsPage() {
   const [retryKey,     setRetryKey]    = useState(0);
   const [showAll,         setShowAll]        = useState(false);
   const [pendingContacts, setPendingContacts] = useState(0);
+  const [contests,        setContests]        = useState<Contest[]>([]);
+  const [contestId,       setContestId]       = useState<string>('');
 
-  const fetchAll = () => Promise.all([
-    analyticsApi.getSummary(),
-    analyticsApi.getByNomination(),
-    analyticsApi.getTimeline(),
-    analyticsApi.getGeography(),
-    analyticsApi.getByStatus(),
-    analyticsApi.getActivity(),
+  useEffect(() => {
+    contestsApi.getAll().then(list => {
+      setContests(list);
+      const active = list.find(c => c.isActive);
+      if (active) setContestId(active.id);
+    }).catch(() => {});
+  }, []);
+
+  const fetchAll = (cid?: string) => Promise.all([
+    analyticsApi.getSummary(cid),
+    analyticsApi.getByNomination(cid),
+    analyticsApi.getTimeline(cid),
+    analyticsApi.getGeography(cid),
+    analyticsApi.getByStatus(cid),
+    analyticsApi.getActivity(cid),
     contactsApi.getAll('pending'),
   ]).then(([s, n, t, g, bs, a, contacts]) => {
     setSummary(s); setByNomination(n); setTimeline(t);
@@ -143,13 +155,14 @@ export function AnalyticsPage() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetchAll()
+    const cid = contestId || undefined;
+    fetchAll(cid)
       .catch(() => setError('Ошибка при загрузке аналитики'))
       .finally(() => setLoading(false));
 
-    const id = setInterval(() => { fetchAll().catch(() => {}); }, 15_000);
+    const id = setInterval(() => { fetchAll(cid).catch(() => {}); }, 15_000);
     return () => clearInterval(id);
-  }, [retryKey]);
+  }, [retryKey, contestId]);
 
   // ── Вспомогательные вычисления ──────────────────────────────────────────────
   const statusCount = (s: string | string[]): number => {
@@ -222,13 +235,27 @@ export function AnalyticsPage() {
     <div className="p-6 max-w-7xl mx-auto space-y-5 analytics-page">
 
       {/* Шапка */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold" style={{ color: C_MAIN }}>Аналитика конкурса</h1>
-        <button onClick={() => window.print()}
-          className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors analytics-no-print"
-          style={{ background: PALETTE[0] }}>
-          Экспорт PDF
-        </button>
+        <div className="flex items-center gap-3 analytics-no-print">
+          {contests.length > 0 && (
+            <select
+              value={contestId}
+              onChange={e => setContestId(e.target.value)}
+              className="select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+            >
+              <option value="">Все конкурсы</option>
+              {contests.map(c => (
+                <option key={c.id} value={c.id}>{c.name}{c.isActive ? ' (активный)' : ''}</option>
+              ))}
+            </select>
+          )}
+          <button onClick={() => window.print()}
+            className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors"
+            style={{ background: PALETTE[0] }}>
+            Экспорт PDF
+          </button>
+        </div>
       </div>
 
       {!integrityOk && (

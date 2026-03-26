@@ -1,5 +1,16 @@
 export type Role = 'participant' | 'expert' | 'moderator' | 'admin';
 
+export interface Contest {
+  id: string;
+  name: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type ApplicationStatus =
   | 'draft'
   | 'submitted'
@@ -28,6 +39,7 @@ export interface User {
   position?: string;
   bio?: string;
   isExpertVisible?: boolean;
+  isEmailVerified?: boolean;
 }
 
 export interface Nomination {
@@ -84,6 +96,8 @@ export interface Application {
   files?: AppFile[];
   logs?: ApplicationLog[];
   user?: User;
+  contestId?: string;
+  contest?: Contest;
   createdAt: string;
   updatedAt: string;
 }
@@ -97,6 +111,8 @@ export interface News {
   coverImage?: string;
   isPublished: boolean;
   publishedAt?: string;
+  contestId?: string;
+  contest?: Contest;
   createdAt: string;
 }
 
@@ -109,6 +125,8 @@ export interface Document {
   category?: string;
   isPublished: boolean;
   sortOrder: number;
+  contestId?: string;
+  contest?: Contest;
   createdAt: string;
   updatedAt: string;
 }
@@ -118,12 +136,14 @@ export interface Winner {
   projectTitle: string;
   teamName: string;
   description?: string;
-  year: number;
+  year?: number;
   place: number;
   nomination?: Nomination;
   nominationId: string;
   photoUrl?: string;
   university?: string;
+  contestId?: string;
+  contest?: Contest;
 }
 
 export interface AnalyticsSummary {

@@ -8,6 +8,9 @@ import { Nomination, AppFile, TeamMember, CreateApplicationDto } from '@/types';
 import { Spinner } from '@/components/shared/Spinner';
 import { Alert } from '@/components/ui/Alert';
 
+const MAX_FILE_SIZE_MB = 6;
+const MAX_FILES_PER_CATEGORY = 6;
+
 type Step = 1 | 2 | 3 | 4;
 
 const STEPS = ['Номинация', 'Описание и команда', 'Файлы', 'Подтверждение'];
@@ -370,16 +373,20 @@ export function ApplicationFormPage() {
             <h2 className="text-lg font-semibold text-foreground">{STEP_TITLES[2]}</h2>
             <FileUploadZone
               label="Файлы проекта"
-              hint="PDF, DOC, DOCX, PPT, ZIP, RAR"
+              hint={`PDF, DOC, DOCX, PPT, ZIP, RAR — до ${MAX_FILE_SIZE_MB} МБ`}
               accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
               category="project_file"
+              currentCount={uploadedFiles.length}
+              maxFiles={MAX_FILES_PER_CATEGORY}
               onUpload={handleFileUpload}
             />
             <FileUploadZone
               label="Сканы документов"
-              hint="PDF, JPG, PNG"
+              hint={`PDF, JPG, PNG — до ${MAX_FILE_SIZE_MB} МБ`}
               accept=".pdf,.jpg,.jpeg,.png"
               category="document_scan"
+              currentCount={uploadedFiles.length}
+              maxFiles={MAX_FILES_PER_CATEGORY}
               onUpload={handleFileUpload}
             />
             {uploadedFiles.length > 0 && (
@@ -491,19 +498,34 @@ export function ApplicationFormPage() {
   );
 }
 
-function FileUploadZone({ label, hint, accept, category, onUpload }: {
+function FileUploadZone({ label, hint, accept, category, currentCount, maxFiles, onUpload }: {
   label: string;
   hint: string;
   accept: string;
   category: string;
+  currentCount: number;
+  maxFiles: number;
   onUpload: (file: File, category: string) => Promise<void>;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const ref = useRef<HTMLInputElement>(null);
+  const isFull = currentCount >= maxFiles;
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setError(null);
+    if (currentCount >= maxFiles) {
+      setError(`Достигнут лимит: максимум ${maxFiles} файлов в категории.`);
+      if (ref.current) ref.current.value = '';
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      setError(`Файл слишком большой. Максимум ${MAX_FILE_SIZE_MB} МБ.`);
+      if (ref.current) ref.current.value = '';
+      return;
+    }
     setUploading(true);
     try { await onUpload(file, category); } finally {
       setUploading(false);
@@ -515,19 +537,22 @@ function FileUploadZone({ label, hint, accept, category, onUpload }: {
     <div>
       <p className="mb-2 text-sm font-medium text-foreground">{label}</p>
       <div
-        onClick={() => ref.current?.click()}
-        className="cursor-pointer rounded-xl border-2 border-dashed border-border p-6 text-center transition-colors hover:border-primary"
+        onClick={() => !isFull && ref.current?.click()}
+        className={`rounded-xl border-2 border-dashed border-border p-6 text-center transition-colors ${isFull ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-primary'}`}
       >
         {uploading ? (
           <div className="flex justify-center"><Spinner /></div>
+        ) : isFull ? (
+          <p className="text-sm text-muted-foreground">Достигнут лимит ({currentCount}/{maxFiles})</p>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground">Нажмите для выбора файла</p>
+            <p className="text-sm text-muted-foreground">Нажмите для выбора файла ({currentCount}/{maxFiles})</p>
             <p className="mt-1 text-xs text-muted-foreground/60">{hint}</p>
           </>
         )}
       </div>
-      <input ref={ref} type="file" accept={accept} onChange={handleChange} className="hidden" />
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+      <input ref={ref} type="file" accept={accept} onChange={handleChange} className="hidden" disabled={isFull} />
     </div>
   );
 }

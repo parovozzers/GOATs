@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Query, Body, UseGuards, Req, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -23,6 +23,11 @@ export class AuthController {
   @Post('refresh')
   refresh(@Body() body: { userId: string; refreshToken: string }) {
     return this.authService.refresh(body.userId, body.refreshToken);
+  }
+
+  @Get('verify-email')
+  verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
   }
 
   @Post('logout')

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { newsApi } from '@/api/news';
-import { News } from '@/types';
+import { contestsApi } from '@/api/contests';
+import { News, Contest } from '@/types';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
 import { Spinner } from '@/components/shared/Spinner';
@@ -22,13 +23,15 @@ interface FormData {
   content: string;
   coverImage: string;
   isPublished: boolean;
+  contestId: string;
 }
 
-const EMPTY: FormData = { title: '', slug: '', excerpt: '', content: '', coverImage: '', isPublished: false };
+const EMPTY: FormData = { title: '', slug: '', excerpt: '', content: '', coverImage: '', isPublished: false, contestId: '' };
 
 export function NewsManagePage() {
   useEffect(() => { document.title = 'Управление новостями — Конкурс СочиГУ'; }, []);
   const [news, setNews] = useState<News[]>([]);
+  const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<News | null>(null);
@@ -37,6 +40,8 @@ export function NewsManagePage() {
   const { showToast } = useToast();
 
   const { register, handleSubmit, watch, setValue, reset, formState: { isSubmitting } } = useForm<FormData>();
+
+  useEffect(() => { contestsApi.getAll().then(setContests).catch(() => {}); }, []);
 
   const load = () => {
     setLoading(true);
@@ -73,7 +78,7 @@ export function NewsManagePage() {
   const openCreate = () => { setEditing(null); reset(EMPTY); setPhotoError(''); setModalOpen(true); };
   const openEdit = (item: News) => {
     setEditing(item);
-    reset({ title: item.title, slug: item.slug, excerpt: item.excerpt ?? '', content: item.content, coverImage: item.coverImage ?? '', isPublished: item.isPublished });
+    reset({ title: item.title, slug: item.slug, excerpt: item.excerpt ?? '', content: item.content, coverImage: item.coverImage ?? '', isPublished: item.isPublished, contestId: item.contestId ?? '' });
     setPhotoError('');
     setModalOpen(true);
   };
@@ -125,7 +130,7 @@ export function NewsManagePage() {
                       {item.isPublished ? 'Опубликована' : 'Черновик'}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-gray-400">{new Date(item.createdAt).toLocaleDateString('ru-RU')}</td>
+                  <td className="px-5 py-3 text-gray-400">{new Date(item.createdAt).toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' })}</td>
                   <td className="px-5 py-3 flex gap-2 flex-wrap">
                     <button onClick={() => openEdit(item)} className="text-primary-700 hover:underline text-xs font-medium">Редактировать</button>
                     <button onClick={() => handleTogglePublish(item)} className="text-blue-600 hover:underline text-xs font-medium">{item.isPublished ? 'Снять' : 'Опубликовать'}</button>
@@ -176,6 +181,15 @@ export function NewsManagePage() {
             <input type="checkbox" {...register('isPublished')} className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
             <span className="text-sm text-gray-700">Опубликовать сразу</span>
           </label>
+          {contests.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Конкурс</label>
+              <select {...register('contestId')} className="w-full select-custom pl-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                <option value="">Не привязана</option>
+                {contests.map(c => <option key={c.id} value={c.id}>{c.name}{c.isActive ? ' ★' : ''}</option>)}
+              </select>
+            </div>
+          )}
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Отмена</button>
             <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-accent-foreground text-sm font-semibold rounded-lg transition-colors">

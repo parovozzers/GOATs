@@ -40,6 +40,22 @@ export class UsersService {
       .getOne();
   }
 
+  findByIdWithRefreshToken(id: string) {
+    return this.repo
+      .createQueryBuilder('u')
+      .addSelect('u.refreshToken')
+      .where('u.id = :id', { id })
+      .getOne();
+  }
+
+  findByVerificationToken(token: string) {
+    return this.repo
+      .createQueryBuilder('u')
+      .addSelect('u.emailVerificationToken')
+      .where('u.emailVerificationToken = :token', { token })
+      .getOne();
+  }
+
   create(data: Partial<User>) {
     return this.repo.save(this.repo.create(data));
   }

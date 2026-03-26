@@ -3,5 +3,6 @@ export function formatDate(dateStr: string): string {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: 'Europe/Moscow',
   });
 }

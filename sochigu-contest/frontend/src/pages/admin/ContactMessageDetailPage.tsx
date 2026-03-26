@@ -12,7 +12,7 @@ function StatusBadge({ status }: { status: 'pending' | 'done' }) {
 }
 
 function formatDate(str: string) {
-  return new Date(str).toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' });
+  return new Date(str).toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Moscow' });
 }
 
 export function ContactMessageDetailPage() {

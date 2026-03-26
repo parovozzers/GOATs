@@ -9,6 +9,7 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { ApplicationStatus } from '../common/enums/application-status.enum';
 import { MailService } from '../mail/mail.service';
 import { FilesService } from '../files/files.service';
+import { ContestsService } from '../contests/contests.service';
 
 @Injectable()
 export class ApplicationsService {
@@ -19,10 +20,16 @@ export class ApplicationsService {
     @InjectRepository(ApplicationLog) private logRepo: Repository<ApplicationLog>,
     private mailService: MailService,
     private filesService: FilesService,
+    private contestsService: ContestsService,
   ) {}
 
   async create(userId: string, dto: CreateApplicationDto) {
-    const app = this.repo.create({ ...dto, userId });
+    const activeContest = await this.contestsService.getActive();
+    const app = this.repo.create({
+      ...dto,
+      userId,
+      contestId: activeContest?.id ?? null,
+    });
     return this.repo.save(app);
   }
 
@@ -49,6 +56,7 @@ export class ApplicationsService {
     status?: ApplicationStatus;
     university?: string;
     search?: string;
+    contestId?: string;
     page?: number;
     limit?: number;
   }) {
@@ -63,6 +71,7 @@ export class ApplicationsService {
     if (rest.status) qb.andWhere('a.status = :status', { status: rest.status });
     if (rest.university) qb.andWhere('u.university ILIKE :uni', { uni: `%${rest.university}%` });
     if (rest.search) qb.andWhere('a.projectTitle ILIKE :s', { s: `%${rest.search}%` });
+    if (rest.contestId) qb.andWhere('a.contestId = :cid', { cid: rest.contestId });
 
     const [data, total] = await qb
       .orderBy('a.createdAt', 'DESC')

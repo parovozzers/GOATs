@@ -19,6 +19,7 @@ import { DocumentsPage } from '@/pages/public/DocumentsPage';
 import { WinnersPage } from '@/pages/public/WinnersPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage';
 import { CabinetDashboardPage } from '@/pages/cabinet/CabinetDashboardPage';
 import { ApplicationPage } from '@/pages/cabinet/ApplicationPage';
 import { ApplicationFormPage } from '@/pages/cabinet/ApplicationFormPage';
@@ -31,6 +32,7 @@ import { NewsManagePage } from '@/pages/admin/cms/NewsManagePage';
 import { DocumentsManagePage } from '@/pages/admin/cms/DocumentsManagePage';
 import { WinnersManagePage } from '@/pages/admin/cms/WinnersManagePage';
 import { NominationsManagePage } from '@/pages/admin/cms/NominationsManagePage';
+import { ContestsManagePage } from '@/pages/admin/cms/ContestsManagePage';
 import { ExpertsPage as AdminExpertsPage } from '@/pages/admin/ExpertsPage';
 import { ContactMessagesPage } from '@/pages/admin/ContactMessagesPage';
 import { ContactMessageDetailPage } from '@/pages/admin/ContactMessageDetailPage';
@@ -53,6 +55,7 @@ export default function App() {
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
 
       <Route element={<ProtectedRoute roles={['participant', 'expert', 'moderator', 'admin']} />}>
         <Route element={<CabinetLayout />}>
@@ -90,6 +93,9 @@ export default function App() {
           } />
           <Route path="/admin/cms/nominations" element={
             <RoleGuard roles={['admin', 'moderator']}><NominationsManagePage /></RoleGuard>
+          } />
+          <Route path="/admin/cms/contests" element={
+            <RoleGuard roles={['admin']}><ContestsManagePage /></RoleGuard>
           } />
           <Route path="/admin/experts" element={
             <RoleGuard roles={['admin', 'moderator']}><AdminExpertsPage /></RoleGuard>

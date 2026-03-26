@@ -25,13 +25,22 @@ export class WinnersController implements OnModuleInit {
   }
 
   @Get()
-  findAll(@Query('year') year?: number, @Query('nominationId') nominationId?: string) {
-    return this.winnersService.findAll({ year: year ? +year : undefined, nominationId });
+  findAll(
+    @Query('year') year?: number,
+    @Query('nominationId') nominationId?: string,
+    @Query('contestId') contestId?: string,
+  ) {
+    return this.winnersService.findAll({ year: year ? +year : undefined, nominationId, contestId });
   }
 
   @Get('years')
   getYears() {
     return this.winnersService.getYears();
+  }
+
+  @Get('contests')
+  getContests() {
+    return this.winnersService.getContests();
   }
 
   @Post('upload-photo')
@@ -69,7 +78,7 @@ export class WinnersController implements OnModuleInit {
     if (!safePath.startsWith(PHOTO_DIR + sep)) {
       throw new BadRequestException('Invalid filename');
     }
-    res.sendFile(safePath);
+    res.sendFile(safePath, err => { if (err) res.status(404).json({ statusCode: 404, message: 'Not found' }); });
   }
 
   @Post()

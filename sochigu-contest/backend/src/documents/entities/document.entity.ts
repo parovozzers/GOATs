@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Contest } from '../../contests/entities/contest.entity';
 
 @Entity('documents')
 export class Document {
@@ -34,6 +37,13 @@ export class Document {
 
   @Column({ default: 0 })
   sortOrder: number;
+
+  @ManyToOne(() => Contest, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'contest_id' })
+  contest: Contest;
+
+  @Column({ name: 'contest_id', nullable: true })
+  contestId: string;
 
   @CreateDateColumn()
   createdAt: Date;
