@@ -45,7 +45,11 @@ export function ApplicationsListPage() {
 
   useEffect(() => {
     nominationsApi.getAll().then(setNominations);
-    contestsApi.getAll().then(setContests);
+    contestsApi.getAll().then(list => {
+      setContests(list);
+      const active = list.find(c => c.isActive);
+      if (active) setContestId(active.id);
+    });
   }, []);
   useEffect(() => () => { clearTimeout(timerRef.current); clearTimeout(uniTimerRef.current); }, []);
 
