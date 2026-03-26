@@ -31,17 +31,39 @@
 :root {
   --background: 210 20% 98%;
   --foreground: 222 84% 4.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 84% 4.9%;
+
   --primary: 226 97% 14%;           /* #011145 */
+  --primary-foreground: 0 0% 100%;
   --primary-mid: 215 94% 25%;       /* #04367D */
   --primary-light: 206 44% 76%;     /* #A6C5DC */
-  --primary-foreground: 0 0% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 226 97% 14%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215 16% 47%;
+
   --accent: 205 97% 87%;            /* #BEE3FE */
-  --accent-hover: 205 97% 85%;
   --accent-foreground: 226 97% 14%;
+  --accent-hover: 205 97% 85%;
+
+  --destructive: 0 85% 70%;
+  --destructive-foreground: 0 0% 100%;
   --border: 214 32% 91%;
   --input: 214 32% 91%;
-  --destructive: 0 85% 70%;
+  --ring: 226 97% 14%;
   --radius: 0.75rem;
+
+  /* Admin sidebar */
+  --sidebar-background: 226 97% 14%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-accent: 215 94% 32%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 215 94% 32%;
 }
 ```
 
@@ -77,32 +99,45 @@ theme: {
 ### Кастомные CSS-классы
 
 ```css
-/* Кнопка / инпут */
+/* Инпут */
 .input {
-  @apply w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm
-    focus:outline-none focus:ring-2 focus:ring-primary/40;
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm
+    focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none;
+}
+
+/* Кастомный select со стрелкой */
+.select-custom {
+  @apply appearance-none pr-8 bg-no-repeat bg-[center_right_0.75rem] bg-white;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E");
 }
 
 /* Hero-секция градиент */
 .hero-gradient {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-mid)));
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-mid)) 100%);
 }
 
 /* Градиентный текст */
 .text-gradient {
-  @apply bg-clip-text text-transparent;
-  background-image: linear-gradient(90deg, hsl(var(--accent)), hsl(var(--primary-mid)));
+  background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--primary-mid)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
-```
 
-### Анимации Tailwind
-
-```css
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Word cloud */
+.wc-word:hover { opacity: 1 !important; transform: scale(1.18); }
+[data-wc-tip]::after {
+  content: attr(data-wc-tip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b; color: #fff; font-size: 12px;
+  padding: 3px 8px; border-radius: 5px;
+  opacity: 0; transition: opacity 0.15s; pointer-events: none;
 }
-.animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+[data-wc-tip]:hover::after { opacity: 1; }
+
+/* Кастомный scrollbar для geo-панели аналитики */
+.geo-scroll::-webkit-scrollbar { width: 4px; }
+.geo-scroll::-webkit-scrollbar-thumb { background: #AC7B84; border-radius: 4px; }
 ```
 
 ---
@@ -237,9 +272,10 @@ export const hoverNav = {
 | Аналитика | BarChart3 | /admin/analytics | admin, moderator |
 | Новости | Newspaper | /admin/cms/news | admin, moderator |
 | Документы | FolderOpen | /admin/cms/documents | admin, moderator |
-| Победители | Trophy | /admin/cms/winners | admin, moderator, expert |
-| Номинации | Tag | /admin/cms/nominations | admin, moderator |
-| Эксперты | UserCog | /admin/experts | admin, moderator |
+| Победители | Trophy | /admin/cms/winners | admin |
+| Номинации | Tag | /admin/cms/nominations | admin |
+| Конкурсы | Calendar | /admin/cms/contests | admin |
+| Эксперты | UserCog | /admin/experts | admin |
 | Обращения | MessageSquare | /admin/contacts | admin, moderator |
 
 - Active ссылка: `bg-white/10`
@@ -253,9 +289,11 @@ export const hoverNav = {
 ### AuthModal (`components/shared/AuthModal.tsx`)
 - **Триггер**: `useUiStore().openAuthModal('login' | 'register')`
 - **Два таба**: Login / Register с плавным переходом (layout animation)
+- **Валидация**: `mode: 'onBlur'` — ошибки появляются при уходе из поля, не при submit
 - **Login поля**: Email, Password
 - **Register поля**: Фамилия, Имя, Отчество, Email, Телефон, Пароль, Подтверждение, ВУЗ, Факультет, Кафедра, Курс (1–6), Город, чекбокс согласия
 - **Phone formatter**: при вводе форматирует в `+7(XXX)XXX-XX-XX`
+- **После регистрации**: автопереключение на вкладку "Войти" + сообщение о письме
 - **Стили**: backdrop `bg-black/50 backdrop-blur-sm`, карточка `bg-white rounded-2xl shadow-2xl max-w-md`
 - **Закрытие**: кнопка X, ESC, клик на backdrop
 
@@ -377,7 +415,8 @@ export const hoverNav = {
 - После отправки: success-блок с иконкой ✓
 
 ### WinnersPage (`/winners`)
-- Фильтры: год + номинация
+- Фильтры: конкурс (select) + год + номинация
+- При наличии конкурсов с данными — показывает фильтр по конкурсу, иначе по году
 - WinnerCard: фото + медаль emoji + год badge + название проекта + ВУЗ
 - Медали: `placeMedal(place)` → 🥇🥈🥉 или "Xe место"
 
@@ -409,15 +448,17 @@ export const hoverNav = {
 ## 7. АДМИНИСТРАТИВНАЯ ПАНЕЛЬ
 
 ### AdminDashboardPage (`/admin`)
-- KPI: Всего заявок, Участников, ВУЗов
+- **Фильтр по конкурсу**: select рядом с заголовком, по умолчанию выбирается активный конкурс
+- KPI: Всего заявок, Участников, ВУЗов — фильтруются по выбранному конкурсу
 - Quick links: карточки → Заявки, Пользователи, Аналитика
-- Таблица последних 5 заявок
+- Таблица последних 5 заявок — также фильтруется по конкурсу
 
 ### ApplicationsListPage (`/admin/applications`)
-- Фильтры: Номинация + Статус + Поиск + ВУЗ (debounce 500ms) + Reset
+- Фильтры: Конкурс + Номинация + Статус + Поиск + ВУЗ (debounce 500ms) + Reset
+- **По умолчанию**: автовыбор активного конкурса при загрузке
 - Таблица: Название → link, Участник, Номинация, Статус (badge), Дата, Действия
 - Пагинация: LIMIT=20
-- Кнопка "Экспорт Excel" (с фильтрами)
+- Кнопка "Экспорт Excel" (с учётом всех фильтров)
 
 ### ApplicationDetailPage (`/admin/applications/:id`)
 - Смена статуса: select + comment + Save
@@ -428,10 +469,11 @@ export const hoverNav = {
 - Таблица: ФИО, Email, Роль, ВУЗ, Дата регистрации, Действия
 
 ### AnalyticsPage (`/admin/analytics`)
-- KPI-карточки (3)
-- Recharts: Pie (по номинациям) + Line (timeline) + Bar (топ ВУЗов) + Bar (география)
-- Word cloud: ключевые слова (interactive tooltips)
-- Print support: `@media print` стили
+- **Фильтр по конкурсу**: по умолчанию выбирается активный конкурс
+- KPI-карточки (3): заявки, участники, ВУЗы
+- Recharts: BarChart (по номинациям) + LineChart (timeline) + BarChart (топ ВУЗов) + BarChart (география)
+- Word cloud: ключевые слова из описаний проектов (interactive tooltips)
+- Print support: `@media print` стили — все графики корректно печатаются
 
 ### ExpertsPage admin (`/admin/experts`)
 - Таблица: фото, ФИО, должность, видимость
@@ -464,6 +506,12 @@ export const hoverNav = {
 ### CMS — NominationsManagePage (`/admin/cms/nominations`)
 - Modal: Название, Краткое имя, Описание, Активна, Порядок сортировки
 
+### CMS — ContestsManagePage (`/admin/cms/contests`)
+- Таблица: название, даты, статус (активный/нет), действия
+- Modal: Название, Описание, Дата начала, Дата окончания
+- Кнопка "Сделать активным" — деактивирует все остальные конкурсы
+- **Важно**: только один конкурс может быть активным; все новые заявки привязываются к активному конкурсу
+
 ---
 
 ## 8. РОУТИНГ (`App.tsx`)
@@ -484,6 +532,7 @@ PUBLIC (PublicLayout):
 AUTH (без layout):
   /login                  → LoginPage
   /register               → RegisterPage
+  /verify-email?token=    → VerifyEmailPage
 
 CABINET (ProtectedRoute + CabinetLayout):
   /cabinet                → CabinetDashboardPage
@@ -500,8 +549,9 @@ ADMIN (ProtectedRoute + AdminLayout):
   /admin/cms/news                    → NewsManagePage          [admin, moderator]
   /admin/cms/documents               → DocumentsManagePage     [admin, moderator]
   /admin/cms/winners                 → WinnersManagePage       [admin, moderator, expert]
-  /admin/cms/nominations             → NominationsManagePage   [admin, moderator]
-  /admin/experts                     → ExpertsPage             [admin, moderator]
+  /admin/cms/nominations             → NominationsManagePage   [admin]
+  /admin/cms/contests                → ContestsManagePage      [admin]
+  /admin/experts                     → ExpertsPage             [admin]
   /admin/contacts                    → ContactMessagesPage     [admin, moderator]
   /admin/contacts/:id                → ContactMessageDetailPage
 ```
@@ -545,16 +595,17 @@ actions:
 
 | Модуль | Методы |
 |---|---|
-| auth | register, login, logout |
-| applications | create, getMy, getAll, getById, update, submit, updateStatus, delete, withdraw |
-| files | uploadFile(appId, file, category), downloadFile(id), exportExcel |
+| auth | register, login, logout, verifyEmail, refresh |
+| applications | create, getMy, getAll, getById, update, submit, updateStatus, delete, withdraw, exportExcel |
+| files | uploadFile(appId, file, category), downloadFile(id) |
 | news | getPublished, getBySlug, getAll (admin), create, update, remove, uploadPhoto |
 | users | getAll, getMe, updateMe, updateRole, updateExpertProfile, getPublicExperts, uploadPhoto |
-| winners | getAll, getYears, create, update, remove, uploadPhoto |
+| winners | getAll, getYears, getContests, create, update, remove, uploadPhoto |
 | documents | getAll, getAllAdmin, create, update, remove |
 | nominations | getAll, getAllAdmin, create, update, remove |
+| contests | getAll, getActive, create, update, remove, setActive |
 | contacts | submit, getAll, getById, updateStatus |
-| analytics | getSummary, getByNomination, getTimeline, getTopUniversities, getGeography, getKeywords |
+| analytics | getSummary, getByNomination, getTimeline, getGeography, getKeywords, getByStatus, getActivity |
 
 ---
 
@@ -568,42 +619,59 @@ type ApplicationStatus =
 
 type ContactMessageStatus = 'pending' | 'done'
 
+interface Contest {
+  id: string; name: string; description?: string;
+  startDate: string; endDate: string; isActive: boolean; createdAt: string;
+}
+
 interface User {
-  id: number; email: string; firstName: string; lastName: string; middleName?: string;
+  id: string; email: string; firstName: string; lastName: string; middleName?: string;
   phone?: string; university?: string; faculty?: string; department?: string;
-  course?: number; city?: string; role: Role; isActive: boolean; createdAt: string;
+  course?: number; city?: string; role: Role; isActive: boolean;
+  isEmailVerified?: boolean; createdAt: string;
   avatarUrl?: string; position?: string; bio?: string; isExpertVisible?: boolean;
 }
 
 interface Application {
-  id: number; userId: number; nominationId: number; nomination?: Nomination;
-  projectTitle: string; projectDescription: string; keywords?: string;
+  id: string; userId: string; nominationId: string; nomination?: Nomination;
+  contestId?: string; contest?: Contest;
+  projectTitle: string; projectDescription: string; keywords?: string[];
   teamMembers?: TeamMember[]; supervisor?: Supervisor; status: ApplicationStatus;
   adminComment?: string; submittedAt?: string;
-  files?: ApplicationFile[]; logs?: StatusLog[]; user?: User;
+  files?: AppFile[]; logs?: ApplicationLog[]; user?: User;
   createdAt: string; updatedAt: string;
 }
 
 interface News {
-  id: number; title: string; slug: string; content: string;
+  id: string; title: string; slug: string; content: string;
   excerpt?: string; coverImage?: string; isPublished: boolean;
-  publishedAt?: string; createdAt: string;
+  contestId?: string; publishedAt?: string; createdAt: string;
 }
 
 interface Winner {
-  id: number; projectTitle: string; teamName: string; description?: string;
-  year: number; place: number; nomination?: Nomination; nominationId: number;
+  id: string; projectTitle: string; teamName: string; description?: string;
+  year: number; place: number; nomination?: Nomination; nominationId: string;
+  contest?: Contest; contestId?: string;
   photoUrl?: string; university?: string;
 }
 
 interface ContactMessage {
-  id: number; name: string; email?: string; phone?: string;
+  id: string; name: string; email?: string; phone?: string;
   message: string; status: ContactMessageStatus; createdAt: string;
+}
+
+interface AnalyticsSummary {
+  totalApplications: number; totalUsers: number; totalUniversities: number;
+  newThisWeek: number; underReview: number; teamApplications: number; avgTeamSize: number;
 }
 
 interface PaginatedResponse<T> {
   data: T[]; total: number; page: number; limit: number;
 }
+
+// Константы статусов (используются в таблицах и фильтрах)
+const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string>
+const APPLICATION_STATUS_COLORS: Record<ApplicationStatus, string>
 ```
 
 ---
@@ -676,3 +744,11 @@ formatPhone(raw: string): string
 9. **HEIC support**: загрузка фото победителей (WinnersManagePage) поддерживает HEIC — конвертируется на backend через `heic-convert`.
 
 10. **Sidebar AdminLayout**: пункты меню содержат массив `roles[]`. При отсутствии доступа — `<span>` с `opacity-30` вместо `<Link>`, tooltip "Нет доступа". **При добавлении новых страниц** нужно обновлять и `AdminLayout.tsx` (roles в sidebarLinks), и `App.tsx` (RoleGuard).
+
+11. **Email verification flow**: после регистрации бэкенд отправляет письмо с токеном, пользователь переходит на `/verify-email?token=...`, компонент `VerifyEmailPage` вызывает `authApi.verifyEmail(token)` и показывает результат. Без подтверждения email пользователь не может войти (`isEmailVerified = false`). Письмо можно переотправить через `/api/auth/resend-verification`.
+
+12. **react-hook-form mode: onBlur**: все формы (AuthModal login/register, RegisterPage, LoginPage, ApplicationFormPage) используют `useForm({ mode: 'onBlur' })`. Это значит — ошибка валидации появляется сразу при уходе из поля, а не только после нажатия Submit. Если добавляешь новую форму — используй `mode: 'onBlur'` по умолчанию.
+
+13. **Contest filter auto-select**: `ApplicationsListPage` при загрузке автоматически выставляет фильтр на активный конкурс (`list.find(c => c.isActive)`). Аналогично работает `WinnersPage` для публичного просмотра. Если активного конкурса нет — фильтр остаётся пустым (показываются все).
+
+14. **ContestsManagePage**: страница управления конкурсами (`/admin/cms/contests`). Только один конкурс может быть активным — при активации нового предыдущий автоматически деактивируется на бэкенде. `isActive` конкурса влияет на авто-выбор фильтра в AdminPanel и на публичную страницу Winners.
