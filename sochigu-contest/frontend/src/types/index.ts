@@ -39,6 +39,7 @@ export interface User {
   position?: string;
   bio?: string;
   isExpertVisible?: boolean;
+  isEmailVerified?: boolean;
 }
 
 export interface Nomination {

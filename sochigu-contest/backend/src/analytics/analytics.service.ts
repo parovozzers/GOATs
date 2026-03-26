@@ -37,17 +37,14 @@ export class AnalyticsService {
       .where("u.university IS NOT NULL AND u.university != '' AND u.role = :role", { role: Role.PARTICIPANT })
       .getRawOne();
 
-    const teamStatsQb = contestId
-      ? `WHERE "teamMembers" IS NOT NULL AND jsonb_array_length("teamMembers") >= 1 AND contest_id = '${contestId}'`
-      : `WHERE "teamMembers" IS NOT NULL AND jsonb_array_length("teamMembers") >= 1`;
-
     const teamStats = await this.appRepo.manager.query(`
       SELECT
         COUNT(DISTINCT user_id)::int AS team_applications,
         COALESCE(ROUND(AVG(jsonb_array_length("teamMembers")) FILTER (WHERE jsonb_array_length(COALESCE("teamMembers", '[]'::jsonb)) >= 1)::numeric, 1), 0)::float AS avg_team_size
       FROM applications
-      ${teamStatsQb}
-    `);
+      WHERE "teamMembers" IS NOT NULL AND jsonb_array_length("teamMembers") >= 1
+      ${contestId ? 'AND contest_id = $1' : ''}
+    `, contestId ? [contestId] : []);
 
     return {
       totalApplications,
@@ -147,17 +144,16 @@ export class AnalyticsService {
   }
 
   async getKeywords(contestId?: string) {
-    const contestFilter = contestId ? `AND a.contest_id = '${contestId}'` : '';
     const rows = await this.appRepo.manager.query(`
       SELECT TRIM(keyword) AS keyword, COUNT(*) AS count
       FROM applications a,
       UNNEST(STRING_TO_ARRAY(a.keywords, ',')) AS keyword
       WHERE a.keywords IS NOT NULL AND a.keywords != '' AND TRIM(keyword) != ''
-      ${contestFilter}
+      ${contestId ? 'AND a.contest_id = $1' : ''}
       GROUP BY TRIM(keyword)
       ORDER BY count DESC
       LIMIT 50
-    `);
+    `, contestId ? [contestId] : []);
     return rows.map((r: any) => ({ ...r, count: Number(r.count) }));
   }
 }

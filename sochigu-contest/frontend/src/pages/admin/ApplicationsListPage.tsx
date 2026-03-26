@@ -66,6 +66,7 @@ export function ApplicationsListPage() {
       status: status || undefined,
       search: search || undefined,
       university: university || undefined,
+      contestId: contestId || undefined,
     });
   };
 

@@ -8,41 +8,47 @@ import { Role } from '../common/enums/role.enum';
 @Controller('analytics')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN, Role.MODERATOR)
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export class AnalyticsController {
   constructor(private analyticsService: AnalyticsService) {}
 
+  private cid(contestId?: string): string | undefined {
+    return contestId && UUID_RE.test(contestId) ? contestId : undefined;
+  }
+
   @Get('summary')
   getSummary(@Query('contestId') contestId?: string) {
-    return this.analyticsService.getSummary(contestId);
+    return this.analyticsService.getSummary(this.cid(contestId));
   }
 
   @Get('by-nomination')
   getByNomination(@Query('contestId') contestId?: string) {
-    return this.analyticsService.getByNomination(contestId);
+    return this.analyticsService.getByNomination(this.cid(contestId));
   }
 
   @Get('timeline')
   getTimeline(@Query('contestId') contestId?: string) {
-    return this.analyticsService.getTimeline(contestId);
+    return this.analyticsService.getTimeline(this.cid(contestId));
   }
 
   @Get('geography')
   getGeography(@Query('contestId') contestId?: string) {
-    return this.analyticsService.getGeography(contestId);
+    return this.analyticsService.getGeography(this.cid(contestId));
   }
 
   @Get('keywords')
   getKeywords(@Query('contestId') contestId?: string) {
-    return this.analyticsService.getKeywords(contestId);
+    return this.analyticsService.getKeywords(this.cid(contestId));
   }
 
   @Get('by-status')
   getByStatus(@Query('contestId') contestId?: string) {
-    return this.analyticsService.getByStatus(contestId);
+    return this.analyticsService.getByStatus(this.cid(contestId));
   }
 
   @Get('activity')
   getActivity(@Query('contestId') contestId?: string) {
-    return this.analyticsService.getActivity(contestId);
+    return this.analyticsService.getActivity(this.cid(contestId));
   }
 }
