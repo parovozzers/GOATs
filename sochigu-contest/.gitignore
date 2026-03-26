@@ -25,3 +25,5 @@ Thumbs.db
 # Uploads
 backend/uploads/*
 !backend/uploads/.gitkeep
+backend/seed-applications.cjs
+backend/seed-winners.cjs
