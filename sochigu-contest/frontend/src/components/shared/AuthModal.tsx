@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Eye, EyeOff } from 'lucide-react';
 import { authApi } from '@/api/auth';
 import { useAuthStore } from '@/store/auth.store';
 import { useUiStore } from '@/store/ui.store';
@@ -14,6 +14,7 @@ type LoginForm = { email: string; password: string };
 function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPwd, setShowPwd] = useState(false);
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({ mode: 'onBlur' });
 
@@ -54,12 +55,22 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-        <input
-          type="password"
-          {...register('password', { required: true })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none"
-          placeholder="••••••••"
-        />
+        <div className="relative">
+          <input
+            type={showPwd ? 'text' : 'password'}
+            {...register('password', { required: true })}
+            className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none"
+            placeholder="••••••••"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPwd(v => !v)}
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+            tabIndex={-1}
+          >
+            {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
       </div>
       {error && (
         <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{error}</div>
@@ -106,6 +117,8 @@ type RegisterForm = {
 function RegisterForm({ onSuccess, onRegistered }: { onSuccess: () => void; onRegistered: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const { register, handleSubmit, getValues, formState: { errors } } = useForm<RegisterForm>({ mode: 'onBlur' });
 
   const onSubmit = async (data: RegisterForm) => {
@@ -181,18 +194,32 @@ function RegisterForm({ onSuccess, onRegistered }: { onSuccess: () => void; onRe
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Пароль <span className="text-red-500">*</span></label>
-          <input type="password" {...register('password', {
-            required: 'Обязательное поле',
-            minLength: { value: 8, message: 'Минимум 8 символов' },
-          })} className={field} placeholder="••••••••" />
+          <div className="relative">
+            <input type={showPwd ? 'text' : 'password'} {...register('password', {
+              required: 'Обязательное поле',
+              minLength: { value: 8, message: 'Минимум 8 символов' },
+            })} className={`${field} pr-8`} placeholder="••••••••" />
+            <button type="button" onClick={() => setShowPwd(v => !v)}
+              className="absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}>
+              {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
           {errors.password && <p className="text-red-500 text-xs mt-0.5">{errors.password.message}</p>}
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Повторите пароль <span className="text-red-500">*</span></label>
-          <input type="password" {...register('confirmPassword', {
-            required: 'Обязательное поле',
-            validate: v => v === getValues('password') || 'Пароли не совпадают',
-          })} className={field} placeholder="••••••••" />
+          <div className="relative">
+            <input type={showConfirm ? 'text' : 'password'} {...register('confirmPassword', {
+              required: 'Обязательное поле',
+              validate: v => v === getValues('password') || 'Пароли не совпадают',
+            })} className={`${field} pr-8`} placeholder="••••••••" />
+            <button type="button" onClick={() => setShowConfirm(v => !v)}
+              className="absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}>
+              {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
           {errors.confirmPassword && <p className="text-red-500 text-xs mt-0.5">{errors.confirmPassword.message}</p>}
         </div>
       </div>
