@@ -2144,3 +2144,4 @@
 {"ts":"2026-11-04T14:21:48Z","from":"mac","type":"edit","path":"harness/lib/install.mjs","tool":"Write"}
 {"ts":"2026-11-04T14:21:56Z","from":"mac","type":"claim","path":"harness/bin/siblings.mjs"}
 {"ts":"2026-11-04T14:21:57Z","from":"mac","type":"edit","path":"harness/bin/siblings.mjs","tool":"Write"}
+{"ts":"2026-11-04T14:21:58Z","from":"mac","type":"claim","path":"harness/research/raw/04-backend-core-tooling.md"}
