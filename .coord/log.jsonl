@@ -2346,3 +2346,4 @@
 {"ts":"2026-11-04T16:01:23Z","from":"mac","type":"edit","path":"harness/profiles/backend/lib/net.mjs","tool":"Write"}
 {"ts":"2026-11-04T16:01:23Z","from":"mac","type":"claim","path":"harness/profiles/e2e/tsconfig.json"}
 {"ts":"2026-11-04T16:01:23Z","from":"mac","type":"edit","path":"harness/profiles/e2e/tsconfig.json","tool":"Write"}
+{"ts":"2026-11-04T16:01:25Z","from":"mac","type":"claim","path":"harness/profiles/e2e/.gitignore"}
