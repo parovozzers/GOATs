@@ -2191,3 +2191,4 @@
 {"ts":"2026-11-04T14:33:58Z","from":"mac","type":"edit","path":"harness/README.md","tool":"Write"}
 {"ts":"2026-11-04T14:34:46Z","from":"mac","type":"claim","path":"harness/docs/ARCHITECTURE.md"}
 {"ts":"2026-11-04T14:34:46Z","from":"mac","type":"edit","path":"harness/docs/ARCHITECTURE.md","tool":"Write"}
+{"ts":"2026-11-04T14:34:59Z","from":"mac","type":"edit","path":"harness/lib/guards.mjs","tool":"Edit"}
