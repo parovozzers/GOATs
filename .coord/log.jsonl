@@ -2093,3 +2093,4 @@
 {"ts":"2026-11-04T14:09:43Z","from":"mac","type":"edit","path":"harness/lib/claims.mjs","tool":"Edit"}
 {"ts":"2026-11-04T14:09:44Z","from":"mac","type":"edit","path":"harness/lib/claims.mjs","tool":"Edit"}
 {"ts":"2026-11-04T14:09:46Z","from":"mac","type":"edit","path":"harness/test/claims.test.mjs","tool":"Edit"}
+{"ts":"2026-11-04T14:09:48Z","from":"mac","type":"edit","path":"harness/lib/config.mjs","tool":"Edit"}
