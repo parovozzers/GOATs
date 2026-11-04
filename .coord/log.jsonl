@@ -2382,3 +2382,4 @@
 {"ts":"2026-11-04T16:07:46Z","from":"mac","type":"edit","path":"harness/starter/server.mjs","tool":"Write"}
 {"ts":"2026-11-04T16:07:58Z","from":"mac","type":"edit","path":"harness/bin/harness.mjs","tool":"Write"}
 {"ts":"2026-11-04T16:08:49Z","from":"mac","type":"edit","path":"harness/starter/test/server.test.mjs","tool":"Write"}
+{"ts":"2026-11-04T16:08:51Z","from":"mac","type":"edit","path":"harness/bin/siblings.mjs","tool":"Write"}
