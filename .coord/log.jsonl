@@ -2964,3 +2964,4 @@
 {"ts":"2026-11-04T19:12:53Z","from":"mac","type":"edit","path":"harness/profiles/backend/bin/shutdown-check.mjs","tool":"Write"}
 {"ts":"2026-11-04T19:13:34Z","from":"mac","type":"claim","path":"harness/test/backend-boot-shutdown.test.mjs"}
 {"ts":"2026-11-04T19:13:35Z","from":"mac","type":"edit","path":"harness/test/backend-boot-shutdown.test.mjs","tool":"Write"}
+{"ts":"2026-11-04T19:13:45Z","from":"mac","type":"edit","path":"harness/lib/verify.mjs","tool":"Write"}
