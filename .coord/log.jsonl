@@ -2261,3 +2261,4 @@
 {"ts":"2026-11-04T14:56:15Z","from":"mac","type":"edit","path":"harness/standard/checklist.json","tool":"Write"}
 {"ts":"2026-11-04T14:57:19Z","from":"mac","type":"claim","path":"harness/test/browser/standard.test.mjs"}
 {"ts":"2026-11-04T14:57:20Z","from":"mac","type":"edit","path":"harness/test/browser/standard.test.mjs","tool":"Write"}
+{"ts":"2026-11-04T15:01:37Z","from":"mac","type":"claim","path":"harness/test/standard-checklist.test.mjs"}
