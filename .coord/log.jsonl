@@ -2236,3 +2236,4 @@
 {"ts":"2026-11-04T14:46:19Z","from":"mac","type":"edit","path":"harness/starter/public/js/views/records.mjs","tool":"Write"}
 {"ts":"2026-11-04T14:46:30Z","from":"mac","type":"claim","path":"harness/starter/public/js/views/record.mjs"}
 {"ts":"2026-11-04T14:46:31Z","from":"mac","type":"edit","path":"harness/starter/public/js/views/record.mjs","tool":"Write"}
+{"ts":"2026-11-04T14:46:38Z","from":"mac","type":"claim","path":"harness/starter/public/js/views/glossary.mjs"}
