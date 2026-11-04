@@ -2053,3 +2053,4 @@
 {"ts":"2026-11-04T14:04:15Z","from":"mac","type":"claim","path":"harness/lib/messages.mjs"}
 {"ts":"2026-11-04T14:04:16Z","from":"mac","type":"edit","path":"harness/lib/messages.mjs","tool":"Write"}
 {"ts":"2026-11-04T14:04:28Z","from":"mac","type":"claim","path":"harness/hooks/evidence-gate.mjs"}
+{"ts":"2026-11-04T14:04:28Z","from":"mac","type":"edit","path":"harness/hooks/evidence-gate.mjs","tool":"Write"}
