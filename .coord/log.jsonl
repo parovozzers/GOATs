@@ -2127,3 +2127,4 @@
 {"ts":"2026-11-04T14:19:27Z","from":"mac","type":"edit","path":"harness/templates/CLAUDE.harness.md","tool":"Write"}
 {"ts":"2026-11-04T14:19:30Z","from":"mac","type":"claim","path":"harness/templates/JOURNAL.md"}
 {"ts":"2026-11-04T14:19:30Z","from":"mac","type":"edit","path":"harness/templates/JOURNAL.md","tool":"Write"}
+{"ts":"2026-11-04T14:19:35Z","from":"mac","type":"claim","path":"harness/templates/RESEARCH.md"}
