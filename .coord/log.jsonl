@@ -2929,3 +2929,4 @@
 {"ts":"2026-11-04T19:02:09Z","from":"mac","type":"edit","path":"harness/templates/RND.md","tool":"Write"}
 {"ts":"2026-11-04T19:03:00Z","from":"mac","type":"edit","path":"harness/skills/harness-ui/SKILL.md","tool":"Write"}
 {"ts":"2026-11-04T19:03:11Z","from":"mac","type":"edit","path":"harness/skills/harness-ui/SKILL.md","tool":"Edit"}
+{"ts":"2026-11-04T19:03:12Z","from":"mac","type":"edit","path":"harness/profiles/backend/bin/webhook-replay.mjs","tool":"Write"}
