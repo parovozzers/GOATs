@@ -2134,3 +2134,4 @@
 {"ts":"2026-11-04T14:19:45Z","from":"mac","type":"claim","path":"harness/templates/DESIGN.md"}
 {"ts":"2026-11-04T14:19:46Z","from":"mac","type":"edit","path":"harness/templates/DESIGN.md","tool":"Write"}
 {"ts":"2026-11-04T14:20:37Z","from":"mac","type":"claim","path":"harness/lib/detect.mjs"}
+{"ts":"2026-11-04T14:20:38Z","from":"mac","type":"edit","path":"harness/lib/detect.mjs","tool":"Write"}
