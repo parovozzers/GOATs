@@ -2264,3 +2264,4 @@
 {"ts":"2026-11-04T15:01:37Z","from":"mac","type":"claim","path":"harness/test/standard-checklist.test.mjs"}
 {"ts":"2026-11-04T15:01:38Z","from":"mac","type":"edit","path":"harness/test/standard-checklist.test.mjs","tool":"Write"}
 {"ts":"2026-11-04T15:02:37Z","from":"mac","type":"claim","path":"harness/research/raw/05-product-standard-app.md"}
+{"ts":"2026-11-04T15:02:38Z","from":"mac","type":"edit","path":"harness/research/raw/05-product-standard-app.md","tool":"Write"}
