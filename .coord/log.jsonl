@@ -2073,3 +2073,4 @@
 {"ts":"2026-11-04T14:06:23Z","from":"mac","type":"edit","path":"harness/hooks/sibling-sweep.mjs","tool":"Write"}
 {"ts":"2026-11-04T14:06:32Z","from":"mac","type":"claim","path":"harness/hooks/session-context.mjs"}
 {"ts":"2026-11-04T14:06:33Z","from":"mac","type":"edit","path":"harness/hooks/session-context.mjs","tool":"Write"}
+{"ts":"2026-11-04T14:06:46Z","from":"mac","type":"claim","path":"harness/test/helpers.mjs"}
