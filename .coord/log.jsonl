@@ -2366,3 +2366,4 @@
 {"ts":"2026-11-04T16:06:04Z","from":"mac","type":"edit","path":"harness/starter/server/auth.mjs","tool":"Write"}
 {"ts":"2026-11-04T16:06:20Z","from":"mac","type":"edit","path":"harness/starter/server/http.mjs","tool":"Write"}
 {"ts":"2026-11-04T16:06:34Z","from":"mac","type":"claim","path":"harness/profiles/frontend/brands/nomanual.json"}
+{"ts":"2026-11-04T16:06:34Z","from":"mac","type":"edit","path":"harness/profiles/frontend/brands/nomanual.json","tool":"Write"}
