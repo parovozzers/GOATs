@@ -2324,3 +2324,4 @@
 {"ts":"2026-11-04T15:56:05Z","from":"mac","type":"claim","path":"harness/research/critique/standard.md"}
 {"ts":"2026-11-04T15:56:05Z","from":"mac","type":"edit","path":"harness/research/critique/standard.md","tool":"Write"}
 {"ts":"2026-11-04T15:56:15Z","from":"mac","type":"edit","path":"harness/research/critique/standard.md","tool":"Edit"}
+{"ts":"2026-11-04T15:57:30Z","from":"mac","type":"claim","path":"harness/hooks/track-pre.mjs"}
