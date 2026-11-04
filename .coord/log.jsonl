@@ -2301,3 +2301,4 @@
 {"ts":"2026-11-04T15:45:07Z","from":"mac","type":"edit","path":"harness/lib/claims.mjs","tool":"Write"}
 {"ts":"2026-11-04T15:45:13Z","from":"mac","type":"edit","path":"harness/lib/messages.mjs","tool":"Write"}
 {"ts":"2026-11-04T15:45:37Z","from":"mac","type":"edit","path":"harness/lib/evidence.mjs","tool":"Write"}
+{"ts":"2026-11-04T15:45:45Z","from":"mac","type":"edit","path":"harness/bin/replay.mjs","tool":"Write"}
