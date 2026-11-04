@@ -2627,3 +2627,4 @@
 {"ts":"2026-11-04T17:56:31Z","from":"mac","type":"claim","path":"/private/tmp/claude-501/-Users-banjo/35f45af3-07f0-4e1b-8e05-5141d46acef2/scratchpad/r2-critic-ds/bin/demo-probe.mjs"}
 {"ts":"2026-11-04T17:56:32Z","from":"mac","type":"edit","path":"/private/tmp/claude-501/-Users-banjo/35f45af3-07f0-4e1b-8e05-5141d46acef2/scratchpad/r2-critic-ds/bin/demo-probe.mjs","tool":"Write"}
 {"ts":"2026-11-04T17:56:32Z","from":"mac","type":"edit","path":"harness/research/raw/17-hooks-git.md","tool":"Edit"}
+{"ts":"2026-11-04T17:56:42Z","from":"mac","type":"edit","path":"harness/research/raw/17-hooks-git.md","tool":"Edit"}
