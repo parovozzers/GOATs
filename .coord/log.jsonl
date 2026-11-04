@@ -2912,3 +2912,4 @@
 {"ts":"2026-11-04T18:59:48Z","from":"mac","type":"edit","path":"harness/profiles/backend/rules/ast-grep/py-swallowed-exception.yml","tool":"Edit"}
 {"ts":"2026-11-04T18:59:59Z","from":"mac","type":"claim","path":"harness/profiles/backend/lib/event-id.mjs"}
 {"ts":"2026-11-04T18:59:59Z","from":"mac","type":"edit","path":"harness/profiles/backend/lib/event-id.mjs","tool":"Write"}
+{"ts":"2026-11-04T19:00:46Z","from":"mac","type":"claim","path":"harness/test/fixtures/filled.html"}
