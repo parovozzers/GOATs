@@ -2098,3 +2098,4 @@
 {"ts":"2026-11-04T14:10:56Z","from":"mac","type":"claim","path":"harness/research/raw/00-inventory-projects.md"}
 {"ts":"2026-11-04T14:10:56Z","from":"mac","type":"edit","path":"harness/research/raw/00-inventory-projects.md","tool":"Write"}
 {"ts":"2026-11-04T14:11:03Z","from":"mac","type":"edit","path":"harness/lib/guards.mjs","tool":"Edit"}
+{"ts":"2026-11-04T14:11:05Z","from":"mac","type":"edit","path":"harness/lib/config.mjs","tool":"Edit"}
