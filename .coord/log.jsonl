@@ -2046,3 +2046,4 @@
 {"ts":"2026-11-04T14:02:59Z","from":"mac","type":"edit","path":"harness/lib/io.mjs","tool":"Write"}
 {"ts":"2026-11-04T14:03:24Z","from":"mac","type":"claim","path":"harness/lib/transcript.mjs"}
 {"ts":"2026-11-04T14:03:24Z","from":"mac","type":"edit","path":"harness/lib/transcript.mjs","tool":"Write"}
+{"ts":"2026-11-04T14:03:36Z","from":"mac","type":"claim","path":"harness/lib/claims.mjs"}
