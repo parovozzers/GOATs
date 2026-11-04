@@ -2270,3 +2270,4 @@
 {"ts":"2026-11-04T15:06:48Z","from":"mac","type":"edit","path":"harness/research/raw/06-product-standard-dashboards.md","tool":"Write"}
 {"ts":"2026-11-04T15:10:18Z","from":"mac","type":"edit","path":"harness/starter/public/js/views/dashboard.mjs","tool":"Write"}
 {"ts":"2026-11-04T15:17:29Z","from":"mac","type":"claim","path":"harness/bin/standard-doc.mjs"}
+{"ts":"2026-11-04T15:17:29Z","from":"mac","type":"edit","path":"harness/bin/standard-doc.mjs","tool":"Write"}
