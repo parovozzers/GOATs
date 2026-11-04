@@ -2296,3 +2296,4 @@
 {"ts":"2026-11-04T15:44:15Z","from":"mac","type":"claim","path":"harness/hooks/track.mjs"}
 {"ts":"2026-11-04T15:44:16Z","from":"mac","type":"edit","path":"harness/hooks/track.mjs","tool":"Write"}
 {"ts":"2026-11-04T15:44:48Z","from":"mac","type":"edit","path":"harness/hooks/evidence-gate.mjs","tool":"Write"}
+{"ts":"2026-11-04T15:44:49Z","from":"mac","type":"claim","path":"/private/tmp/claude-501/-Users-banjo/35f45af3-07f0-4e1b-8e05-5141d46acef2/scratchpad/critic-pilot/tools/mock-api.mjs"}
