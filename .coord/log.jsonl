@@ -2078,3 +2078,4 @@
 {"ts":"2026-11-04T14:06:51Z","from":"mac","type":"claim","path":"harness/test/claims.test.mjs"}
 {"ts":"2026-11-04T14:06:52Z","from":"mac","type":"edit","path":"harness/test/claims.test.mjs","tool":"Write"}
 {"ts":"2026-11-04T14:07:09Z","from":"mac","type":"claim","path":"harness/test/evidence-gate.test.mjs"}
+{"ts":"2026-11-04T14:07:09Z","from":"mac","type":"edit","path":"harness/test/evidence-gate.test.mjs","tool":"Write"}
