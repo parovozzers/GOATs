@@ -2088,3 +2088,4 @@
 {"ts":"2026-11-04T14:08:13Z","from":"mac","type":"claim","path":"harness/bin/replay.mjs"}
 {"ts":"2026-11-04T14:08:13Z","from":"mac","type":"edit","path":"harness/bin/replay.mjs","tool":"Write"}
 {"ts":"2026-11-04T14:09:26Z","from":"mac","type":"edit","path":"harness/lib/guards.mjs","tool":"Edit"}
+{"ts":"2026-11-04T14:09:29Z","from":"mac","type":"edit","path":"harness/test/guards.test.mjs","tool":"Edit"}
