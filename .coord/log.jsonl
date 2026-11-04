@@ -2185,3 +2185,4 @@
 {"ts":"2026-11-04T14:32:10Z","from":"mac","type":"claim","path":"harness/profiles/e2e/claude-executor.ts"}
 {"ts":"2026-11-04T14:32:10Z","from":"mac","type":"edit","path":"harness/profiles/e2e/claude-executor.ts","tool":"Write"}
 {"ts":"2026-11-04T14:33:04Z","from":"mac","type":"edit","path":"harness/lib/config.mjs","tool":"Edit"}
+{"ts":"2026-11-04T14:33:15Z","from":"mac","type":"claim","path":"harness/lib/global.mjs"}
