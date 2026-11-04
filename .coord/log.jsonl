@@ -2958,3 +2958,4 @@
 {"ts":"2026-11-04T19:12:13Z","from":"mac","type":"edit","path":"harness/profiles/backend/lib/service.mjs","tool":"Write"}
 {"ts":"2026-11-04T19:12:17Z","from":"mac","type":"claim","path":"harness/test/plan-lint.test.mjs"}
 {"ts":"2026-11-04T19:12:18Z","from":"mac","type":"edit","path":"harness/test/plan-lint.test.mjs","tool":"Write"}
+{"ts":"2026-11-04T19:12:38Z","from":"mac","type":"claim","path":"harness/profiles/backend/bin/boot-check.mjs"}
