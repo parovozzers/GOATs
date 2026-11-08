@@ -3043,3 +3043,4 @@
 {"ts":"2026-11-07T13:36:42Z","from":"mac","type":"session_start"}
 {"ts":"2026-11-08T11:48:06Z","from":"mac","type":"session_start"}
 {"ts":"2026-11-08T11:51:49Z","from":"mac","type":"claim","path":"Vault/40 Справочник/Dessa.md"}
+{"ts":"2026-11-08T11:51:49Z","from":"mac","type":"edit","path":"Vault/40 Справочник/Dessa.md","tool":"Write"}
