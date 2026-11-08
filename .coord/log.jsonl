@@ -3077,3 +3077,4 @@
 {"ts":"2026-11-08T12:25:33Z","from":"mac","type":"claim","path":"nomanual-voice-agent/tests/simulate.py"}
 {"ts":"2026-11-08T12:25:34Z","from":"mac","type":"edit","path":"nomanual-voice-agent/tests/simulate.py","tool":"Write"}
 {"ts":"2026-11-08T12:25:40Z","from":"mac","type":"edit","path":"nomanual-voice-agent/agent/build_agents.py","tool":"Edit"}
+{"ts":"2026-11-08T12:25:42Z","from":"mac","type":"edit","path":"nomanual-voice-agent/tests/simulate.py","tool":"Edit"}
