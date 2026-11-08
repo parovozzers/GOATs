@@ -3115,3 +3115,4 @@
 {"ts":"2026-11-08T12:36:36Z","from":"mac","type":"claim","path":"nomanual-voice-agent/server/config.py"}
 {"ts":"2026-11-08T12:36:37Z","from":"mac","type":"edit","path":"nomanual-voice-agent/server/config.py","tool":"Write"}
 {"ts":"2026-11-08T12:36:59Z","from":"mac","type":"claim","path":"nomanual-voice-agent/server/store.py"}
+{"ts":"2026-11-08T12:36:59Z","from":"mac","type":"edit","path":"nomanual-voice-agent/server/store.py","tool":"Write"}
