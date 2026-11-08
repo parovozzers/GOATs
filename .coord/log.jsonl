@@ -3125,3 +3125,4 @@
 {"ts":"2026-11-08T12:38:38Z","from":"mac","type":"claim","path":"nomanual-voice-agent/server/bot.py"}
 {"ts":"2026-11-08T12:38:39Z","from":"mac","type":"edit","path":"nomanual-voice-agent/server/bot.py","tool":"Write"}
 {"ts":"2026-11-08T12:38:45Z","from":"mac","type":"edit","path":"nomanual-voice-agent/server/bot.py","tool":"Edit"}
+{"ts":"2026-11-08T12:38:47Z","from":"mac","type":"edit","path":"nomanual-voice-agent/server/clients.py","tool":"Edit"}
