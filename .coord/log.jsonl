@@ -3133,3 +3133,4 @@
 {"ts":"2026-11-08T12:40:53Z","from":"mac","type":"edit","path":"nomanual-voice-agent/tests/test_server.py","tool":"Write"}
 {"ts":"2026-11-08T12:41:04Z","from":"mac","type":"edit","path":"nomanual-voice-agent/server/gate.py","tool":"Edit"}
 {"ts":"2026-11-08T12:41:45Z","from":"mac","type":"claim","path":"nomanual-voice-agent/deploy/nomanual-voice.service"}
+{"ts":"2026-11-08T12:41:45Z","from":"mac","type":"edit","path":"nomanual-voice-agent/deploy/nomanual-voice.service","tool":"Write"}
