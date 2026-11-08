@@ -3065,3 +3065,4 @@
 {"ts":"2026-11-08T12:22:07Z","from":"mac","type":"claim","path":"nomanual-voice-agent/agent/ru/prompt.md"}
 {"ts":"2026-11-08T12:22:08Z","from":"mac","type":"edit","path":"nomanual-voice-agent/agent/ru/prompt.md","tool":"Write"}
 {"ts":"2026-11-08T12:22:26Z","from":"mac","type":"claim","path":"nomanual-voice-agent/agent/ru/knowledge.md"}
+{"ts":"2026-11-08T12:22:26Z","from":"mac","type":"edit","path":"nomanual-voice-agent/agent/ru/knowledge.md","tool":"Write"}
