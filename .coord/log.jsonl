@@ -3149,3 +3149,4 @@
 {"ts":"2026-11-08T12:44:26Z","from":"mac","type":"claim","path":"nomanual-voice-agent/deploy/twilio_setup.py"}
 {"ts":"2026-11-08T12:44:26Z","from":"mac","type":"edit","path":"nomanual-voice-agent/deploy/twilio_setup.py","tool":"Write"}
 {"ts":"2026-11-08T12:44:40Z","from":"mac","type":"claim","path":"nomanual-voice-agent/CLAUDE.md"}
+{"ts":"2026-11-08T12:44:41Z","from":"mac","type":"edit","path":"nomanual-voice-agent/CLAUDE.md","tool":"Write"}
