@@ -3356,3 +3356,4 @@
 {"ts":"2026-11-12T17:09:04Z","from":"mac","type":"edit","path":"nomanual-voice-agent/agent/build_agents.py","tool":"Write"}
 {"ts":"2026-11-12T17:10:01Z","from":"mac","type":"edit","path":"nomanual-voice-agent/server/config.py","tool":"Edit"}
 {"ts":"2026-11-12T17:10:04Z","from":"mac","type":"edit","path":"nomanual-voice-agent/server/config.py","tool":"Edit"}
+{"ts":"2026-11-12T17:10:06Z","from":"mac","type":"edit","path":"nomanual-voice-agent/server/config.py","tool":"Edit"}
