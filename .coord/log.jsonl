@@ -3745,3 +3745,4 @@
 {"ts":"2026-11-22T05:13:42Z","from":"mac","type":"edit","path":"harness/hooks/edit-guard.mjs","tool":"Write"}
 {"ts":"2026-11-22T05:13:45Z","from":"mac","type":"edit","path":"harness/lib/settings-merge.mjs","tool":"Edit"}
 {"ts":"2026-11-22T05:13:46Z","from":"mac","type":"edit","path":"harness/lib/install.mjs","tool":"Edit"}
+{"ts":"2026-11-22T05:13:48Z","from":"mac","type":"edit","path":"harness/profiles/verify/lib/net-guard.mjs","tool":"Edit"}
