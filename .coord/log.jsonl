@@ -3672,3 +3672,4 @@
 {"ts":"2026-11-22T04:41:41Z","from":"mac","type":"edit","path":"harness/packs/renty/tz-bindings.json","tool":"Write"}
 {"ts":"2026-11-22T04:42:00Z","from":"mac","type":"claim","path":"harness/packs/renty/lib/tz-run.mjs"}
 {"ts":"2026-11-22T04:42:01Z","from":"mac","type":"edit","path":"harness/packs/renty/lib/tz-run.mjs","tool":"Write"}
+{"ts":"2026-11-22T04:42:05Z","from":"mac","type":"claim","path":"harness/packs/renty/bin/tz-check.mjs"}
