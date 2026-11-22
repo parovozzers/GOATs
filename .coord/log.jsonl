@@ -3607,3 +3607,4 @@
 {"ts":"2026-11-22T04:35:59Z","from":"mac","type":"edit","path":"harness/packs/renty/lib/seo-fetch.mjs","tool":"Edit"}
 {"ts":"2026-11-22T04:36:01Z","from":"mac","type":"edit","path":"harness/packs/renty/stand/site.mjs","tool":"Edit"}
 {"ts":"2026-11-22T04:36:05Z","from":"mac","type":"edit","path":"harness/packs/renty/stand/site.mjs","tool":"Edit"}
+{"ts":"2026-11-22T04:36:12Z","from":"mac","type":"claim","path":"harness/packs/renty/bin/seo-parity.mjs"}
