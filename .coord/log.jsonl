@@ -3628,3 +3628,4 @@
 {"ts":"2026-11-22T04:38:27Z","from":"mac","type":"edit","path":"harness/packs/renty/rules/ast-grep/all/renty-session-set.yml","tool":"Write"}
 {"ts":"2026-11-22T04:38:29Z","from":"mac","type":"claim","path":"harness/packs/renty/rules/ast-grep/packages/renty-tenant-value.yml"}
 {"ts":"2026-11-22T04:38:29Z","from":"mac","type":"edit","path":"harness/packs/renty/rules/ast-grep/packages/renty-tenant-value.yml","tool":"Write"}
+{"ts":"2026-11-22T04:38:31Z","from":"mac","type":"claim","path":"harness/packs/renty/rules/ast-grep/packages/renty-tenant-value-tsx.yml"}
