@@ -3556,3 +3556,4 @@
 {"ts":"2026-11-22T04:26:31Z","from":"mac","type":"edit","path":"harness/test/live-guard.test.mjs","tool":"Write"}
 {"ts":"2026-11-22T04:27:50Z","from":"mac","type":"claim","path":"harness/profiles/verify/lib/html.mjs"}
 {"ts":"2026-11-22T04:27:50Z","from":"mac","type":"edit","path":"harness/profiles/verify/lib/html.mjs","tool":"Write"}
+{"ts":"2026-11-22T04:27:56Z","from":"mac","type":"claim","path":"harness/profiles/verify/lib/digest.mjs"}
