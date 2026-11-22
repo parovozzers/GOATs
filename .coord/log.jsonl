@@ -4092,3 +4092,4 @@
 {"ts":"2026-11-22T16:08:03Z","from":"mac","type":"edit","path":"harness/packs/renty/lib/app-runner.mjs","tool":"Edit"}
 {"ts":"2026-11-22T16:08:04Z","from":"mac","type":"edit","path":"harness/packs/renty/bin/prove.mjs","tool":"Edit"}
 {"ts":"2026-11-22T16:08:06Z","from":"mac","type":"edit","path":"harness/packs/renty/bin/prove.mjs","tool":"Edit"}
+{"ts":"2026-11-22T16:08:09Z","from":"mac","type":"edit","path":"harness/test/browser/renty-proof.test.mjs","tool":"Edit"}
