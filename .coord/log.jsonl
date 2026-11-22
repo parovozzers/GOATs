@@ -3734,3 +3734,4 @@
 {"ts":"2026-11-22T05:13:03Z","from":"mac","type":"edit","path":"harness/lib/live-policy.mjs","tool":"Write"}
 {"ts":"2026-11-22T05:13:05Z","from":"mac","type":"claim","path":"harness/hooks/net-tool-guard.mjs"}
 {"ts":"2026-11-22T05:13:06Z","from":"mac","type":"edit","path":"harness/hooks/net-tool-guard.mjs","tool":"Write"}
+{"ts":"2026-11-22T05:13:07Z","from":"mac","type":"edit","path":"harness/lib/shell.mjs","tool":"Edit"}
