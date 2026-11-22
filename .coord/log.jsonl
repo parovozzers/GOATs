@@ -3681,3 +3681,4 @@
 {"ts":"2026-11-22T04:42:58Z","from":"mac","type":"edit","path":"harness/packs/renty/tz-bindings.json","tool":"Edit"}
 {"ts":"2026-11-22T04:43:12Z","from":"mac","type":"claim","path":"harness/packs/renty/stand/project.mjs"}
 {"ts":"2026-11-22T04:43:13Z","from":"mac","type":"edit","path":"harness/packs/renty/stand/project.mjs","tool":"Write"}
+{"ts":"2026-11-22T04:43:52Z","from":"mac","type":"claim","path":"harness/packs/renty/bin/prove.mjs"}
