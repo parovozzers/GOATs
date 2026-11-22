@@ -3743,3 +3743,4 @@
 {"ts":"2026-11-22T05:13:30Z","from":"mac","type":"edit","path":"harness/lib/guards.mjs","tool":"Edit"}
 {"ts":"2026-11-22T05:13:38Z","from":"mac","type":"edit","path":"harness/hooks/bash-guard.mjs","tool":"Write"}
 {"ts":"2026-11-22T05:13:42Z","from":"mac","type":"edit","path":"harness/hooks/edit-guard.mjs","tool":"Write"}
+{"ts":"2026-11-22T05:13:45Z","from":"mac","type":"edit","path":"harness/lib/settings-merge.mjs","tool":"Edit"}
