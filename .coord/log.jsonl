@@ -4126,3 +4126,4 @@
 {"ts":"2026-11-24T18:39:51Z","from":"mac","type":"edit","path":"/private/tmp/claude-501/-Users-banjo/3a574d88-5eb0-40c5-b74a-bf15f847c9aa/scratchpad/digest.py","tool":"Write"}
 {"ts":"2026-11-24T18:42:37Z","from":"mac","type":"claim","path":"dispatcher/restore/BRIEF.md"}
 {"ts":"2026-11-24T18:42:38Z","from":"mac","type":"edit","path":"dispatcher/restore/BRIEF.md","tool":"Write"}
+{"ts":"2026-11-24T18:54:58Z","from":"mac","type":"session_start"}
